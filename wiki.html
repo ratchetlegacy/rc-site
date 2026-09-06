@@ -101,17 +101,17 @@ a{color:inherit;text-decoration:none}
 .cd-inner{position:relative;max-width:840px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:20px;overflow:hidden;max-height:90vh;overflow-y:auto;display:grid;grid-template-columns:230px 1fr}
 .cd-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.5);border:none;color:#fff;width:36px;height:36px;border-radius:10px;font-size:1.1rem;cursor:pointer;z-index:3}
 .cd-img{aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.cd-info{padding:26px 24px;display:grid;grid-template-columns:1fr 1fr;gap:22px;align-content:start}
-.cd-info .cd-head{grid-column:1/-1}
+.cd-info{padding:26px 24px;display:flex;flex-direction:column;gap:16px;align-content:start}
+.cd-info .cd-head{margin-bottom:0}
+.cd-desc{color:var(--text-mid);font-size:.9rem;margin-bottom:0}
+.cd-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 22px;align-self:start;width:100%}
+.cd-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.84rem}
 .cd-info h2{font-family:'Orbitron',sans-serif;font-size:1.5rem;margin-bottom:4px}
 .cd-role{font-size:.72rem;color:var(--gold);font-weight:700;letter-spacing:.05em;margin-bottom:12px}
 .cd-quote{font-style:italic;color:var(--purple-light);font-size:.92rem;padding:10px 0;border-left:2px solid var(--purple);padding-left:12px;margin-bottom:0}
-.cd-desc{color:var(--text-mid);font-size:.9rem;margin-bottom:0;align-self:start}
-.cd-stats{display:flex;flex-direction:column;gap:8px;align-self:start}
-.cd-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.85rem}
 .cd-k{color:var(--text-dim);font-weight:600;white-space:nowrap}
 .cd-v{color:var(--text);text-align:right}
-@media(max-width:680px){.cd-inner{grid-template-columns:1fr}.cd-img{aspect-ratio:16/10}.cd-info{grid-template-columns:1fr}}
+@media(max-width:680px){.cd-inner{grid-template-columns:1fr}.cd-img{aspect-ratio:16/10}.cd-stats{grid-template-columns:1fr}}
 .back-home:hover{color:var(--text)}
 
 footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;color:var(--text-dim);margin-top:40px}
@@ -239,8 +239,8 @@ function openChar(i){
         ${c.role?`<div class="cd-role">${esc(c.role)}</div>`:''}
         ${c.quote?`<div class="cd-quote">“${esc(c.quote)}”</div>`:''}
       </div>
-      ${c.description?`<p class="cd-desc">${esc(c.description)}</p>`:'<div></div>'}
-      ${stats?`<div class="cd-stats">${stats}</div>`:'<div></div>'}
+      ${c.description?`<p class="cd-desc">${esc(c.description)}</p>`:''}
+      ${stats?`<div class="cd-stats">${stats}</div>`:''}
     </div>`;
   document.getElementById('char-modal').classList.add('open');
   document.body.style.overflow='hidden';
