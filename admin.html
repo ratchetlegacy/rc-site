@@ -132,6 +132,42 @@ input:focus{border-color:var(--purple)}
       <div id="objs-list" style="max-height:420px;overflow-y:auto"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
     </div>
 
+    <div class="card">
+      <h2>🤝 Trade listings to review</h2>
+      <div id="trades-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <div class="card">
+      <h2>🎮 Add / edit a game</h2>
+      <div class="msg" id="game-msg"></div>
+      <input type="hidden" id="ga-id"/>
+      <label>Name *</label>
+      <input type="text" id="ga-name" placeholder="e.g. Rift Apart"/>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label>Platform</label><input type="text" id="ga-platform" placeholder="PlayStation 5"/></div>
+        <div style="width:90px"><label>Year</label><input type="number" id="ga-year" placeholder="2021"/></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label>Release order</label><input type="number" id="ga-rel" placeholder="13"/></div>
+        <div style="flex:1"><label>Story order</label><input type="number" id="ga-story" placeholder="12"/></div>
+      </div>
+      <label>Photo URL</label>
+      <input type="text" id="ga-img" placeholder="https://res.cloudinary.com/..."/>
+      <label>Synopsis</label>
+      <input type="text" id="ga-syn" placeholder="Story summary"/>
+      <label>Anecdote (Did you know?)</label>
+      <input type="text" id="ga-anec" placeholder="A fun fact"/>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="saveGame()" style="flex:1">💾 Save game</button>
+        <button class="btn btn-ghost" onclick="clearGameForm()" id="ga-cancel" style="display:none">Cancel</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🕹️ Games</h2>
+      <div id="games-admin-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
     <button class="btn btn-ghost" style="width:100%" onclick="signOut()">Sign out</button>
   </div>
 </div>
@@ -194,6 +230,8 @@ function showAdmin(){
   loadGuides();
   loadChars();
   loadObjs();
+  loadTrades();
+  loadGamesAdmin();
 }
 async function loadChars(){
   const box=document.getElementById('chars-list');
@@ -310,6 +348,96 @@ async function delObj(id){
   const {error}=await sb.from('catalog').delete().eq('id',id);
   if(error){ alert(error.message); return; }
   loadObjs();
+}
+// ── Trades moderation ──
+async function loadTrades(){
+  const box=document.getElementById('trades-list');
+  const {data,error}=await sb.from('site_trades').select('*').order('created_at',{ascending:false});
+  if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No listings.</div>'; return; }
+  const KL={trade:'🔄 Trade',sell:'💰 Sell',want:'🎯 Want'};
+  const SL={pending:'⏳ Pending',approved:'✅ Approved',rejected:'❌ Rejected'};
+  box.innerHTML=data.map(t=>
+    `<div class="guide-row" style="flex-wrap:wrap">
+      <span class="gi">${t.image_url?'🖼️':'📦'}</span>
+      <div class="gt" style="min-width:130px"><b>${esc(t.item_name)}</b><span>${KL[t.kind]||''} · ${esc(t.platform||'')} · ${SL[t.status]||t.status}</span></div>
+      <a href="${esc(t.listing_url)}" target="_blank" class="btn btn-ghost" style="padding:6px 10px;font-size:.72rem;text-decoration:none">Link</a>
+      ${t.status!=='approved'?`<button class="btn btn-ghost" style="padding:6px 10px;font-size:.72rem;color:var(--green)" onclick="setTradeStatus('${t.id}','approved')">✅</button>`:''}
+      ${t.status!=='rejected'?`<button class="btn btn-ghost" style="padding:6px 10px;font-size:.72rem" onclick="setTradeStatus('${t.id}','rejected')">❌</button>`:''}
+      <button class="btn btn-danger" onclick="delTrade('${t.id}')">Del</button>
+    </div>`
+  ).join('');
+}
+async function setTradeStatus(id,status){
+  const {error}=await sb.from('site_trades').update({status}).eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadTrades();
+}
+async function delTrade(id){
+  if(!confirm('Delete this listing?')) return;
+  const {error}=await sb.from('site_trades').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadTrades();
+}
+// ── Games ──
+async function loadGamesAdmin(){
+  const box=document.getElementById('games-admin-list');
+  const {data,error}=await sb.from('site_games').select('*').order('release_order');
+  if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No games yet.</div>'; return; }
+  box.innerHTML=data.map(g=>
+    `<div class="guide-row">
+      <span class="gi">${g.image_url?'🖼️':'🎮'}</span>
+      <div class="gt"><b>${esc(g.name)}</b><span>Release #${g.release_order||'?'} · Story #${g.story_order||'?'}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick='editGame(${JSON.stringify(g).replace(/'/g,"&#39;")})'>Edit</button>
+      <button class="btn btn-danger" onclick="delGame('${g.id}')">Delete</button>
+    </div>`
+  ).join('');
+}
+function editGame(g){
+  document.getElementById('ga-id').value=g.id;
+  document.getElementById('ga-name').value=g.name||'';
+  document.getElementById('ga-platform').value=g.platform||'';
+  document.getElementById('ga-year').value=g.year||'';
+  document.getElementById('ga-rel').value=g.release_order||'';
+  document.getElementById('ga-story').value=g.story_order||'';
+  document.getElementById('ga-img').value=g.image_url||'';
+  document.getElementById('ga-syn').value=g.synopsis||'';
+  document.getElementById('ga-anec').value=g.anecdote||'';
+  document.getElementById('ga-cancel').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function clearGameForm(){
+  ['ga-id','ga-name','ga-platform','ga-year','ga-rel','ga-story','ga-img','ga-syn','ga-anec'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ga-cancel').style.display='none';
+}
+async function saveGame(){
+  const id=document.getElementById('ga-id').value;
+  const num=v=>v!==''?parseInt(v):null;
+  const row={
+    name:document.getElementById('ga-name').value.trim(),
+    platform:document.getElementById('ga-platform').value.trim()||null,
+    year:num(document.getElementById('ga-year').value),
+    release_order:num(document.getElementById('ga-rel').value)||0,
+    story_order:num(document.getElementById('ga-story').value)||0,
+    image_url:document.getElementById('ga-img').value.trim()||null,
+    synopsis:document.getElementById('ga-syn').value.trim()||null,
+    anecdote:document.getElementById('ga-anec').value.trim()||null
+  };
+  if(!row.name){ showMsg('game-msg','Name is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('site_games').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('site_games').insert([row])); }
+  if(error){ showMsg('game-msg',error.message,false); return; }
+  showMsg('game-msg',id?'Game updated! ✓':'Game added! ✓',true);
+  clearGameForm();
+  loadGamesAdmin();
+}
+async function delGame(id){
+  if(!confirm('Delete this game?')) return;
+  const {error}=await sb.from('site_games').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadGamesAdmin();
 }
 checkSession();
 </script>
