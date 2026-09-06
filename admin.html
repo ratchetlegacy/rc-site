@@ -104,6 +104,34 @@ input:focus{border-color:var(--purple)}
       <div id="chars-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
     </div>
 
+    <div class="card">
+      <h2>📦 Add / edit a catalog object</h2>
+      <div class="msg" id="obj-msg"></div>
+      <input type="hidden" id="o-id"/>
+      <label>Name *</label>
+      <input type="text" id="o-name" placeholder="e.g. Ratchet & Clank 2"/>
+      <label>Category</label>
+      <input type="text" id="o-category" placeholder="Game, Figure, Plush, Guide..."/>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label>Platform</label><input type="text" id="o-platform" placeholder="Playstation 2..."/></div>
+        <div style="width:100px"><label>Year</label><input type="number" id="o-year" placeholder="2004"/></div>
+      </div>
+      <label>Photo URL</label>
+      <input type="text" id="o-image" placeholder="https://res.cloudinary.com/..."/>
+      <label>Description</label>
+      <input type="text" id="o-desc" placeholder="Short description"/>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="saveObj()" style="flex:1">💾 Save object</button>
+        <button class="btn btn-ghost" onclick="clearObjForm()" id="o-cancel" style="display:none">Cancel</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🗃️ Catalog objects</h2>
+      <input type="text" id="obj-search" placeholder="🔍 Search objects..." oninput="renderObjs()" style="margin-bottom:12px"/>
+      <div id="objs-list" style="max-height:420px;overflow-y:auto"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
     <button class="btn btn-ghost" style="width:100%" onclick="signOut()">Sign out</button>
   </div>
 </div>
@@ -165,6 +193,7 @@ function showAdmin(){
   document.getElementById('admin-area').classList.remove('hidden');
   loadGuides();
   loadChars();
+  loadObjs();
 }
 async function loadChars(){
   const box=document.getElementById('chars-list');
@@ -217,6 +246,70 @@ async function delChar(id){
   const {error}=await sb.from('site_characters').delete().eq('id',id);
   if(error){ alert(error.message); return; }
   loadChars();
+}
+// ── Catalog objects (table: catalog, same as the app) ──
+let ALL_OBJS=[];
+async function loadObjs(){
+  const {data,error}=await sb.from('catalog').select('*').order('category').order('name');
+  if(error){ document.getElementById('objs-list').innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  ALL_OBJS=data||[];
+  renderObjs();
+}
+function renderObjs(){
+  const q=(document.getElementById('obj-search').value||'').toLowerCase().trim();
+  const list=ALL_OBJS.filter(o=>!q||(o.name||'').toLowerCase().includes(q));
+  const box=document.getElementById('objs-list');
+  if(!list.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No object.</div>'; return; }
+  box.innerHTML=list.slice(0,200).map(o=>
+    `<div class="guide-row">
+      <span class="gi">${o.image_url?'🖼️':'📦'}</span>
+      <div class="gt"><b>${esc(o.name)}</b><span>${esc([o.category,o.platform,o.year].filter(Boolean).join(' · ')||'—')}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick='editObj(${JSON.stringify(o).replace(/'/g,"&#39;")})'>Edit</button>
+      <button class="btn btn-danger" onclick="delObj('${o.id}')">Delete</button>
+    </div>`
+  ).join('') + (list.length>200?'<div style="color:var(--text-dim);font-size:.75rem;text-align:center;padding:8px">Showing first 200. Use search to narrow down.</div>':'');
+}
+function editObj(o){
+  document.getElementById('o-id').value=o.id;
+  document.getElementById('o-name').value=o.name||'';
+  document.getElementById('o-category').value=o.category||'';
+  document.getElementById('o-platform').value=o.platform||'';
+  document.getElementById('o-year').value=o.year||'';
+  document.getElementById('o-image').value=o.image_url||'';
+  document.getElementById('o-desc').value=o.description||'';
+  document.getElementById('o-cancel').style.display='block';
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function clearObjForm(){
+  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('o-cancel').style.display='none';
+}
+async function saveObj(){
+  const id=document.getElementById('o-id').value;
+  const yr=document.getElementById('o-year').value;
+  const row={
+    name:document.getElementById('o-name').value.trim(),
+    category:document.getElementById('o-category').value.trim()||null,
+    platform:document.getElementById('o-platform').value.trim()||null,
+    year:yr!==''?parseInt(yr):null,
+    image_url:document.getElementById('o-image').value.trim()||null,
+    description:document.getElementById('o-desc').value.trim()||null
+  };
+  if(!row.name){ showMsg('obj-msg','Name is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('catalog').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('catalog').insert([row])); }
+  if(error){ showMsg('obj-msg',error.message,false); return; }
+  showMsg('obj-msg',id?'Object updated! ✓':'Object added! ✓',true);
+  clearObjForm();
+  loadObjs();
+}
+async function delObj(id){
+  if(!confirm('Delete this object from the catalog?')) return;
+  const {error}=await sb.from('catalog').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadObjs();
 }
 checkSession();
 </script>
