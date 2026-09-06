@@ -79,6 +79,31 @@ input:focus{border-color:var(--purple)}
       <div id="guides-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
     </div>
 
+    <div class="card">
+      <h2>🦊 Add / edit a character</h2>
+      <div class="msg" id="char-msg"></div>
+      <input type="hidden" id="c-id"/>
+      <label>Name *</label>
+      <input type="text" id="c-name" placeholder="e.g. Ratchet"/>
+      <label>Role</label>
+      <input type="text" id="c-role" placeholder="e.g. HERO · LOMBAX"/>
+      <label>Description</label>
+      <input type="text" id="c-desc" placeholder="Short description"/>
+      <label>Photo URL (leave empty for emoji)</label>
+      <input type="text" id="c-img" placeholder="https://... your figure photo"/>
+      <label>Emoji (fallback if no photo)</label>
+      <input type="text" id="c-emoji" placeholder="🦊"/>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="saveChar()" style="flex:1">💾 Save character</button>
+        <button class="btn btn-ghost" onclick="clearCharForm()" id="c-cancel" style="display:none">Cancel</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>👥 Characters</h2>
+      <div id="chars-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
     <button class="btn btn-ghost" style="width:100%" onclick="signOut()">Sign out</button>
   </div>
 </div>
@@ -102,11 +127,6 @@ async function signIn(){
   showAdmin();
 }
 async function signOut(){ await sb.auth.signOut(); location.reload(); }
-function showAdmin(){
-  document.getElementById('login-card').classList.add('hidden');
-  document.getElementById('admin-area').classList.remove('hidden');
-  loadGuides();
-}
 async function loadGuides(){
   const box=document.getElementById('guides-list');
   const {data,error}=await sb.from('site_guides').select('*').order('sort_order').order('created_at');
@@ -138,6 +158,65 @@ async function delGuide(id){
   const {error}=await sb.from('site_guides').delete().eq('id',id);
   if(error){ alert(error.message); return; }
   loadGuides();
+}
+// ── Characters ──
+function showAdmin(){
+  document.getElementById('login-card').classList.add('hidden');
+  document.getElementById('admin-area').classList.remove('hidden');
+  loadGuides();
+  loadChars();
+}
+async function loadChars(){
+  const box=document.getElementById('chars-list');
+  const {data,error}=await sb.from('site_characters').select('*').order('sort_order').order('name');
+  if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No characters yet.</div>'; return; }
+  box.innerHTML=data.map(c=>
+    `<div class="guide-row">
+      <span class="gi">${c.image_url?'🖼️':(esc(c.emoji||'🦊'))}</span>
+      <div class="gt"><b>${esc(c.name)}</b><span>${esc(c.role||'—')}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick='editChar(${JSON.stringify(c).replace(/'/g,"&#39;")})'>Edit</button>
+      <button class="btn btn-danger" onclick="delChar('${c.id}')">Delete</button>
+    </div>`
+  ).join('');
+}
+function editChar(c){
+  document.getElementById('c-id').value=c.id;
+  document.getElementById('c-name').value=c.name||'';
+  document.getElementById('c-role').value=c.role||'';
+  document.getElementById('c-desc').value=c.description||'';
+  document.getElementById('c-img').value=c.image_url||'';
+  document.getElementById('c-emoji').value=c.emoji||'';
+  document.getElementById('c-cancel').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function clearCharForm(){
+  ['c-id','c-name','c-role','c-desc','c-img','c-emoji'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-cancel').style.display='none';
+}
+async function saveChar(){
+  const id=document.getElementById('c-id').value;
+  const row={
+    name:document.getElementById('c-name').value.trim(),
+    role:document.getElementById('c-role').value.trim()||null,
+    description:document.getElementById('c-desc').value.trim()||null,
+    image_url:document.getElementById('c-img').value.trim()||null,
+    emoji:document.getElementById('c-emoji').value.trim()||'🦊'
+  };
+  if(!row.name){ showMsg('char-msg','Name is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('site_characters').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('site_characters').insert([row])); }
+  if(error){ showMsg('char-msg',error.message,false); return; }
+  showMsg('char-msg',id?'Character updated! ✓':'Character added! ✓',true);
+  clearCharForm();
+  loadChars();
+}
+async function delChar(id){
+  if(!confirm('Delete this character?')) return;
+  const {error}=await sb.from('site_characters').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadChars();
 }
 checkSession();
 </script>
