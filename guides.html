@@ -94,7 +94,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 
 <div class="wrap">
 
-  <div class="empty-note">📖 Tap a guide to open it in the reader. Guides are managed from the <a href="admin.html" style="color:var(--purple-light);font-weight:600">admin page</a>.</div>
+  <div class="empty-note">📖 Tap a guide to open it in the reader.</div>
 
   <!-- GUIDES LIST — loaded from the database -->
   <div class="guides" id="guides-list">
@@ -119,6 +119,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 <footer>
   <div class="foot-logo">RATCHET LEGACY</div>
   <div class="foot-small">Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games or Sony.</div>
+  <div style="margin-top:14px"><a href="admin.html" style="color:var(--text-dim);font-size:.75rem;opacity:.6;text-decoration:none">⚙️ Admin</a></div>
 </footer>
 
 <script>
@@ -133,7 +134,7 @@ async function loadGuides(){
     const {data,error}=await sb.from('site_guides').select('*').order('sort_order',{ascending:true}).order('created_at',{ascending:true});
     if(error) throw error;
     if(!data||!data.length){
-      box.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-dim)">No guides yet. Add one from the <a href="admin.html" style="color:var(--purple-light)">admin page</a>.</div>';
+      box.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-dim)">No guides yet.</div>';
       return;
     }
     box.innerHTML=data.map(g=>
