@@ -152,7 +152,7 @@ function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>'
 
 async function load(){
   try{
-    const {data,error}=await sb.from('catalog').select('*').order('year',{ascending:true});
+    const {data,error}=await sb.from('catalog').select('*').order('sort_order',{ascending:true}).order('name',{ascending:true});
     if(error){throw error;}
     ALL=data||[];
     document.getElementById('state').style.display='none';
