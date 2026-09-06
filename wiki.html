@@ -68,6 +68,13 @@ a{color:inherit;text-decoration:none}
 .game-head .gthumb{width:54px;height:70px;border-radius:6px;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.4rem}
 .game-head .gthumb img{width:100%;height:100%;object-fit:cover}
 .game-body-inner img.gbig{width:100%;max-height:260px;object-fit:contain;border-radius:10px;margin-bottom:14px;background:var(--bg)}
+/* Visual timeline */
+.timeline{position:relative;padding-left:34px}
+.timeline::before{content:'';position:absolute;left:11px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--purple),var(--orange))}
+.tl-item{position:relative;margin-bottom:12px}
+.tl-item::before{content:'';position:absolute;left:-28px;top:20px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid var(--purple-light);box-shadow:0 0 0 3px var(--bg);z-index:1}
+.tl-item.open::before{background:var(--orange);border-color:var(--orange)}
+.tl-year{position:absolute;left:-34px;top:-6px;font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--text-dim);transform:translateX(-100%);padding-right:10px;white-space:nowrap;display:none}
 
 /* Characters */
 .chars{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
@@ -88,6 +95,22 @@ a{color:inherit;text-decoration:none}
 
 .back-home{display:inline-flex;align-items:center;gap:8px;margin:40px 0;color:var(--text-dim);font-weight:600;transition:.15s}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* Character detail modal */
+.char-modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,6,12,.92);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px}
+.char-modal.open{display:flex}
+.cd-inner{position:relative;max-width:560px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:20px;overflow:hidden;max-height:90vh;overflow-y:auto;display:grid;grid-template-columns:200px 1fr}
+.cd-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.5);border:none;color:#fff;width:36px;height:36px;border-radius:10px;font-size:1.1rem;cursor:pointer;z-index:3}
+.cd-img{aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.cd-info{padding:24px 22px}
+.cd-info h2{font-family:'Orbitron',sans-serif;font-size:1.4rem;margin-bottom:4px}
+.cd-role{font-size:.72rem;color:var(--gold);font-weight:700;letter-spacing:.05em;margin-bottom:12px}
+.cd-quote{font-style:italic;color:var(--purple-light);font-size:.92rem;padding:10px 0;border-left:2px solid var(--purple);padding-left:12px;margin-bottom:12px}
+.cd-desc{color:var(--text-mid);font-size:.9rem;margin-bottom:16px}
+.cd-stats{display:flex;flex-direction:column;gap:8px}
+.cd-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.85rem}
+.cd-k{color:var(--text-dim);font-weight:600}
+.cd-v{color:var(--text);text-align:right}
+@media(max-width:560px){.cd-inner{grid-template-columns:1fr}.cd-img{aspect-ratio:16/10}}
 .back-home:hover{color:var(--text)}
 
 footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;color:var(--text-dim);margin-top:40px}
@@ -105,6 +128,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <div class="nav-links">
     <a href="index.html">Home</a>
     <a href="wiki.html" class="active">Wiki</a>
+    <a href="story.html">Story</a>
     <a href="database.html">Megacorp Vault</a>
     <a href="guides.html">Guides</a>
     <a href="trades.html">Trades</a>
@@ -178,22 +202,48 @@ const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+let CHARS=[];
 async function loadChars(){
   const grid=document.getElementById('chars-grid');
   try{
     const {data,error}=await sb.from('site_characters').select('*').order('sort_order').order('name');
     if(error) throw error;
     if(!data||!data.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">No characters yet.</div>'; return; }
-    grid.innerHTML=data.map(c=>{
+    CHARS=data;
+    grid.innerHTML=data.map((c,i)=>{
       const av = (c.image_url&&c.image_url.trim())
         ? `<div class="av"><img src="${esc(c.image_url)}" alt="" onerror="this.parentNode.textContent='${esc(c.emoji||'🦊')}';this.parentNode.style.background='linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})'"/></div>`
         : `<div class="av" style="background:linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})">${esc(c.emoji||'🦊')}</div>`;
-      return `<div class="char">${av}<h3>${esc(c.name)}</h3>${c.role?`<div class="role">${esc(c.role)}</div>`:''}${c.description?`<p>${esc(c.description)}</p>`:''}</div>`;
+      return `<div class="char" style="cursor:pointer" onclick="openChar(${i})">${av}<h3>${esc(c.name)}</h3>${c.role?`<div class="role">${esc(c.role)}</div>`:''}${c.description?`<p>${esc(c.description)}</p>`:''}</div>`;
     }).join('');
   }catch(e){
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Could not load characters.</div>';
   }
 }
+function openChar(i){
+  const c=CHARS[i]; if(!c) return;
+  const img = (c.image_url&&c.image_url.trim())
+    ? `<img src="${esc(c.image_url)}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.innerHTML='<span style=&quot;font-size:4rem&quot;>${esc(c.emoji||'🦊')}</span>';this.parentNode.style.background='linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})'"/>`
+    : `<span style="font-size:4rem">${esc(c.emoji||'🦊')}</span>`;
+  const rows=[
+    ['Species',c.species],['Height',c.height],['Age',c.age],['Homeworld',c.homeworld],
+    ['First appearance',c.first_appearance],['Weapons / Gadgets',c.weapons],['Voice actor',c.voice_actor]
+  ].filter(r=>r[1]&&r[1].trim());
+  const stats=rows.map(r=>`<div class="cd-row"><span class="cd-k">${r[0]}</span><span class="cd-v">${esc(r[1])}</span></div>`).join('');
+  document.getElementById('cd-body').innerHTML=`
+    <div class="cd-img" style="background:linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})">${img}</div>
+    <div class="cd-info">
+      <h2>${esc(c.name)}</h2>
+      ${c.role?`<div class="cd-role">${esc(c.role)}</div>`:''}
+      ${c.quote?`<div class="cd-quote">“${esc(c.quote)}”</div>`:''}
+      ${c.description?`<p class="cd-desc">${esc(c.description)}</p>`:''}
+      ${stats?`<div class="cd-stats">${stats}</div>`:''}
+    </div>`;
+  document.getElementById('char-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeChar(){ document.getElementById('char-modal').classList.remove('open'); document.body.style.overflow=''; }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeChar(); });
 loadChars();
 
 // ── Games (with release / story order toggle) ──
@@ -220,20 +270,29 @@ function renderGames(){
   if(!GAMES.length){ box.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-dim)">No games yet.</div>'; return; }
   const key=gameOrder==='story'?'story_order':'release_order';
   const sorted=[...GAMES].sort((a,b)=>(a[key]||0)-(b[key]||0));
-  box.innerHTML=sorted.map(g=>{
+  box.innerHTML='<div class="timeline">'+sorted.map(g=>{
     const thumb=g.image_url?`<div class="gthumb"><img src="${esc(g.image_url)}" onerror="this.parentNode.textContent='🎮'"/></div>`:`<div class="yr">${g.year||''}</div>`;
     const bigImg=g.image_url?`<img class="gbig" src="${esc(g.image_url)}" onerror="this.style.display='none'"/>`:'';
-    return `<div class="game" onclick="this.classList.toggle('open')">
+    return `<div class="tl-item"><div class="game" onclick="this.parentNode.classList.toggle('open');this.classList.toggle('open')">
       <div class="game-head">${thumb}<div><h3>${esc(g.name)}</h3><div class="plat">${esc([g.platform,g.year].filter(Boolean).join(' · '))}</div></div><span class="chev">▾</span></div>
       <div class="game-body"><div class="game-body-inner">
         ${bigImg}
         ${g.synopsis?`<p>${esc(g.synopsis)}</p>`:''}
         ${g.anecdote?`<div class="game-anec"><span>💡</span><span><b>Did you know?</b> ${esc(g.anecdote)}</span></div>`:''}
+        ${g.story&&g.story.trim()?`<a href="story.html" style="display:inline-block;margin-top:10px;color:var(--purple-light);font-weight:600;font-size:.85rem">📖 Read the full story →</a>`:''}
       </div></div>
-    </div>`;
-  }).join('');
+    </div></div>`;
+  }).join('')+'</div>';
 }
 loadGames();
 </script>
+<!-- CHARACTER DETAIL MODAL -->
+<div class="char-modal" id="char-modal" onclick="if(event.target===this)closeChar()">
+  <div class="cd-inner">
+    <button class="cd-close" onclick="closeChar()">✕</button>
+    <div id="cd-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
