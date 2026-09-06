@@ -98,20 +98,21 @@ a{color:inherit;text-decoration:none}
 /* Character detail modal */
 .char-modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,6,12,.92);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px}
 .char-modal.open{display:flex}
-.cd-inner{position:relative;max-width:840px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:20px;overflow:hidden;max-height:90vh;overflow-y:auto;display:grid;grid-template-columns:230px 1fr}
+.cd-inner{position:relative;max-width:760px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:20px;overflow:hidden;max-height:90vh;overflow-y:auto;display:block}
 .cd-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.5);border:none;color:#fff;width:36px;height:36px;border-radius:10px;font-size:1.1rem;cursor:pointer;z-index:3}
+.cd-top{display:grid;grid-template-columns:230px 1fr;gap:0}
 .cd-img{aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.cd-info{padding:26px 24px;display:flex;flex-direction:column;gap:16px;align-content:start}
-.cd-info .cd-head{margin-bottom:0}
-.cd-desc{color:var(--text-mid);font-size:.9rem;margin-bottom:0}
-.cd-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 22px;align-self:start;width:100%}
-.cd-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.84rem}
-.cd-info h2{font-family:'Orbitron',sans-serif;font-size:1.5rem;margin-bottom:4px}
-.cd-role{font-size:.72rem;color:var(--gold);font-weight:700;letter-spacing:.05em;margin-bottom:12px}
-.cd-quote{font-style:italic;color:var(--purple-light);font-size:.92rem;padding:10px 0;border-left:2px solid var(--purple);padding-left:12px;margin-bottom:0}
+.cd-top-info{padding:26px 24px;display:flex;flex-direction:column;justify-content:center;gap:12px}
+.cd-top-info h2{font-family:'Orbitron',sans-serif;font-size:1.5rem;margin-bottom:2px}
+.cd-role{font-size:.72rem;color:var(--gold);font-weight:700;letter-spacing:.05em;margin-bottom:4px}
+.cd-stats{display:flex;flex-direction:column;gap:2px}
+.cd-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.84rem}
 .cd-k{color:var(--text-dim);font-weight:600;white-space:nowrap}
 .cd-v{color:var(--text);text-align:right}
-@media(max-width:680px){.cd-inner{grid-template-columns:1fr}.cd-img{aspect-ratio:16/10}.cd-stats{grid-template-columns:1fr}}
+.cd-below{padding:0 24px 26px}
+.cd-quote{font-style:italic;color:var(--purple-light);font-size:.92rem;padding:14px 0 0;border-left:2px solid var(--purple);padding-left:12px;margin:16px 0 0}
+.cd-desc{color:var(--text-mid);font-size:.9rem;margin-top:16px}
+@media(max-width:680px){.cd-top{grid-template-columns:1fr}.cd-img{aspect-ratio:16/10}}
 .back-home:hover{color:var(--text)}
 
 footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;color:var(--text-dim);margin-top:40px}
@@ -232,16 +233,20 @@ function openChar(i){
   ].filter(r=>r[1]&&r[1].trim());
   const stats=rows.map(r=>`<div class="cd-row"><span class="cd-k">${r[0]}</span><span class="cd-v">${esc(r[1])}</span></div>`).join('');
   document.getElementById('cd-body').innerHTML=`
-    <div class="cd-img" style="background:linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})">${img}</div>
-    <div class="cd-info">
-      <div class="cd-head">
-        <h2>${esc(c.name)}</h2>
-        ${c.role?`<div class="cd-role">${esc(c.role)}</div>`:''}
-        ${c.quote?`<div class="cd-quote">“${esc(c.quote)}”</div>`:''}
+    <div class="cd-top">
+      <div class="cd-img" style="background:linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})">${img}</div>
+      <div class="cd-top-info">
+        <div>
+          <h2>${esc(c.name)}</h2>
+          ${c.role?`<div class="cd-role">${esc(c.role)}</div>`:''}
+        </div>
+        ${stats?`<div class="cd-stats">${stats}</div>`:''}
       </div>
+    </div>
+    ${(c.quote||c.description)?`<div class="cd-below">
+      ${c.quote?`<div class="cd-quote">“${esc(c.quote)}”</div>`:''}
       ${c.description?`<p class="cd-desc">${esc(c.description)}</p>`:''}
-      ${stats?`<div class="cd-stats">${stats}</div>`:''}
-    </div>`;
+    </div>`:''}`;
   document.getElementById('char-modal').classList.add('open');
   document.body.style.overflow='hidden';
 }
