@@ -63,6 +63,11 @@ a{color:inherit;text-decoration:none}
 .game-body p{color:var(--text-mid);font-size:.92rem;margin-bottom:14px}
 .game-anec{display:flex;gap:10px;background:rgba(255,200,90,.06);border:1px solid rgba(255,200,90,.18);border-radius:10px;padding:12px 14px;font-size:.86rem;color:var(--text-mid)}
 .game-anec b{color:var(--gold)}
+.order-btn{padding:9px 16px;border-radius:100px;border:1px solid var(--line);background:var(--bg2);color:var(--text-mid);font-size:.84rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif}
+.order-btn.active{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;border-color:transparent}
+.game-head .gthumb{width:54px;height:70px;border-radius:6px;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.4rem}
+.game-head .gthumb img{width:100%;height:100%;object-fit:cover}
+.game-body-inner img.gbig{width:100%;max-height:260px;object-fit:contain;border-radius:10px;margin-bottom:14px;background:var(--bg)}
 
 /* Characters */
 .chars{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
@@ -100,7 +105,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <div class="nav-links">
     <a href="index.html">Home</a>
     <a href="wiki.html" class="active">Wiki</a>
-    <a href="database.html">Database</a>
+    <a href="database.html">Megacorp Vault</a>
     <a href="guides.html">Guides</a>
     <a href="trades.html">Trades</a>
     <a href="index.html#about">About</a>
@@ -126,99 +131,13 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <!-- GAMES -->
   <section class="sec" id="games">
     <div class="sec-title"><span class="em">🎮</span> The Games</div>
-    <div class="sec-sub">Two decades of intergalactic adventure, from the PS2 original to the PS5's dimension-hopping showcase.</div>
-    <div class="games">
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2002</div><div><h3>Ratchet &amp; Clank</h3><div class="plat">PlayStation 2</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>The one that started it all. On the planet Veldin, a Lombax mechanic named Ratchet dreams of space travel — until a small defective robot he nicknames Clank crash-lands nearby. Clank reveals that Chairman Drek of the Blarg is harvesting chunks of inhabited planets to build a new world for his polluted race. The unlikely duo set off across the Solana Galaxy, building a wild arsenal to stop him.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> Insomniac had just finished the Spyro trilogy. Ratchet was first imagined as a space-travelling reptile — feline features won out for their sense of agility.</span></div>
-        </div></div>
-      </div>
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2003</div><div><h3>Going Commando</h3><div class="plat">PS2 · aka Locked and Loaded</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>The heroes are whisked to the brand-new Bogon Galaxy, hired by the mysterious Megacorp to recover a stolen experiment. A bigger arsenal, weapon upgrades and RPG-style stats turned the sequel into a turning point — deeper, funnier and more action-packed, with a darker secret lurking behind the corporation.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> This entry introduced weapon leveling — the more you used a gun, the stronger it grew. It became a series staple.</span></div>
-        </div></div>
-      </div>
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2004</div><div><h3>Up Your Arsenal</h3><div class="plat">PS2 · aka R&amp;C 3</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>Back in Solana, the galaxy faces the robotic menace of Dr. Nefarious. Ratchet joins the Q-Force alongside a washed-up Captain Qwark, blending frantic combat with some of the series' sharpest comedy. Widely regarded as one of the very best entries, it shaped the tone of everything that followed.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> This is the debut of Dr. Nefarious and his long-suffering butler Lawrence — instantly the franchise's most iconic villains.</span></div>
-        </div></div>
-      </div>
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2005</div><div><h3>Deadlocked</h3><div class="plat">PS2 · aka Gladiator</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>Ratchet is kidnapped and forced to compete in DreadZone, a deadly televised gladiator tournament. The most combat-focused classic entry, it leaned hard into shooter territory with two combat bots at your side, arena challenges and a heavy-metal attitude.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> Clank sits most of this one out — instead of adventuring together, he's Ratchet's mission-control voice from the sidelines.</span></div>
-        </div></div>
-      </div>
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2007</div><div><h3>Size Matters</h3><div class="plat">PSP · later PS2</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>Developed by High Impact Games, this handheld adventure packed a full-sized R&amp;C experience onto the PSP. Ratchet and Clank investigate the mystery of the Technomites, a secretive race of tiny inventors, across a surprisingly meaty campaign.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> It was later ported to PS2 — proof the handheld entries were more than just spin-offs.</span></div>
-        </div></div>
-      </div>
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2007</div><div><h3>Tools of Destruction</h3><div class="plat">PlayStation 3 · Future saga</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>The Future saga begins in glorious HD. Pursued by the ruthless Emperor Tachyon, Ratchet flees Solana and starts to uncover the truth about the vanished Lombax race. Gorgeous visuals, inventive gadgets and a heartfelt mystery marked the series' leap to a new generation.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> This is where the deep Lombax lore really begins — the emotional backbone of the entire Future trilogy.</span></div>
-        </div></div>
-      </div>
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2008</div><div><h3>Quest for Booty</h3><div class="plat">PlayStation 3</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>A shorter, downloadable chapter bridging Tools of Destruction and A Crack in Time. Ratchet searches for a way to rescue Clank, in a more story-driven, exploration-focused adventure with a pirate-tinged flavour.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> At about a third the length of a full game, it was one of the series' first experiments with bite-sized digital releases.</span></div>
-        </div></div>
-      </div>
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2009</div><div><h3>A Crack in Time</h3><div class="plat">PlayStation 3</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>The emotional culmination of the Future trilogy. Ratchet searches for Clank while Clank discovers his own destiny at the Great Clock, learning to manipulate time itself. Space exploration, clever puzzles and a genuinely moving story make it a fan favourite — and for many, the series' peak.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> Clank's time-puzzle sections let you record and replay your own past selves to solve rooms — a bold, brainy twist.</span></div>
-        </div></div>
-      </div>
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2011</div><div><h3>All 4 One</h3><div class="plat">PlayStation 3 · Co-op</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>A four-player co-op spin-off where Ratchet, Clank, Qwark and even Dr. Nefarious must team up. It swapped the usual formula for fixed camera angles and party-style teamwork — a lighter, more chaotic take built for playing with friends.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> Watching arch-enemies Qwark and Nefarious forced to cooperate is half the fun — the bickering never stops.</span></div>
-        </div></div>
-      </div>
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2012</div><div><h3>Full Frontal Assault</h3><div class="plat">PS3 · aka Q-Force</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>A compact entry blending classic action with tower-defense strategy. Players defend their base while pushing out to capture enemy territory — an experimental detour that split the difference between genres.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> It was one of the shortest and most budget-friendly releases, aimed at digital players.</span></div>
-        </div></div>
-      </div>
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2013</div><div><h3>Into the Nexus</h3><div class="plat">PS3 · aka Nexus</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>A return to classic, story-driven form and the close of the Future saga. Ratchet faces the dangerous Vendra Prog while the game leans into a slightly darker, more heartfelt tone — a fond farewell to the PS3 era.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> Despite its shorter length, fans praised it as a return to what made the classics great.</span></div>
-        </div></div>
-      </div>
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2016</div><div><h3>Ratchet &amp; Clank (2016)</h3><div class="plat">PlayStation 4 · Reimagining</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>A stunning ground-up reimagining of the original, released alongside the animated movie. It retells the first adventure — narrated by Qwark — with modern visuals, new weapons and reworked planets. A perfect entry point for newcomers.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> Because Qwark narrates, the story playfully contradicts itself — fans treat the 2002 original as the "true" canon version.</span></div>
-        </div></div>
-      </div>
-      <div class="game" onclick="this.classList.toggle('open')">
-        <div class="game-head"><div class="yr">2021</div><div><h3>Rift Apart</h3><div class="plat">PlayStation 5</div></div><span class="chev">▾</span></div>
-        <div class="game-body"><div class="game-body-inner">
-          <p>A dimension-hopping showcase for the PS5. Dr. Nefarious's meddling tears open rifts between realities, introducing Rivet — a battle-hardened Lombax from another dimension. Near-instant loading, dazzling visuals and heartfelt storytelling pushed the series to spectacular new heights.</p>
-          <div class="game-anec"><span>💡</span><span><b>Did you know?</b> The rifts use the PS5's SSD to yank you between whole worlds in a blink — a feature that was impossible on earlier hardware.</span></div>
-        </div></div>
-      </div>
+    <div class="sec-sub">Two decades of intergalactic adventure. Switch between release order and story order.</div>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <button class="order-btn active" id="ob-release" onclick="setOrder('release')">📅 Release order</button>
+      <button class="order-btn" id="ob-story" onclick="setOrder('story')">📖 Story order</button>
+    </div>
+    <div class="games" id="games-list">
+      <div style="text-align:center;padding:30px;color:var(--text-dim)"><span style="display:inline-block;animation:spin 1s linear infinite;font-size:1.4rem">⚙️</span><div style="margin-top:8px">Loading games…</div></div>
     </div>
   </section>
 
@@ -276,6 +195,45 @@ async function loadChars(){
   }
 }
 loadChars();
+
+// ── Games (with release / story order toggle) ──
+let GAMES=[], gameOrder='release';
+async function loadGames(){
+  const box=document.getElementById('games-list');
+  try{
+    const {data,error}=await sb.from('site_games').select('*');
+    if(error) throw error;
+    GAMES=data||[];
+    renderGames();
+  }catch(e){
+    box.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-dim)">Could not load games.</div>';
+  }
+}
+function setOrder(o){
+  gameOrder=o;
+  document.getElementById('ob-release').classList.toggle('active',o==='release');
+  document.getElementById('ob-story').classList.toggle('active',o==='story');
+  renderGames();
+}
+function renderGames(){
+  const box=document.getElementById('games-list');
+  if(!GAMES.length){ box.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-dim)">No games yet.</div>'; return; }
+  const key=gameOrder==='story'?'story_order':'release_order';
+  const sorted=[...GAMES].sort((a,b)=>(a[key]||0)-(b[key]||0));
+  box.innerHTML=sorted.map(g=>{
+    const thumb=g.image_url?`<div class="gthumb"><img src="${esc(g.image_url)}" onerror="this.parentNode.textContent='🎮'"/></div>`:`<div class="yr">${g.year||''}</div>`;
+    const bigImg=g.image_url?`<img class="gbig" src="${esc(g.image_url)}" onerror="this.style.display='none'"/>`:'';
+    return `<div class="game" onclick="this.classList.toggle('open')">
+      <div class="game-head">${thumb}<div><h3>${esc(g.name)}</h3><div class="plat">${esc([g.platform,g.year].filter(Boolean).join(' · '))}</div></div><span class="chev">▾</span></div>
+      <div class="game-body"><div class="game-body-inner">
+        ${bigImg}
+        ${g.synopsis?`<p>${esc(g.synopsis)}</p>`:''}
+        ${g.anecdote?`<div class="game-anec"><span>💡</span><span><b>Did you know?</b> ${esc(g.anecdote)}</span></div>`:''}
+      </div></div>
+    </div>`;
+  }).join('');
+}
+loadGames();
 </script>
 </body>
 </html>
