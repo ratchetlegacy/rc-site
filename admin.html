@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin — Ratchet Legacy</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0A0B14;--bg2:#10121F;--bg3:#181B2E;
+  --purple:#7B4FD4;--purple-light:#9B6FF4;--orange:#FF6B1A;
+  --gold:#FFC85A;--green:#3DD68C;--red:#FF4D6A;
+  --text:#EEF0F8;--text-dim:#8B92AD;--text-mid:#B8BED4;--line:rgba(255,255,255,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:24px}
+a{color:var(--purple-light)}
+.wrap{max-width:640px;margin:0 auto}
+h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.6rem;margin-bottom:6px}
+.sub{color:var(--text-dim);margin-bottom:24px;font-size:.9rem}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px}
+.card h2{font-size:1.05rem;font-weight:700;margin-bottom:14px}
+label{display:block;font-size:.78rem;color:var(--text-dim);font-weight:600;margin-bottom:5px;letter-spacing:.02em}
+input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-family:Inter,sans-serif;font-size:.9rem;outline:none;margin-bottom:14px}
+input:focus{border-color:var(--purple)}
+.btn{border:none;border-radius:10px;padding:12px 20px;font-weight:700;font-size:.9rem;cursor:pointer;font-family:Inter,sans-serif}
+.btn-primary{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;width:100%}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line)}
+.btn-danger{background:rgba(255,77,106,.15);color:var(--red);border:1px solid rgba(255,77,106,.3);padding:6px 12px;font-size:.78rem}
+.msg{padding:11px 14px;border-radius:10px;font-size:.85rem;margin-bottom:14px;display:none}
+.msg.ok{background:rgba(61,214,140,.12);color:var(--green);display:block}
+.msg.err{background:rgba(255,77,106,.12);color:var(--red);display:block}
+.guide-row{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
+.guide-row .gi{font-size:1.3rem}
+.guide-row .gt{flex:1}
+.guide-row .gt b{font-size:.9rem}
+.guide-row .gt span{display:block;font-size:.72rem;color:var(--text-dim)}
+.hidden{display:none}
+.note{font-size:.78rem;color:var(--text-dim);margin-top:-6px;margin-bottom:14px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>🔧 Admin</h1><div class="sub">Manage your site content</div></div>
+    <a href="index.html" class="btn btn-ghost" style="text-decoration:none">← Site</a>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="card" id="login-card">
+    <h2>🔐 Sign in</h2>
+    <div class="msg" id="login-msg"></div>
+    <label>Email</label>
+    <input type="email" id="email" placeholder="ratchetlegacy@gmail.com"/>
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••"/>
+    <button class="btn btn-primary" onclick="signIn()">Sign in</button>
+  </div>
+
+  <!-- GUIDES MANAGER -->
+  <div id="admin-area" class="hidden">
+    <div class="card">
+      <h2>📗 Add a guide</h2>
+      <div class="msg" id="add-msg"></div>
+      <label>Title *</label>
+      <input type="text" id="g-title" placeholder="e.g. Rift Apart Collection Guide"/>
+      <label>Game</label>
+      <input type="text" id="g-game" placeholder="e.g. Rift Apart"/>
+      <label>PDF link *</label>
+      <input type="text" id="g-url" placeholder="https://... (Cloudinary or a direct PDF link)"/>
+      <div class="note">Upload your PDF to Cloudinary (or anywhere public) and paste the link here.</div>
+      <button class="btn btn-primary" onclick="addGuide()">➕ Add guide</button>
+    </div>
+
+    <div class="card">
+      <h2>📚 Existing guides</h2>
+      <div id="guides-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <button class="btn btn-ghost" style="width:100%" onclick="signOut()">Sign out</button>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function showMsg(id,txt,ok){const m=document.getElementById(id);m.textContent=txt;m.className='msg '+(ok?'ok':'err');}
+
+async function checkSession(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){ showAdmin(); }
+}
+async function signIn(){
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error){ showMsg('login-msg',error.message,false); return; }
+  showAdmin();
+}
+async function signOut(){ await sb.auth.signOut(); location.reload(); }
+function showAdmin(){
+  document.getElementById('login-card').classList.add('hidden');
+  document.getElementById('admin-area').classList.remove('hidden');
+  loadGuides();
+}
+async function loadGuides(){
+  const box=document.getElementById('guides-list');
+  const {data,error}=await sb.from('site_guides').select('*').order('sort_order').order('created_at');
+  if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No guides yet.</div>'; return; }
+  box.innerHTML=data.map(g=>
+    `<div class="guide-row">
+      <span class="gi">📗</span>
+      <div class="gt"><b>${esc(g.title)}</b><span>${esc(g.game||'—')}</span></div>
+      <button class="btn btn-danger" onclick="delGuide('${g.id}')">Delete</button>
+    </div>`
+  ).join('');
+}
+async function addGuide(){
+  const title=document.getElementById('g-title').value.trim();
+  const game=document.getElementById('g-game').value.trim();
+  const url=document.getElementById('g-url').value.trim();
+  if(!title||!url){ showMsg('add-msg','Title and PDF link are required.',false); return; }
+  const {error}=await sb.from('site_guides').insert([{title,game:game||null,pdf_url:url}]);
+  if(error){ showMsg('add-msg',error.message,false); return; }
+  showMsg('add-msg','Guide added! ✓',true);
+  document.getElementById('g-title').value='';
+  document.getElementById('g-game').value='';
+  document.getElementById('g-url').value='';
+  loadGuides();
+}
+async function delGuide(id){
+  if(!confirm('Delete this guide?')) return;
+  const {error}=await sb.from('site_guides').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadGuides();
+}
+checkSession();
+</script>
+</body>
+</html>
