@@ -149,11 +149,22 @@ async function loadGuides(){
   }
 }
 
+function toEmbedUrl(url){
+  if(!url) return '';
+  // Google Drive: convert /view or /edit links to /preview for inline embedding
+  const drive=url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if(drive){ return 'https://drive.google.com/file/d/'+drive[1]+'/preview'; }
+  // Google Drive "open?id=" style
+  const driveOpen=url.match(/drive\.google\.com\/open\?id=([^&]+)/);
+  if(driveOpen){ return 'https://drive.google.com/file/d/'+driveOpen[1]+'/preview'; }
+  // Otherwise assume it's a direct PDF link
+  return url+'#view=FitH';
+}
 function openGuide(card){
   const pdf=card.dataset.pdf, title=card.dataset.title, game=card.dataset.game;
   document.getElementById('viewer-title').textContent=title;
   document.getElementById('viewer-game').textContent=game;
-  document.getElementById('viewer-frame').src=pdf+'#view=FitH';
+  document.getElementById('viewer-frame').src=toEmbedUrl(pdf);
   document.getElementById('viewer').classList.add('open');
   document.body.style.overflow='hidden';
 }
