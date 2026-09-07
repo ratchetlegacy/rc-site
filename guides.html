@@ -39,8 +39,12 @@ a{color:inherit;text-decoration:none}
 
 /* Guides grid */
 .guides{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:20px 0 40px}
-.guide-card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;gap:12px}
+.guide-card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;transition:.2s;display:flex;flex-direction:column}
 .guide-card:hover{transform:translateY(-5px);border-color:var(--purple)}
+.guide-cover{width:100%;aspect-ratio:16/10;background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
+.guide-cover img{width:100%;height:100%;object-fit:cover}
+.guide-cover .gc-ph{font-size:2.4rem;opacity:.4}
+.guide-cbody{padding:18px 20px;display:flex;flex-direction:column;gap:8px;flex:1}
 .guide-icon{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:1.6rem}
 .guide-card h3{font-size:1.05rem;font-weight:700}
 .guide-card .game{font-size:.74rem;color:var(--purple-light);font-weight:600;letter-spacing:.02em}
@@ -138,14 +142,17 @@ async function loadGuides(){
       box.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-dim)">No guides yet.</div>';
       return;
     }
-    box.innerHTML=data.map(g=>
-      `<div class="guide-card" data-pdf="${esc(g.pdf_url)}" data-title="${esc(g.title)}" data-game="${esc(g.game||'')}" onclick="openGuide(this)">
-        <div class="guide-icon">📗</div>
-        <h3>${esc(g.title)}</h3>
-        ${g.game?`<div class="game">${esc(g.game)}</div>`:''}
-        <span class="open-lbl">Open guide →</span>
-      </div>`
-    ).join('');
+    box.innerHTML=data.map(g=>{
+      const cover=g.cover_url?`<img src="${esc(g.cover_url)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="gc-ph" style="display:none">📗</span>`:`<span class="gc-ph">📗</span>`;
+      return `<div class="guide-card" data-pdf="${esc(g.pdf_url)}" data-title="${esc(g.title)}" data-game="${esc(g.game||'')}" onclick="openGuide(this)">
+        <div class="guide-cover">${cover}</div>
+        <div class="guide-cbody">
+          <h3>${esc(g.title)}</h3>
+          ${g.game?`<div class="game">${esc(g.game)}</div>`:''}
+          <span class="open-lbl">Open guide →</span>
+        </div>
+      </div>`;
+    }).join('');
   }catch(e){
     box.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-dim)">Could not load guides right now.</div>';
   }
