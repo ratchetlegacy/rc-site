@@ -111,7 +111,15 @@ section{position:relative;z-index:2}
 
 /* About */
 .about{display:grid;grid-template-columns:220px 1fr;gap:44px;align-items:center}
-.about-avatar{width:220px;height:220px;border-radius:24px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:5rem;box-shadow:0 20px 60px -16px var(--purple)}
+.about-avatar{width:220px;height:220px;border-radius:24px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:5rem;box-shadow:0 20px 60px -16px var(--purple);overflow:hidden;flex-shrink:0}
+.about-avatar img{width:100%;height:100%;object-fit:cover}
+.about-mini{display:flex;gap:26px;margin-top:22px;flex-wrap:wrap}
+.am-item{display:flex;flex-direction:column}
+.am-item b{font-family:'Orbitron',sans-serif;font-size:1.5rem;background:linear-gradient(120deg,var(--purple-light),var(--orange));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.am-item span{font-size:.76rem;color:var(--text-dim)}
+.btn-insta{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;box-shadow:0 8px 26px -8px rgba(253,29,29,.5)}
+.btn-insta:hover{transform:translateY(-2px);box-shadow:0 12px 32px -8px rgba(253,29,29,.6)}
+.nav-insta{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff!important;font-weight:700!important;font-size:.84rem}
 .about-copy h2{font-family:'Orbitron',sans-serif;font-weight:700;font-size:clamp(1.6rem,3.5vw,2.3rem);margin-bottom:16px}
 .about-copy p{color:var(--text-mid);margin-bottom:14px}
 
@@ -263,15 +271,20 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
 <section class="sec-pad" id="about">
   <div class="wrap">
     <div class="about">
-      <div class="about-avatar">🦊</div>
+      <div class="about-avatar" id="about-logo">🦊</div>
       <div class="about-copy">
-        <div class="sec-tag">ABOUT</div>
+        <div class="sec-tag">ABOUT THE PROJECT</div>
         <h2>Built by a collector, for collectors</h2>
-        <p>Ratchet Legacy started as one fan's mission to catalog a growing Ratchet &amp; Clank collection — and grew into a hub for the whole community.</p>
-        <p>Everything here is made with love for the series. Follow along on Instagram <a href="https://instagram.com/ratchetlegacy" target="_blank" style="color:var(--purple-light);font-weight:600">@ratchetlegacy</a> and support the project on Ko-fi.</p>
-        <div style="display:flex;gap:12px;margin-top:22px;flex-wrap:wrap">
-          <a href="https://instagram.com/ratchetlegacy" target="_blank" class="btn btn-ghost">📸 Instagram</a>
-          <a href="https://ko-fi.com/ratchetlegacy" target="_blank" class="btn btn-ghost">☕ Ko-fi</a>
+        <p>Ratchet Legacy started as one fan's mission to catalog a growing Ratchet &amp; Clank collection — and grew into a complete hub for the whole community: a reference database, a wiki, the full story of the saga, and a place to trade with fellow fans.</p>
+        <p>Everything here is made with love for the series — from the PS2 classics to Rift Apart. No ads, no tracking, just a passion project by and for the people who care about this galaxy.</p>
+        <div class="about-mini">
+          <div class="am-item"><b>539</b><span>reference pieces</span></div>
+          <div class="am-item"><b>16+</b><span>games covered</span></div>
+          <div class="am-item"><b>100%</b><span>fan-made</span></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:24px;flex-wrap:wrap">
+          <a href="https://instagram.com/ratchetlegacy" target="_blank" class="btn btn-insta">📸 Follow us on Instagram</a>
+          <a href="https://ko-fi.com/ratchetlegacy" target="_blank" class="btn btn-ghost">☕ Support on Ko-fi</a>
         </div>
       </div>
     </div>
@@ -308,6 +321,7 @@ for(let i=0;i<70;i++){
   sc.appendChild(s);
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="site-enhance.js"></script>
 </body>
 </html>
