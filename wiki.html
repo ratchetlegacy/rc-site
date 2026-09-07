@@ -78,6 +78,9 @@ a{color:inherit;text-decoration:none}
 
 /* Characters */
 .chars{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
+.char-group{margin-bottom:34px}
+.char-group-title{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:16px;color:var(--text);display:flex;align-items:center;gap:10px}
+.char-group-title::after{content:'';flex:1;height:1px;background:var(--line)}
 .char{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px 18px;text-align:center;transition:.2s;height:auto;overflow:visible}
 .char:hover{transform:translateY(-5px);border-color:var(--orange)}
 .char .av{width:80px;height:80px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:2.1rem;overflow:hidden;position:relative}
@@ -205,6 +208,8 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 let CHARS=[];
+const CAT_LABELS={'Hero':'🦸 Heroes','Villain':'😈 Villains','Ally':'🤝 Allies','Creature':'🐾 Creatures','Robot':'🤖 Robots','Other':'✨ Others'};
+const CAT_SORT=['Hero','Ally','Villain','Robot','Creature','Other'];
 async function loadChars(){
   const grid=document.getElementById('chars-grid');
   try{
@@ -212,11 +217,22 @@ async function loadChars(){
     if(error) throw error;
     if(!data||!data.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">No characters yet.</div>'; return; }
     CHARS=data;
-    grid.innerHTML=data.map((c,i)=>{
-      const av = (c.image_url&&c.image_url.trim())
-        ? `<div class="av"><img src="${esc(c.image_url)}" alt="" onerror="this.parentNode.textContent='${esc(c.emoji||'🦊')}';this.parentNode.style.background='linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})'"/></div>`
-        : `<div class="av" style="background:linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})">${esc(c.emoji||'🦊')}</div>`;
-      return `<div class="char" style="cursor:pointer" onclick="openChar(${i})">${av}<h3>${esc(c.name)}</h3>${c.role?`<div class="role">${esc(c.role)}</div>`:''}${c.description?`<p>${esc(c.description)}</p>`:''}</div>`;
+    // group by category
+    const groups={};
+    data.forEach((c,i)=>{ const k=c.category||'Other'; (groups[k]=groups[k]||[]).push(i); });
+    const order=CAT_SORT.filter(k=>groups[k]);
+    Object.keys(groups).forEach(k=>{ if(!order.includes(k)) order.push(k); });
+    grid.classList.remove('chars'); // we'll build our own sections
+    grid.innerHTML=order.map(cat=>{
+      const cards=groups[cat].map(i=>{
+        const c=data[i];
+        const pos=esc(c.img_pos||'center');
+        const av = (c.image_url&&c.image_url.trim())
+          ? `<div class="av"><img src="${esc(c.image_url)}" alt="" style="object-position:${pos}" onerror="this.parentNode.textContent='${esc(c.emoji||'🦊')}';this.parentNode.style.background='linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})'"/></div>`
+          : `<div class="av" style="background:linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})">${esc(c.emoji||'🦊')}</div>`;
+        return `<div class="char" style="cursor:pointer" onclick="openChar(${i})">${av}<h3>${esc(c.name)}</h3>${c.role?`<div class="role">${esc(c.role)}</div>`:''}${c.description?`<p>${esc(c.description)}</p>`:''}</div>`;
+      }).join('');
+      return `<div class="char-group"><div class="char-group-title">${CAT_LABELS[cat]||('✨ '+esc(cat))}</div><div class="chars">${cards}</div></div>`;
     }).join('');
   }catch(e){
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Could not load characters.</div>';
@@ -225,7 +241,7 @@ async function loadChars(){
 function openChar(i){
   const c=CHARS[i]; if(!c) return;
   const img = (c.image_url&&c.image_url.trim())
-    ? `<img src="${esc(c.image_url)}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.innerHTML='<span style=&quot;font-size:4rem&quot;>${esc(c.emoji||'🦊')}</span>';this.parentNode.style.background='linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})'"/>`
+    ? `<img src="${esc(c.image_url)}" style="width:100%;height:100%;object-fit:cover;object-position:${esc(c.img_pos||'center')}" onerror="this.parentNode.innerHTML='<span style=&quot;font-size:4rem&quot;>${esc(c.emoji||'🦊')}</span>';this.parentNode.style.background='linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})'"/>`
     : `<span style="font-size:4rem">${esc(c.emoji||'🦊')}</span>`;
   const rows=[
     ['Species',c.species],['Height',c.height],['Age',c.age],['Homeworld',c.homeworld],
