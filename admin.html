@@ -98,6 +98,8 @@ input:focus{border-color:var(--purple)}
         <input type="text" id="g-game" placeholder="e.g. Rift Apart"/>
         <label>PDF link *</label>
         <input type="text" id="g-url" placeholder="https://... (Cloudinary, Drive, direct PDF)"/>
+        <label>Cover image URL</label>
+        <input type="text" id="g-cover" placeholder="https://... (game box art or your own photo)"/>
         <div class="note">Upload your PDF and paste the link here.</div>
         <button class="btn btn-primary" style="width:100%" onclick="saveGuide()">💾 Save guide</button>
       </div>
@@ -282,7 +284,7 @@ async function loadGuides(){
   ).join('');
 }
 function openGuideForm(){
-  ['g-id','g-title','g-game','g-url'].forEach(id=>document.getElementById(id).value='');
+  ['g-id','g-title','g-game','g-url','g-cover'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('add-msg').style.display='none';
   document.getElementById('guide-modal-title').textContent='📗 Add guide';
   document.getElementById('guide-modal').classList.add('open');
@@ -293,6 +295,7 @@ function editGuide(g){
   document.getElementById('g-title').value=g.title||'';
   document.getElementById('g-game').value=g.game||'';
   document.getElementById('g-url').value=g.pdf_url||'';
+  document.getElementById('g-cover').value=g.cover_url||'';
   document.getElementById('add-msg').style.display='none';
   document.getElementById('guide-modal-title').textContent='✏️ Edit guide';
   document.getElementById('guide-modal').classList.add('open');
@@ -302,10 +305,11 @@ async function saveGuide(){
   const title=document.getElementById('g-title').value.trim();
   const game=document.getElementById('g-game').value.trim();
   const url=document.getElementById('g-url').value.trim();
+  const cover=document.getElementById('g-cover').value.trim()||null;
   if(!title||!url){ showMsg('add-msg','Title and PDF link are required.',false); return; }
   let error;
-  if(id){ ({error}=await sb.from('site_guides').update({title,game:game||null,pdf_url:url}).eq('id',id)); }
-  else { ({error}=await sb.from('site_guides').insert([{title,game:game||null,pdf_url:url}])); }
+  if(id){ ({error}=await sb.from('site_guides').update({title,game:game||null,pdf_url:url,cover_url:cover}).eq('id',id)); }
+  else { ({error}=await sb.from('site_guides').insert([{title,game:game||null,pdf_url:url,cover_url:cover}])); }
   if(error){ showMsg('add-msg',error.message,false); return; }
   showMsg('add-msg',id?'Guide updated! ✓':'Guide added! ✓',true);
   setTimeout(()=>{ closeGuideForm(); loadGuides(); }, 700);
