@@ -57,7 +57,7 @@
     // ---- Scroll reveal: mark sensible blocks, then observe ----
     const targets=document.querySelectorAll(
       'section, .uni-card, .app-show, .stats-band, .trade-box, .about, '+
-      '.game, .char, .lore-card, .how-step, .listing, .guide-card, .chapter, .sec-head'
+      '.game, .lore-card, .how-step, .listing, .guide-card, .chapter, .sec-head'
     );
     targets.forEach(t=>{ if(!t.closest('.hero')) t.classList.add('reveal'); });
 
