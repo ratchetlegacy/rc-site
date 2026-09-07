@@ -73,5 +73,35 @@
     } else {
       targets.forEach(t=>t.classList.add('in'));
     }
+
+    // ---- Homepage: fill universe cards with real images from the database ----
+    injectUniverseImages();
   });
+
+  async function injectUniverseImages(){
+    const cards=document.querySelectorAll('.uni-card');
+    if(!cards.length || !window.supabase) return;
+    try{
+      const sb=window.supabase.createClient(
+        'https://ihucxnmqnhevfvlamgwc.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU'
+      );
+      const [{data:games},{data:chars}]=await Promise.all([
+        sb.from('site_games').select('image_url').not('image_url','is',null).limit(1),
+        sb.from('site_characters').select('image_url').not('image_url','is',null).limit(1)
+      ]);
+      const gImg=games&&games[0]&&games[0].image_url;
+      const cImg=chars&&chars[0]&&chars[0].image_url;
+      // card 0 = Games, card 1 = Characters (per the homepage order)
+      if(gImg && cards[0]) setCardBg(cards[0], gImg);
+      if(cImg && cards[1]) setCardBg(cards[1], cImg);
+    }catch(e){ /* silent */ }
+  }
+  function setCardBg(card, url){
+    const shade=card.querySelector('.shade');
+    card.style.backgroundImage='linear-gradient(to top,rgba(10,11,20,.95) 10%,rgba(10,11,20,.4) 60%,rgba(10,11,20,.2)),url('+url+')';
+    card.style.backgroundSize='cover';
+    card.style.backgroundPosition='center';
+    const ic=card.querySelector('.ic'); if(ic) ic.style.opacity='.5';
+  }
 })();
