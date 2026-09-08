@@ -463,12 +463,12 @@ function renderObjs(){
 }
 // Move an object up/down within its category (swaps sort_order)
 async function moveObj(id, dir){
-  const obj=ALL_OBJS.find(o=>o.id===id);
+  const obj=ALL_OBJS.find(o=>String(o.id)===String(id));
   if(!obj){ showToast2('Object not found in memory'); return; }
   const cat=obj.category||'';
   const sameCat=ALL_OBJS.filter(o=>(o.category||'')===cat)
     .sort((a,b)=>(a.sort_order||0)-(b.sort_order||0) || (a.name||'').localeCompare(b.name||''));
-  const idx=sameCat.findIndex(o=>o.id===id);
+  const idx=sameCat.findIndex(o=>String(o.id)===String(id));
   const swapIdx=idx+dir;
   if(swapIdx<0){ showToast2('Already at the top of "'+cat+'"'); return; }
   if(swapIdx>=sameCat.length){ showToast2('Already at the bottom of "'+cat+'"'); return; }
@@ -512,7 +512,7 @@ function closeObjForm(){
   document.body.style.overflow='';
 }
 function editObjById(id){
-  const o=ALL_OBJS.find(x=>x.id===id);
+  const o=ALL_OBJS.find(x=>String(x.id)===String(id));
   if(o) editObj(o);
 }
 function editObj(o){
