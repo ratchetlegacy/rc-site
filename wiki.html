@@ -209,7 +209,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
-function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 let CHARS=[];
 const CAT_LABELS={'Hero':'🦸 Heroes','Villain':'😈 Villains','Ally':'🤝 Allies','Creature':'🐾 Creatures','Robot':'🤖 Robots','Other':'✨ Others'};
 const CAT_SORT=['Hero','Ally','Villain','Robot','Creature','Other'];
