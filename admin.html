@@ -34,8 +34,10 @@ input:focus{border-color:var(--purple)}
 .guide-row{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
 .admin-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
 .admin-card{position:relative;background:var(--bg);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
-.admin-card .ac-move{position:absolute;top:6px;left:6px;z-index:2;display:flex;flex-direction:column;gap:2px}
-.admin-card .ac-move button{background:rgba(0,0,0,.6);border:none;color:#fff;width:22px;height:18px;border-radius:4px;font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.admin-card .ac-move{position:absolute;top:6px;left:6px;z-index:5;display:flex;flex-direction:column;gap:3px}
+.admin-card .ac-move button{background:rgba(0,0,0,.75);border:1px solid rgba(255,255,255,.2);color:#fff;width:28px;height:24px;border-radius:5px;font-size:.72rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1}
+.admin-card .ac-move button:hover{background:var(--purple);border-color:var(--purple)}
+.admin-card .ac-move button:active{transform:scale(.9)}
 .admin-card .ac-move button:hover{background:var(--purple)}
 .admin-card .ac-cover{width:100%;aspect-ratio:3/4;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden}
 .admin-card .ac-ph{font-size:1.8rem;opacity:.3}
@@ -433,14 +435,14 @@ function renderObjs(){
   });
   const box=document.getElementById('objs-list');
   if(!list.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No object.</div>'; return; }
-  const cardHtml=(o,idx)=>{
+  const cardHtml=(o)=>{
     const cover=o.image_url
       ? `<img src="${esc(o.image_url)}" style="width:100%;height:100%;object-fit:contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ac-ph" style="display:none">📦</span>`
       : `<span class="ac-ph">📦</span>`;
-    return `<div class="admin-card" data-id="${o.id}">
+    return `<div class="admin-card" data-id="${esc(o.id)}">
       <div class="ac-move">
-        <button onclick="moveObj('${o.id}',-1)" title="Move up">▲</button>
-        <button onclick="moveObj('${o.id}',1)" title="Move down">▼</button>
+        <button type="button" onclick="event.stopPropagation();moveObj('${esc(o.id)}',-1)" title="Move up">▲</button>
+        <button type="button" onclick="event.stopPropagation();moveObj('${esc(o.id)}',1)" title="Move down">▼</button>
       </div>
       <div class="ac-cover">${cover}</div>
       <div class="ac-body">
@@ -448,8 +450,8 @@ function renderObjs(){
         <div class="ac-meta">${esc([o.platform,o.year].filter(Boolean).join(' · ')||o.category||'')}</div>
       </div>
       <div class="ac-actions">
-        <button class="btn btn-ghost" style="flex:1;padding:6px;font-size:.72rem" onclick='editObj(${JSON.stringify(o).replace(/'/g,"&#39;")})'>Edit</button>
-        <button class="btn btn-danger" style="padding:6px 10px" onclick="delObj('${o.id}')">Del</button>
+        <button type="button" class="btn btn-ghost" style="flex:1;padding:6px;font-size:.72rem" onclick="editObjById('${esc(o.id)}')">Edit</button>
+        <button type="button" class="btn btn-danger" style="padding:6px 10px" onclick="delObj('${esc(o.id)}')">Del</button>
       </div>
     </div>`;
   };
@@ -457,18 +459,18 @@ function renderObjs(){
 }
 // Move an object up/down within its category (swaps sort_order)
 async function moveObj(id, dir){
-  const obj=ALL_OBJS.find(o=>o.id===id); if(!obj) return;
+  const obj=ALL_OBJS.find(o=>o.id===id);
+  if(!obj){ showToast2('Object not found in memory'); return; }
   const cat=obj.category||'';
   const sameCat=ALL_OBJS.filter(o=>(o.category||'')===cat)
     .sort((a,b)=>(a.sort_order||0)-(b.sort_order||0) || (a.name||'').localeCompare(b.name||''));
   const idx=sameCat.findIndex(o=>o.id===id);
   const swapIdx=idx+dir;
-  if(swapIdx<0||swapIdx>=sameCat.length) return;
+  if(swapIdx<0){ showToast2('Already at the top of "'+cat+'"'); return; }
+  if(swapIdx>=sameCat.length){ showToast2('Already at the bottom of "'+cat+'"'); return; }
   // swap positions in the array
   [sameCat[idx], sameCat[swapIdx]] = [sameCat[swapIdx], sameCat[idx]];
-  // re-number the whole category and persist EVERY row (so order sticks)
   const box=document.getElementById('objs-list');
-  const prev=box.innerHTML;
   box.style.opacity='.6';
   try{
     for(let i=0;i<sameCat.length;i++){
@@ -477,10 +479,23 @@ async function moveObj(id, dir){
       if(error){ throw error; }
     }
     await loadObjs();
+    showToast2('Moved ✓');
   }catch(e){
     box.style.opacity='1';
-    alert('Could not save order: '+e.message+'\n\nMake sure the "sort_order" column exists in the catalog table.');
+    showToast2('Error: '+e.message, true);
   }
+}
+// small toast for admin feedback
+function showToast2(msg, isErr){
+  let t=document.getElementById('admin-toast');
+  if(!t){ t=document.createElement('div'); t.id='admin-toast';
+    t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 18px;border-radius:10px;font-size:.85rem;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.4);transition:opacity .3s';
+    document.body.appendChild(t); }
+  t.textContent=msg;
+  t.style.background=isErr?'#FF4D6A':'#3DD68C';
+  t.style.color=isErr?'#fff':'#06331d';
+  t.style.opacity='1';
+  clearTimeout(window._t2); window._t2=setTimeout(()=>{ t.style.opacity='0'; }, 2200);
 }
 function openObjForm(){
   clearObjForm();
@@ -491,6 +506,10 @@ function openObjForm(){
 function closeObjForm(){
   document.getElementById('obj-modal').style.display='none';
   document.body.style.overflow='';
+}
+function editObjById(id){
+  const o=ALL_OBJS.find(x=>x.id===id);
+  if(o) editObj(o);
 }
 function editObj(o){
   document.getElementById('o-id').value=o.id;
