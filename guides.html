@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Guides — Ratchet Legacy</title>
+<title>Wiki — Ratchet Legacy</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
@@ -28,8 +28,8 @@ a{color:inherit;text-decoration:none}
 .nav-cta{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff!important;font-weight:700!important}
 .nav-burger{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
 
-.page-hero{padding:130px 24px 40px;text-align:center;position:relative;overflow:hidden}
-.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 0%,rgba(123,79,212,.2),transparent 70%)}
+.page-hero{padding:130px 24px 50px;text-align:center;position:relative;overflow:hidden}
+.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 0%,rgba(123,79,212,.22),transparent 70%)}
 .page-hero .tag{position:relative;font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:.24em;color:var(--gold);margin-bottom:16px}
 .page-hero h1{position:relative;font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2.2rem,6vw,3.6rem);margin-bottom:16px}
 .page-hero h1 .grad{background:linear-gradient(120deg,var(--purple-light),var(--orange));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
@@ -37,41 +37,96 @@ a{color:inherit;text-decoration:none}
 
 .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
 
-/* Guides grid */
-.guides{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:20px 0 40px}
-.guide-card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;transition:.2s;display:flex;flex-direction:column}
-.guide-card:hover{transform:translateY(-5px);border-color:var(--purple)}
-.guide-cover{width:100%;aspect-ratio:16/10;background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
-.guide-cover img{width:100%;height:100%;object-fit:cover}
-.guide-cover .gc-ph{font-size:2.4rem;opacity:.4}
-.guide-cbody{padding:18px 20px;display:flex;flex-direction:column;gap:8px;flex:1}
-.guide-icon{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:1.6rem}
-.guide-card h3{font-size:1.05rem;font-weight:700}
-.guide-card .game{font-size:.74rem;color:var(--purple-light);font-weight:600;letter-spacing:.02em}
-.guide-card .open-lbl{margin-top:auto;color:var(--gold);font-weight:600;font-size:.85rem}
+/* sub-nav */
+.subnav{position:sticky;top:66px;z-index:50;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:16px 0;background:rgba(10,11,20,.7);backdrop-filter:blur(10px);margin-bottom:20px}
+.subnav a{padding:8px 18px;border-radius:100px;font-size:.85rem;font-weight:600;color:var(--text-mid);border:1px solid var(--line);transition:.16s}
+.subnav a:hover{color:var(--text);border-color:var(--purple);background:rgba(123,79,212,.1)}
 
-/* Viewer */
-.viewer-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,6,12,.94);backdrop-filter:blur(6px);flex-direction:column}
-.viewer-overlay.open{display:flex}
-.viewer-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--bg)}
-.viewer-bar h3{font-size:1rem;font-weight:700}
-.viewer-bar .vg{font-size:.72rem;color:var(--purple-light);font-weight:600}
-.viewer-close{background:rgba(255,255,255,.08);border:none;color:var(--text);width:38px;height:38px;border-radius:10px;font-size:1.1rem;cursor:pointer}
-.viewer-close:hover{background:rgba(255,255,255,.15)}
-.viewer-frame{flex:1;width:100%;border:none;background:#222}
+.sec{padding:44px 0;scroll-margin-top:130px}
+.sec-title{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.7rem;margin-bottom:6px;display:flex;align-items:center;gap:12px}
+.sec-title .em{font-size:1.8rem}
+.sec-sub{color:var(--text-dim);margin-bottom:28px}
 
-.empty-note{text-align:center;color:var(--text-dim);font-size:.9rem;max-width:560px;margin:0 auto 30px;padding:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px}
+/* Games accordion */
+.games{display:flex;flex-direction:column;gap:12px}
+.game{background:var(--bg2);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:border-color .18s}
+.game.open,.game:hover{border-color:var(--purple)}
+.game-head{display:grid;grid-template-columns:74px 1fr auto;gap:16px;align-items:center;padding:16px 20px;cursor:pointer}
+.game-head .yr{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.2rem;color:var(--orange-light);text-align:center}
+.game-head h3{font-size:1.05rem;font-weight:700;margin-bottom:2px}
+.game-head .plat{font-size:.7rem;color:var(--purple-light);font-weight:600;letter-spacing:.02em}
+.game-head .chev{color:var(--text-dim);font-size:1.1rem;transition:transform .2s}
+.game.open .game-head .chev{transform:rotate(180deg)}
+.game-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.game.open .game-body{max-height:600px}
+.game-body-inner{padding:0 20px 20px 20px;border-top:1px solid var(--line);margin:0 20px;padding-top:16px}
+.game-body p{color:var(--text-mid);font-size:.92rem;margin-bottom:14px}
+.game-anec{display:flex;gap:10px;background:rgba(255,200,90,.06);border:1px solid rgba(255,200,90,.18);border-radius:10px;padding:12px 14px;font-size:.86rem;color:var(--text-mid)}
+.game-anec b{color:var(--gold)}
+.order-btn{padding:9px 16px;border-radius:100px;border:1px solid var(--line);background:var(--bg2);color:var(--text-mid);font-size:.84rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif}
+.order-btn.active{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;border-color:transparent}
+.game-head .gthumb{width:54px;height:70px;border-radius:6px;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.4rem}
+.game-head .gthumb img{width:100%;height:100%;object-fit:cover}
+.game-body-inner img.gbig{width:100%;max-height:260px;object-fit:contain;border-radius:10px;margin-bottom:14px;background:var(--bg)}
+/* Visual timeline */
+.timeline{position:relative;padding-left:34px}
+.timeline::before{content:'';position:absolute;left:11px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--purple),var(--orange))}
+.tl-item{position:relative;margin-bottom:12px}
+.tl-item::before{content:'';position:absolute;left:-28px;top:20px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid var(--purple-light);box-shadow:0 0 0 3px var(--bg);z-index:1}
+.tl-item.open::before{background:var(--orange);border-color:var(--orange)}
+.tl-year{position:absolute;left:-34px;top:-6px;font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--text-dim);transform:translateX(-100%);padding-right:10px;white-space:nowrap;display:none}
 
-.back-home{display:inline-flex;align-items:center;gap:8px;margin:10px 0 40px;color:var(--text-dim);font-weight:600;transition:.15s}
+/* Characters */
+.chars{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
+.char-group{margin-bottom:34px}
+.char-group-title{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:16px;color:var(--text);display:flex;align-items:center;gap:10px}
+.char-group-title::after{content:'';flex:1;height:1px;background:var(--line)}
+.char{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px 18px;text-align:center;transition:.2s;height:auto;overflow:visible}
+.char:hover{transform:translateY(-5px);border-color:var(--orange)}
+.char .av{width:80px;height:80px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:2.1rem;overflow:hidden;position:relative}
+.char .av img{width:100%;height:100%;object-fit:cover}
+.char h3{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;margin-bottom:4px}
+.char .role{font-size:.72rem;color:var(--gold);font-weight:600;margin-bottom:10px;letter-spacing:.03em}
+.char p{color:var(--text-mid);font-size:.82rem;line-height:1.5}
+
+/* Lore */
+.lore{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.lore-card{position:relative;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:26px 26px 26px 30px;transition:.2s;overflow:hidden}
+.lore-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--purple),var(--orange));opacity:.7;transition:.2s}
+.lore-card:hover{border-color:var(--purple);transform:translateY(-4px);box-shadow:0 14px 34px -14px rgba(123,79,212,.5)}
+.lore-card:hover::before{opacity:1;width:5px}
+.lore-card h3{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.lore-card h3 span:first-child{font-size:1.5rem}
+.lore-card p{color:var(--text-mid);font-size:.92rem}
+
+.back-home{display:inline-flex;align-items:center;gap:8px;margin:40px 0;color:var(--text-dim);font-weight:600;transition:.15s}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* Character detail modal */
+.char-modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,6,12,.92);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px}
+.char-modal.open{display:flex}
+.cd-inner{position:relative;max-width:760px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:20px;overflow:hidden;max-height:90vh;overflow-y:auto;display:block}
+.cd-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.5);border:none;color:#fff;width:36px;height:36px;border-radius:10px;font-size:1.1rem;cursor:pointer;z-index:3}
+.cd-top{display:grid;grid-template-columns:230px 1fr;gap:0}
+.cd-img{aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.cd-top-info{padding:26px 24px;display:flex;flex-direction:column;justify-content:center;gap:12px}
+.cd-top-info h2{font-family:'Orbitron',sans-serif;font-size:1.5rem;margin-bottom:2px}
+.cd-role{font-size:.72rem;color:var(--gold);font-weight:700;letter-spacing:.05em;margin-bottom:4px}
+.cd-stats{display:flex;flex-direction:column;gap:2px}
+.cd-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.84rem}
+.cd-k{color:var(--text-dim);font-weight:600;white-space:nowrap}
+.cd-v{color:var(--text);text-align:right}
+.cd-below{padding:0 24px 26px}
+.cd-quote{font-style:italic;color:var(--purple-light);font-size:.92rem;padding:14px 0 0;border-left:2px solid var(--purple);padding-left:12px;margin:16px 0 0}
+.cd-desc{color:var(--text-mid);font-size:.9rem;margin-top:16px}
+@media(max-width:680px){.cd-top{grid-template-columns:1fr}.cd-img{aspect-ratio:16/10}}
 .back-home:hover{color:var(--text)}
 
-footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;color:var(--text-dim)}
+footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;color:var(--text-dim);margin-top:40px}
 .foot-logo{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.06em;color:var(--text);margin-bottom:12px}
 .foot-small{font-size:.8rem}
 
-@media(max-width:820px){.nav-links{display:none}.nav-burger{display:block}.guides{grid-template-columns:1fr 1fr}}
-@media(max-width:520px){.guides{grid-template-columns:1fr}}
+@media(max-width:820px){.nav-links{display:none}.nav-burger{display:block}.chars{grid-template-columns:1fr 1fr}.lore{grid-template-columns:1fr}}
+@media(max-width:520px){.chars{grid-template-columns:1fr 1fr}.game{grid-template-columns:64px 1fr;gap:12px}}
 </style>
 </head>
 <body>
@@ -80,10 +135,10 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <a href="index.html" class="nav-logo"><span class="mark">🔧</span> RATCHET LEGACY</a>
   <div class="nav-links">
     <a href="index.html">Home</a>
-    <a href="wiki.html">Wiki</a>
+    <a href="wiki.html" class="active">Wiki</a>
     <a href="story.html">Story</a>
     <a href="database.html">Megacorp Vault</a>
-    <a href="guides.html" class="active">Guides</a>
+    <a href="guides.html">Guides</a>
     <a href="trades.html">Trades</a>
     <a href="index.html#about">About</a>
     <a href="https://ratchetlegacy.github.io/rc-tracker" target="_blank" class="nav-cta">Open the tracker</a>
@@ -92,33 +147,56 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 </nav>
 
 <header class="page-hero">
-  <div class="tag">RESOURCES</div>
-  <h1>Collection <span class="grad">Guides</span></h1>
-  <p>Browse guides to help you complete your Ratchet &amp; Clank collection — read them right here on the site.</p>
+  <div class="tag">THE UNIVERSE</div>
+  <h1>The <span class="grad">R&amp;C</span> Wiki</h1>
+  <p>Everything about the galaxy's favourite Lombax and his robot best friend — the games, the heroes, and the lore.</p>
 </header>
+
+<div class="subnav">
+  <a href="#games">🎮 Games</a>
+  <a href="#characters">🦊 Characters</a>
+  <a href="#lore">📖 Lore</a>
+</div>
 
 <div class="wrap">
 
-  <div class="empty-note">📖 Tap a guide to open it in the reader.</div>
+  <!-- GAMES -->
+  <section class="sec" id="games">
+    <div class="sec-title"><span class="em">🎮</span> The Games</div>
+    <div class="sec-sub">Two decades of intergalactic adventure. Switch between release order and story order.</div>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <button class="order-btn active" id="ob-release" onclick="setOrder('release')">📅 Release order</button>
+      <button class="order-btn" id="ob-story" onclick="setOrder('story')">📖 Story order</button>
+    </div>
+    <div class="games" id="games-list">
+      <div style="text-align:center;padding:30px;color:var(--text-dim)"><span style="display:inline-block;animation:spin 1s linear infinite;font-size:1.4rem">⚙️</span><div style="margin-top:8px">Loading games…</div></div>
+    </div>
+  </section>
 
-  <!-- GUIDES LIST — loaded from the database -->
-  <div class="guides" id="guides-list">
-    <div class="state" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-dim)"><span style="display:inline-block;animation:spin 1s linear infinite;font-size:1.5rem">⚙️</span><div style="margin-top:8px">Loading guides…</div></div>
-  </div>
+  <!-- CHARACTERS -->
+  <section class="sec" id="characters">
+    <div class="sec-title"><span class="em">🦊</span> Characters</div>
+    <div class="sec-sub">The heroes, villains and oddballs that make the galaxy worth saving.</div>
+    <div class="chars" id="chars-grid">
+      <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)"><span style="display:inline-block;animation:spin 1s linear infinite;font-size:1.4rem">⚙️</span><div style="margin-top:8px">Loading characters…</div></div>
+    </div>
+  </section>
+
+  <!-- LORE -->
+  <section class="sec" id="lore">
+    <div class="sec-title"><span class="em">📖</span> Lore &amp; History</div>
+    <div class="sec-sub">Where the series came from, and the story threads that tie the galaxy together.</div>
+    <div class="lore">
+      <div class="lore-card"><h3>🏭 Made by Insomniac</h3><p>Insomniac Games created Ratchet &amp; Clank in 2002 and has developed most mainline entries. The series became one of PlayStation's most beloved and enduring platformer-shooters.</p></div>
+      <div class="lore-card"><h3>🐾 The Lombax mystery</h3><p>The Future saga digs into Ratchet's origins and the fate of the Lombax race — a species of intelligent, technologically gifted felinoids who vanished from the galaxy.</p></div>
+      <div class="lore-card"><h3>🎮 The trilogy &amp; spin-offs</h3><p>The PS2 trilogy defined the series. High Impact Games later crafted handheld spin-offs on PSP, expanding the universe beyond the main console line.</p></div>
+      <div class="lore-card"><h3>🎬 Movie &amp; reimagining</h3><p>In 2016, Insomniac released a reimagining of the first game on PS4 alongside an animated feature film — a fresh take on the origin story.</p></div>
+      <div class="lore-card"><h3>🌌 Rift Apart's dimensions</h3><p>Rift Apart (2021) introduced dimensional rifts and Rivet, using the PS5's power for near-instant travel between shattered realities.</p></div>
+      <div class="lore-card"><h3>🔫 Weapons &amp; gadgets</h3><p>From the Groovitron to the RYNO, the series is famous for its inventive, over-the-top arsenal — a core part of R&amp;C's identity and humour.</p></div>
+    </div>
+  </section>
 
   <a href="index.html" class="back-home">← Back to home</a>
-</div>
-
-<!-- PDF VIEWER -->
-<div class="viewer-overlay" id="viewer">
-  <div class="viewer-bar">
-    <div>
-      <h3 id="viewer-title">Guide</h3>
-      <div class="vg" id="viewer-game"></div>
-    </div>
-    <button class="viewer-close" onclick="closeGuide()">✕</button>
-  </div>
-  <iframe class="viewer-frame" id="viewer-frame" title="Guide viewer"></iframe>
 </div>
 
 <footer>
@@ -131,61 +209,118 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
-function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-
-async function loadGuides(){
-  const box=document.getElementById('guides-list');
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+let CHARS=[];
+const CAT_LABELS={'Hero':'🦸 Heroes','Villain':'😈 Villains','Ally':'🤝 Allies','Creature':'🐾 Creatures','Robot':'🤖 Robots','Other':'✨ Others'};
+const CAT_SORT=['Hero','Ally','Villain','Robot','Creature','Other'];
+async function loadChars(){
+  const grid=document.getElementById('chars-grid');
   try{
-    const {data,error}=await sb.from('site_guides').select('*').order('sort_order',{ascending:true}).order('created_at',{ascending:true});
+    const {data,error}=await sb.from('site_characters').select('*').order('sort_order').order('name');
     if(error) throw error;
-    if(!data||!data.length){
-      box.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-dim)">No guides yet.</div>';
-      return;
-    }
-    box.innerHTML=data.map(g=>{
-      const cover=g.cover_url?`<img src="${esc(g.cover_url)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="gc-ph" style="display:none">📗</span>`:`<span class="gc-ph">📗</span>`;
-      return `<div class="guide-card" data-pdf="${esc(g.pdf_url)}" data-title="${esc(g.title)}" data-game="${esc(g.game||'')}" onclick="openGuide(this)">
-        <div class="guide-cover">${cover}</div>
-        <div class="guide-cbody">
-          <h3>${esc(g.title)}</h3>
-          ${g.game?`<div class="game">${esc(g.game)}</div>`:''}
-          <span class="open-lbl">Open guide →</span>
-        </div>
-      </div>`;
+    if(!data||!data.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">No characters yet.</div>'; return; }
+    CHARS=data;
+    // group by category
+    const groups={};
+    data.forEach((c,i)=>{ const k=c.category||'Other'; (groups[k]=groups[k]||[]).push(i); });
+    const order=CAT_SORT.filter(k=>groups[k]);
+    Object.keys(groups).forEach(k=>{ if(!order.includes(k)) order.push(k); });
+    grid.classList.remove('chars'); // we'll build our own sections
+    grid.innerHTML=order.map(cat=>{
+      const cards=groups[cat].map(i=>{
+        const c=data[i];
+        const pos=esc(c.img_pos||'center');
+        const av = (c.image_url&&c.image_url.trim())
+          ? `<div class="av"><img src="${esc(c.image_url)}" alt="" style="object-position:${pos}" onerror="this.parentNode.textContent='${esc(c.emoji||'🦊')}';this.parentNode.style.background='linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})'"/></div>`
+          : `<div class="av" style="background:linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})">${esc(c.emoji||'🦊')}</div>`;
+        return `<div class="char" style="cursor:pointer" onclick="openChar(${i})">${av}<h3>${esc(c.name)}</h3>${c.role?`<div class="role">${esc(c.role)}</div>`:''}${c.description?`<p>${esc(c.description)}</p>`:''}</div>`;
+      }).join('');
+      return `<div class="char-group"><div class="char-group-title">${CAT_LABELS[cat]||('✨ '+esc(cat))}</div><div class="chars">${cards}</div></div>`;
     }).join('');
   }catch(e){
-    box.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-dim)">Could not load guides right now.</div>';
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Could not load characters.</div>';
   }
 }
-
-function toEmbedUrl(url){
-  if(!url) return '';
-  // Google Drive: convert /view or /edit links to /preview for inline embedding
-  const drive=url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  if(drive){ return 'https://drive.google.com/file/d/'+drive[1]+'/preview'; }
-  // Google Drive "open?id=" style
-  const driveOpen=url.match(/drive\.google\.com\/open\?id=([^&]+)/);
-  if(driveOpen){ return 'https://drive.google.com/file/d/'+driveOpen[1]+'/preview'; }
-  // Otherwise assume it's a direct PDF link
-  return url+'#view=FitH';
-}
-function openGuide(card){
-  const pdf=card.dataset.pdf, title=card.dataset.title, game=card.dataset.game;
-  document.getElementById('viewer-title').textContent=title;
-  document.getElementById('viewer-game').textContent=game;
-  document.getElementById('viewer-frame').src=toEmbedUrl(pdf);
-  document.getElementById('viewer').classList.add('open');
+function openChar(i){
+  const c=CHARS[i]; if(!c) return;
+  const img = (c.image_url&&c.image_url.trim())
+    ? `<img src="${esc(c.image_url)}" style="width:100%;height:100%;object-fit:cover;object-position:${esc(c.img_pos||'center')}" onerror="this.parentNode.innerHTML='<span style=&quot;font-size:4rem&quot;>${esc(c.emoji||'🦊')}</span>';this.parentNode.style.background='linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})'"/>`
+    : `<span style="font-size:4rem">${esc(c.emoji||'🦊')}</span>`;
+  const rows=[
+    ['Species',c.species],['Height',c.height],['Age',c.age],['Homeworld',c.homeworld],
+    ['First appearance',c.first_appearance],['Weapons / Gadgets',c.weapons],['Voice actor',c.voice_actor]
+  ].filter(r=>r[1]&&r[1].trim());
+  const stats=rows.map(r=>`<div class="cd-row"><span class="cd-k">${r[0]}</span><span class="cd-v">${esc(r[1])}</span></div>`).join('');
+  document.getElementById('cd-body').innerHTML=`
+    <div class="cd-top">
+      <div class="cd-img" style="background:linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})">${img}</div>
+      <div class="cd-top-info">
+        <div>
+          <h2>${esc(c.name)}</h2>
+          ${c.role?`<div class="cd-role">${esc(c.role)}</div>`:''}
+        </div>
+        ${stats?`<div class="cd-stats">${stats}</div>`:''}
+      </div>
+    </div>
+    ${(c.quote||c.description)?`<div class="cd-below">
+      ${c.quote?`<div class="cd-quote">“${esc(c.quote)}”</div>`:''}
+      ${c.description?`<p class="cd-desc">${esc(c.description)}</p>`:''}
+    </div>`:''}`;
+  document.getElementById('char-modal').classList.add('open');
   document.body.style.overflow='hidden';
 }
-function closeGuide(){
-  document.getElementById('viewer').classList.remove('open');
-  document.getElementById('viewer-frame').src='';
-  document.body.style.overflow='';
-}
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeGuide(); });
+function closeChar(){ document.getElementById('char-modal').classList.remove('open'); document.body.style.overflow=''; }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeChar(); });
+loadChars();
 
-loadGuides();
+// ── Games (with release / story order toggle) ──
+let GAMES=[], gameOrder='release';
+async function loadGames(){
+  const box=document.getElementById('games-list');
+  try{
+    const {data,error}=await sb.from('site_games').select('*');
+    if(error) throw error;
+    GAMES=data||[];
+    renderGames();
+  }catch(e){
+    box.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-dim)">Could not load games.</div>';
+  }
+}
+function setOrder(o){
+  gameOrder=o;
+  document.getElementById('ob-release').classList.toggle('active',o==='release');
+  document.getElementById('ob-story').classList.toggle('active',o==='story');
+  renderGames();
+}
+function renderGames(){
+  const box=document.getElementById('games-list');
+  if(!GAMES.length){ box.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-dim)">No games yet.</div>'; return; }
+  const key=gameOrder==='story'?'story_order':'release_order';
+  const sorted=[...GAMES].sort((a,b)=>(a[key]||0)-(b[key]||0));
+  box.innerHTML='<div class="timeline">'+sorted.map(g=>{
+    const thumb=g.image_url?`<div class="gthumb"><img src="${esc(g.image_url)}" onerror="this.parentNode.textContent='🎮'"/></div>`:`<div class="yr">${g.year||''}</div>`;
+    const bigImg=g.image_url?`<img class="gbig" src="${esc(g.image_url)}" onerror="this.style.display='none'"/>`:'';
+    return `<div class="tl-item"><div class="game" onclick="this.parentNode.classList.toggle('open');this.classList.toggle('open')">
+      <div class="game-head">${thumb}<div><h3>${esc(g.name)}</h3><div class="plat">${esc([g.platform,g.year].filter(Boolean).join(' · '))}</div></div><span class="chev">▾</span></div>
+      <div class="game-body"><div class="game-body-inner">
+        ${bigImg}
+        ${g.synopsis?`<p>${esc(g.synopsis)}</p>`:''}
+        ${g.anecdote?`<div class="game-anec"><span>💡</span><span><b>Did you know?</b> ${esc(g.anecdote)}</span></div>`:''}
+        ${g.story&&g.story.trim()?`<a href="story.html" style="display:inline-block;margin-top:10px;color:var(--purple-light);font-weight:600;font-size:.85rem">📖 Read the full story →</a>`:''}
+      </div></div>
+    </div></div>`;
+  }).join('')+'</div>';
+}
+loadGames();
 </script>
+<!-- CHARACTER DETAIL MODAL -->
+<div class="char-modal" id="char-modal" onclick="if(event.target===this)closeChar()">
+  <div class="cd-inner">
+    <button class="cd-close" onclick="closeChar()">✕</button>
+    <div id="cd-body"></div>
+  </div>
+</div>
+
 <script src="site-enhance.js"></script>
 </body>
 </html>
