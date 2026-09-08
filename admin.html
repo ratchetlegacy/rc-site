@@ -256,7 +256,7 @@ input:focus{border-color:var(--purple)}
 const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
-function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function showMsg(id,txt,ok){const m=document.getElementById(id);m.textContent=txt;m.className='msg '+(ok?'ok':'err');}
 
 async function checkSession(){
