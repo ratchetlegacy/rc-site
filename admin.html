@@ -81,6 +81,36 @@ input:focus{border-color:var(--purple)}
   <!-- MANAGERS -->
   <div id="admin-area" class="hidden">
     <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📰 News</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openNewsForm()">+ Add</button>
+      </div>
+      <div id="news-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <!-- NEWS FORM MODAL -->
+    <div class="fmodal" id="news-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="news-modal-title">📰 Add news</h2><button onclick="closeNewsForm()">✕</button></div>
+        <div class="msg" id="news-msg"></div>
+        <input type="hidden" id="n-id"/>
+        <label>Title *</label>
+        <input type="text" id="n-title" placeholder="Article title"/>
+        <label>Your short summary</label>
+        <input type="text" id="n-summary" placeholder="A few words (your own, not the article)"/>
+        <label>Source</label>
+        <input type="text" id="n-source" placeholder="IGN, Gameblog..."/>
+        <label>Article link *</label>
+        <input type="text" id="n-url" placeholder="https://..."/>
+        <label>Image URL</label>
+        <input type="text" id="n-image" placeholder="https://... (your own or leave empty)"/>
+        <label>Date label</label>
+        <input type="text" id="n-date" placeholder="Sept 2026"/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveNews()">💾 Save news</button>
+      </div>
+    </div>
+
+    <div class="card">
       <h2>🏠 Homepage images</h2>
       <div class="msg" id="home-msg"></div>
       <label>Games card image URL</label>
@@ -284,6 +314,66 @@ async function signIn(){
   showAdmin();
 }
 async function signOut(){ await sb.auth.signOut(); location.reload(); }
+// ── News ──
+async function loadNews(){
+  const box=document.getElementById('news-list');
+  const {data,error}=await sb.from('site_news').select('*').order('sort_order').order('created_at',{ascending:false});
+  if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No news yet.</div>'; return; }
+  box.innerHTML=data.map(n=>
+    `<div class="guide-row">
+      <span class="gi">${n.image_url?'🖼️':'📰'}</span>
+      <div class="gt"><b>${esc(n.title)}</b><span>${esc(n.source||'—')} · ${esc(n.date_label||'')}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editNewsById('${esc(n.id)}')">Edit</button>
+      <button class="btn btn-danger" onclick="delNews('${esc(n.id)}')">Del</button>
+    </div>`
+  ).join('');
+  window._NEWS=data;
+}
+function openNewsForm(){
+  ['n-id','n-title','n-summary','n-source','n-url','n-image','n-date'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('news-msg').style.display='none';
+  document.getElementById('news-modal-title').textContent='📰 Add news';
+  document.getElementById('news-modal').classList.add('open');
+}
+function closeNewsForm(){ document.getElementById('news-modal').classList.remove('open'); }
+function editNewsById(id){
+  const n=(window._NEWS||[]).find(x=>String(x.id)===String(id)); if(!n) return;
+  document.getElementById('n-id').value=n.id;
+  document.getElementById('n-title').value=n.title||'';
+  document.getElementById('n-summary').value=n.summary||'';
+  document.getElementById('n-source').value=n.source||'';
+  document.getElementById('n-url').value=n.url||'';
+  document.getElementById('n-image').value=n.image_url||'';
+  document.getElementById('n-date').value=n.date_label||'';
+  document.getElementById('news-msg').style.display='none';
+  document.getElementById('news-modal-title').textContent='✏️ Edit news';
+  document.getElementById('news-modal').classList.add('open');
+}
+async function saveNews(){
+  const id=document.getElementById('n-id').value;
+  const row={
+    title:document.getElementById('n-title').value.trim(),
+    summary:document.getElementById('n-summary').value.trim()||null,
+    source:document.getElementById('n-source').value.trim()||null,
+    url:document.getElementById('n-url').value.trim(),
+    image_url:document.getElementById('n-image').value.trim()||null,
+    date_label:document.getElementById('n-date').value.trim()||null
+  };
+  if(!row.title||!row.url){ showMsg('news-msg','Title and link are required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('site_news').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('site_news').insert([row])); }
+  if(error){ showMsg('news-msg',error.message,false); return; }
+  showMsg('news-msg',id?'News updated! ✓':'News added! ✓',true);
+  setTimeout(()=>{ closeNewsForm(); loadNews(); }, 700);
+}
+async function delNews(id){
+  if(!confirm('Delete this news item?')) return;
+  const {error}=await sb.from('site_news').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadNews();
+}
 // ── Homepage images ──
 async function loadHomeImages(){
   try{
@@ -362,6 +452,7 @@ function showAdmin(){
   document.getElementById('login-card').classList.add('hidden');
   document.getElementById('admin-area').classList.remove('hidden');
   loadHomeImages();
+  loadNews();
   loadGuides();
   loadChars();
   loadObjs();
