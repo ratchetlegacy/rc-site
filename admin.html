@@ -81,6 +81,19 @@ input:focus{border-color:var(--purple)}
   <!-- MANAGERS -->
   <div id="admin-area" class="hidden">
     <div class="card">
+      <h2>🏠 Homepage images</h2>
+      <div class="msg" id="home-msg"></div>
+      <label>Games card image URL</label>
+      <input type="text" id="hi-games" placeholder="https://..."/>
+      <label>Characters card image URL</label>
+      <input type="text" id="hi-characters" placeholder="https://..."/>
+      <label>Lore card image URL</label>
+      <input type="text" id="hi-lore" placeholder="https://..."/>
+      <label>About image URL</label>
+      <input type="text" id="hi-about" placeholder="https://..."/>
+      <button class="btn btn-primary" style="width:100%" onclick="saveHomeImages()">💾 Save homepage images</button>
+    </div>
+    <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">📗 Guides</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openGuideForm()">+ Add</button>
@@ -271,6 +284,28 @@ async function signIn(){
   showAdmin();
 }
 async function signOut(){ await sb.auth.signOut(); location.reload(); }
+// ── Homepage images ──
+async function loadHomeImages(){
+  try{
+    const {data}=await sb.from('site_settings').select('key,value');
+    const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
+    document.getElementById('hi-games').value=S.home_img_games||'';
+    document.getElementById('hi-characters').value=S.home_img_characters||'';
+    document.getElementById('hi-lore').value=S.home_img_lore||'';
+    document.getElementById('hi-about').value=S.home_img_about||'';
+  }catch(e){}
+}
+async function saveHomeImages(){
+  const rows=[
+    {key:'home_img_games',value:document.getElementById('hi-games').value.trim()},
+    {key:'home_img_characters',value:document.getElementById('hi-characters').value.trim()},
+    {key:'home_img_lore',value:document.getElementById('hi-lore').value.trim()},
+    {key:'home_img_about',value:document.getElementById('hi-about').value.trim()}
+  ];
+  const {error}=await sb.from('site_settings').upsert(rows);
+  if(error){ showMsg('home-msg',error.message,false); return; }
+  showMsg('home-msg','Homepage images saved! ✓',true);
+}
 async function loadGuides(){
   const box=document.getElementById('guides-list');
   const {data,error}=await sb.from('site_guides').select('*').order('sort_order').order('created_at');
@@ -326,6 +361,7 @@ async function delGuide(id){
 function showAdmin(){
   document.getElementById('login-card').classList.add('hidden');
   document.getElementById('admin-area').classList.remove('hidden');
+  loadHomeImages();
   loadGuides();
   loadChars();
   loadObjs();
