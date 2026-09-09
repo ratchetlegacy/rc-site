@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Terms &amp; Legal — Ratchet Legacy</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0A0B14;--bg2:#10121F;--purple:#7B4FD4;--purple-light:#9B6FF4;--orange:#FF6B1A;
+  --gold:#FFC85A;--text:#EEF0F8;--text-dim:#8B92AD;--text-mid:#B8BED4;--line:rgba(255,255,255,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.7}
+a{color:var(--purple-light);text-decoration:none}
+a:hover{text-decoration:underline}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(10,11,20,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav-logo{display:flex;align-items:center;gap:11px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.02rem;letter-spacing:.06em;color:var(--text)}
+.nav-logo .mark{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+.nav-back{color:var(--text-mid);font-weight:600;font-size:.88rem}
+
+.page-hero{padding:120px 24px 20px;text-align:center;position:relative;overflow:hidden}
+.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 0%,rgba(123,79,212,.18),transparent 70%)}
+.page-hero .tag{position:relative;font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:.24em;color:var(--gold);margin-bottom:14px}
+.page-hero h1{position:relative;font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.8rem,5vw,3rem)}
+
+.wrap{max-width:820px;margin:0 auto;padding:0 24px 80px}
+.legal-tabs{display:flex;gap:8px;justify-content:center;margin:24px 0 30px;flex-wrap:wrap}
+.legal-tab{padding:9px 18px;border-radius:100px;border:1px solid var(--line);background:var(--bg2);color:var(--text-mid);font-size:.85rem;font-weight:600;cursor:pointer}
+.legal-tab.active{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;border-color:transparent}
+.legal-sec{display:none}
+.legal-sec.active{display:block}
+.legal-sec h2{font-family:'Orbitron',sans-serif;font-size:1.3rem;margin:28px 0 12px}
+.legal-sec h2:first-child{margin-top:0}
+.legal-sec h3{font-size:1.02rem;margin:20px 0 8px;color:var(--text)}
+.legal-sec p{color:var(--text-mid);margin-bottom:14px}
+.legal-sec ul{color:var(--text-mid);margin:0 0 14px 22px}
+.legal-sec li{margin-bottom:6px}
+.legal-updated{color:var(--text-dim);font-size:.8rem;margin-bottom:20px}
+.legal-note{background:rgba(255,200,90,.06);border:1px solid rgba(255,200,90,.2);border-radius:12px;padding:14px 18px;color:var(--gold);font-size:.85rem;margin-bottom:24px}
+
+footer{border-top:1px solid var(--line);padding:36px 24px;text-align:center;color:var(--text-dim);font-size:.8rem}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo"><span class="mark">🔧</span> RATCHET LEGACY</a>
+  <a href="index.html" class="nav-back">← Back to site</a>
+</nav>
+
+<header class="page-hero">
+  <div class="tag">LEGAL</div>
+  <h1>Terms &amp; Legal</h1>
+</header>
+
+<div class="wrap">
+  <div class="legal-tabs">
+    <button class="legal-tab active" onclick="showLegal('terms',this)">Terms of Use</button>
+    <button class="legal-tab" onclick="showLegal('privacy',this)">Privacy</button>
+    <button class="legal-tab" onclick="showLegal('legal',this)">Legal Notice</button>
+  </div>
+
+  <div class="legal-note">⚠️ This is a fan-made, non-commercial project. Ratchet &amp; Clank and all related names, characters and images are trademarks of Sony Interactive Entertainment / Insomniac Games. This site is not affiliated with, endorsed by, or sponsored by them.</div>
+
+  <!-- TERMS -->
+  <section class="legal-sec active" id="terms">
+    <div class="legal-updated">Last updated: September 2026</div>
+    <h2>Terms of Use</h2>
+    <p>Welcome to Ratchet Legacy. By using this website, you agree to the following terms. If you don't agree, please don't use the site.</p>
+
+    <h3>1. About this site</h3>
+    <p>Ratchet Legacy is a free, non-commercial fan project dedicated to the Ratchet &amp; Clank series. It provides a reference database, a wiki, community trades and related content for collectors and fans.</p>
+
+    <h3>2. User-submitted content (trades)</h3>
+    <p>Users may submit trade listings that link to external marketplaces (Vinted, Leboncoin, eBay). By submitting a listing, you confirm that:</p>
+    <ul>
+      <li>The information you provide is accurate and lawful;</li>
+      <li>You have the right to sell or trade the item;</li>
+      <li>Your listing link points to a legitimate marketplace page.</li>
+    </ul>
+    <p>All listings are reviewed before being published. We reserve the right to reject or remove any listing at our discretion. <b>Ratchet Legacy only connects collectors</b> — all transactions happen on the external marketplaces, and we are not a party to any deal, sale or dispute between users.</p>
+
+    <h3>3. Acceptable use</h3>
+    <p>You agree not to use the site to post illegal, offensive, misleading or infringing content, and not to attempt to disrupt the service.</p>
+
+    <h3>4. No warranty</h3>
+    <p>The site is provided "as is", without warranty of any kind. Information (prices, references, availability) may be incomplete or inaccurate. Use it at your own discretion.</p>
+
+    <h3>5. Changes</h3>
+    <p>These terms may be updated at any time. Continued use of the site means you accept the current version.</p>
+  </section>
+
+  <!-- PRIVACY -->
+  <section class="legal-sec" id="privacy">
+    <div class="legal-updated">Last updated: September 2026</div>
+    <h2>Privacy</h2>
+    <p>We keep things simple and respect your privacy.</p>
+
+    <h3>What we collect</h3>
+    <ul>
+      <li><b>Trade submissions:</b> the item details and marketplace link you choose to submit. Please don't include personal data you don't want shared publicly.</li>
+      <li><b>The tracker app</b> (separate) uses an account (email) to store your personal collection. That's handled by its own sign-in.</li>
+    </ul>
+
+    <h3>What we don't do</h3>
+    <ul>
+      <li>No advertising, no ad tracking.</li>
+      <li>We don't sell your data.</li>
+    </ul>
+
+    <h3>Third parties</h3>
+    <p>The site is hosted on GitHub Pages and uses Supabase to store content. External links (marketplaces, press articles, social media) are governed by their own privacy policies.</p>
+
+    <h3>Contact</h3>
+    <p>For any privacy request, reach out via Instagram <a href="https://instagram.com/ratchetlegacy" target="_blank">@ratchetlegacy</a>.</p>
+  </section>
+
+  <!-- LEGAL NOTICE -->
+  <section class="legal-sec" id="legal">
+    <div class="legal-updated">Last updated: September 2026</div>
+    <h2>Legal Notice</h2>
+
+    <h3>Publisher</h3>
+    <p>This site is edited and maintained by an individual fan under the name "Ratchet Legacy", as a personal, non-commercial project.</p>
+
+    <h3>Intellectual property</h3>
+    <p>"Ratchet &amp; Clank", the characters, logos, artwork and games are the property of Sony Interactive Entertainment and Insomniac Games. This site claims no ownership over them and uses only original text, user photos, or freely-licensed material.</p>
+    <p>Original content created for this site (texts, layout, original illustrations) belongs to Ratchet Legacy.</p>
+
+    <h3>External content</h3>
+    <p>News items link to external articles hosted by their original publishers; all rights and credit belong to them. Trade listings link to external marketplaces. Ratchet Legacy is not responsible for the content of external sites.</p>
+
+    <h3>Takedown</h3>
+    <p>If you are a rights holder and believe content should be removed, please contact us via Instagram <a href="https://instagram.com/ratchetlegacy" target="_blank">@ratchetlegacy</a> and we will respond promptly.</p>
+  </section>
+</div>
+
+<footer>
+  Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games or Sony.
+</footer>
+
+<script>
+function showLegal(id,btn){
+  document.querySelectorAll('.legal-sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.legal-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
