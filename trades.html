@@ -83,7 +83,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 .foot-logo{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.06em;color:var(--text);margin-bottom:12px}
 .foot-small{font-size:.8rem}
 
-@media(max-width:820px){.nav-links{display:none}.nav-burger{display:block}.how{grid-template-columns:1fr}.listings{grid-template-columns:1fr 1fr}}
+@media(max-width:820px){.nav-links{display:flex;overflow-x:auto;gap:2px;-webkit-overflow-scrolling:touch;max-width:60vw}.nav-burger{display:none}.how{grid-template-columns:1fr}.listings{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.listings{grid-template-columns:1fr}}
 @keyframes spin{to{transform:rotate(360deg)}}
 .kbtn{flex:1;padding:11px;background:var(--bg);border:1px solid var(--line);border-radius:9px;color:var(--text-mid);font-weight:600;font-size:.82rem;cursor:pointer;font-family:Inter,sans-serif}
@@ -103,6 +103,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <a href="guides.html">Guides</a>
     <a href="trades.html" class="active">Trades</a>
     <a href="index.html#about">About</a>
+    <a href="https://instagram.com/ratchetlegacy" target="_blank" class="nav-insta-btn" title="Instagram">📸</a>
     <a href="https://ratchetlegacy.github.io/rc-tracker" target="_blank" class="nav-cta">Open the tracker</a>
   </div>
   <button class="nav-burger" onclick="document.querySelector('.nav-links').style.display='flex';this.style.display='none'">☰</button>
