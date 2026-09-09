@@ -39,6 +39,16 @@ a{color:inherit;text-decoration:none}
 
 /* category tabs */
 .cat-tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0 6px}
+/* category MENU cards */
+.cat-menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;padding-bottom:60px}
+.cat-menu-card{position:relative;border-radius:16px;overflow:hidden;min-height:150px;cursor:pointer;border:1px solid var(--line);background:var(--bg2);display:flex;flex-direction:column;justify-content:flex-end;padding:20px;transition:.2s}
+.cat-menu-card:hover{transform:translateY(-5px);border-color:var(--purple);box-shadow:0 14px 34px -12px rgba(123,79,212,.5)}
+.cat-menu-card .cm-ic{position:absolute;top:16px;right:18px;font-size:2.4rem;opacity:.5}
+.cat-menu-card .cm-shade{position:absolute;inset:0;background:linear-gradient(160deg,rgba(123,79,212,.18),transparent 70%)}
+.cat-menu-card h3{position:relative;z-index:1;font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.1rem}
+.cat-menu-card .cm-count{position:relative;z-index:1;color:var(--text-dim);font-size:.82rem;margin-top:4px}
+.back-cat{display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 16px;color:var(--text);font-weight:600;font-size:.85rem;cursor:pointer;margin-bottom:16px}
+.back-cat:hover{border-color:var(--purple)}
 .cat-tab{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:100px;border:1px solid var(--line);background:var(--bg2);color:var(--text-mid);font-size:.84rem;font-weight:600;cursor:pointer;transition:.16s}
 .cat-tab:hover{color:var(--text);border-color:var(--purple)}
 .cat-tab.active{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;border-color:transparent}
@@ -160,26 +170,47 @@ async function load(){
     document.getElementById('state').style.display='none';
     const plats=[...new Set(ALL.map(c=>c.platform).filter(Boolean))].sort();
     document.getElementById('fplat').innerHTML='<option value="">All platforms</option>'+plats.map(p=>`<option>${esc(p)}</option>`).join('');
-    buildCatTabs();
-    applyFilters();
+    showCategoryMenu();
   }catch(e){
     document.getElementById('state').innerHTML='<div style="color:var(--text-dim)">Could not load the database right now. Please try again later.</div>';
     document.getElementById('count').textContent='';
   }
 }
 
-function buildCatTabs(){
-  // count per category
+// STEP 1: show the big category menu
+function showCategoryMenu(){
+  activeCat='';
   const counts={};
   ALL.forEach(c=>{ const k=c.category||'Misc'; counts[k]=(counts[k]||0)+1; });
   const present=CAT_ORDER.filter(c=>counts[c]);
-  // add any unknown categories at the end
   Object.keys(counts).forEach(k=>{ if(!CAT_ORDER.includes(k)) present.push(k); });
-  let html=`<button class="cat-tab ${activeCat===''?'active':''}" onclick="setCat('')">🗂️ All <span class="cnt">${ALL.length}</span></button>`;
-  html+=present.map(c=>`<button class="cat-tab ${activeCat===c?'active':''}" onclick="setCat('${c.replace(/'/g,"\\'")}')">${catIcon[c]||'📌'} ${esc(c)} <span class="cnt">${counts[c]}</span></button>`).join('');
-  document.getElementById('cat-tabs').innerHTML=html;
+  // hide search/filter controls on the menu
+  document.getElementById('cat-tabs').style.display='none';
+  document.querySelector('.controls').style.display='none';
+  document.getElementById('count').textContent='';
+  const grid=document.getElementById('grid');
+  grid.className='cat-menu';
+  grid.innerHTML=present.map(cat=>{
+    // pick a sample image from this category for the background
+    const sample=ALL.find(o=>(o.category||'Misc')===cat && o.image_url);
+    const bg=sample?`background-image:linear-gradient(to top,rgba(10,11,20,.92),rgba(10,11,20,.35)),url(${esc(sample.image_url)});background-size:cover;background-position:center`:'';
+    return `<div class="cat-menu-card" style="${bg}" onclick="openCategory('${esc(cat).replace(/'/g,"\\'")}')">
+      <div class="cm-shade"></div>
+      <span class="cm-ic">${catIcon[cat]||'📌'}</span>
+      <h3>${esc(cat)}</h3>
+      <div class="cm-count">${counts[cat]} item${counts[cat]>1?'s':''}</div>
+    </div>`;
+  }).join('');
 }
-function setCat(c){ activeCat=c; buildCatTabs(); applyFilters(); }
+
+// STEP 2: open one category -> show its items
+function openCategory(cat){
+  activeCat=cat;
+  document.querySelector('.controls').style.display='flex';
+  document.getElementById('grid').className='grid';
+  applyFilters();
+  window.scrollTo({top:document.querySelector('.controls').offsetTop-90,behavior:'smooth'});
+}
 
 function cardHtml(c){
   const meta=[c.platform,c.year].filter(Boolean).join(' · ');
@@ -194,27 +225,15 @@ function applyFilters(){
   const q=(document.getElementById('search').value||'').toLowerCase().trim();
   const fp=document.getElementById('fplat').value;
   const list=ALL.filter(c=>{
+    if(activeCat && (c.category||'Misc')!==activeCat) return false;
     if(q && !((c.name||'').toLowerCase().includes(q))) return false;
     if(fp && c.platform!==fp) return false;
-    if(activeCat && (c.category||'Misc')!==activeCat) return false;
     return true;
   });
-  document.getElementById('count').textContent=list.length+' item'+(list.length!==1?'s':'')+(ALL.length?(' of '+ALL.length):'');
+  document.getElementById('count').innerHTML=`<button class="back-cat" onclick="showCategoryMenu()">← All categories</button> <span style="margin-left:10px">${catIcon[activeCat]||''} <b>${esc(activeCat)}</b> — ${list.length} item${list.length!==1?'s':''}</span>`;
   const grid=document.getElementById('grid');
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:40px">No item matches.</div>'; return; }
-  // When "All" is selected, group items into sections by category
-  if(activeCat===''){
-    const groups={};
-    list.forEach(c=>{ const k=c.category||'Misc'; (groups[k]=groups[k]||[]).push(c); });
-    const order=CAT_ORDER.filter(c=>groups[c]);
-    Object.keys(groups).forEach(k=>{ if(!order.includes(k)) order.push(k); });
-    grid.innerHTML=order.map(cat=>{
-      return `<div class="cat-section-title">${catIcon[cat]||'📌'} ${esc(cat)} <span class="n">${groups[cat].length}</span></div>`
-        + groups[cat].map(cardHtml).join('');
-    }).join('');
-  } else {
-    grid.innerHTML=list.map(cardHtml).join('');
-  }
+  grid.innerHTML=list.map(cardHtml).join('');
 }
 
 function openLb(i){
