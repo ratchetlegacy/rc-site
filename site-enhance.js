@@ -21,6 +21,8 @@
   .btn{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s,background .18s!important}
   .btn:hover{transform:translateY(-2px)}
   .nav-cta:hover{box-shadow:0 8px 24px -6px rgba(255,107,26,.6)}
+  .nav-insta-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);font-size:1.05rem;text-decoration:none;flex-shrink:0;transition:transform .15s}
+  .nav-insta-btn:hover{transform:translateY(-2px) scale(1.05)}
   `;
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
@@ -79,22 +81,25 @@
   });
 
   async function injectUniverseImages(){
-    const cards=document.querySelectorAll('.uni-card');
-    if(!cards.length || !window.supabase) return;
+    if(!window.supabase) return;
     try{
       const sb=window.supabase.createClient(
         'https://ihucxnmqnhevfvlamgwc.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU'
       );
-      const [{data:games},{data:chars}]=await Promise.all([
-        sb.from('site_games').select('image_url').not('image_url','is',null).limit(1),
-        sb.from('site_characters').select('image_url').not('image_url','is',null).limit(1)
-      ]);
-      const gImg=games&&games[0]&&games[0].image_url;
-      const cImg=chars&&chars[0]&&chars[0].image_url;
-      // card 0 = Games, card 1 = Characters (per the homepage order)
-      if(gImg && cards[0]) setCardBg(cards[0], gImg);
-      if(cImg && cards[1]) setCardBg(cards[1], cImg);
+      const {data}=await sb.from('site_settings').select('key,value');
+      if(!data) return;
+      const S={}; data.forEach(r=>{ S[r.key]=r.value; });
+      const cards=document.querySelectorAll('.uni-card');
+      if(S.home_img_games && cards[0]) setCardBg(cards[0], S.home_img_games);
+      if(S.home_img_characters && cards[1]) setCardBg(cards[1], S.home_img_characters);
+      if(S.home_img_lore && cards[2]) setCardBg(cards[2], S.home_img_lore);
+      // About image
+      const aboutLogo=document.getElementById('about-logo');
+      if(S.home_img_about && aboutLogo){
+        aboutLogo.textContent='';
+        aboutLogo.innerHTML='<img src="'+S.home_img_about+'" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.textContent=\'🦊\'"/>';
+      }
     }catch(e){ /* silent */ }
   }
   function setCardBg(card, url){
