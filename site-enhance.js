@@ -23,6 +23,17 @@
   .nav-cta:hover{box-shadow:0 8px 24px -6px rgba(255,107,26,.6)}
   .nav-insta-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);font-size:1.05rem;text-decoration:none;flex-shrink:0;transition:transform .15s}
   .nav-insta-btn:hover{transform:translateY(-2px) scale(1.05)}
+  /* Keep ALL page names visible in the header — horizontal scroll on small screens, never hidden */
+  .nav-burger{display:none!important}
+  .nav-links{display:flex!important}
+  @media(max-width:900px){
+    .nav{padding:12px 14px;gap:8px}
+    .nav-logo{font-size:.82rem;gap:8px}
+    .nav-logo .mark{width:32px;height:32px}
+    .nav-links{overflow-x:auto;flex-wrap:nowrap;gap:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .nav-links::-webkit-scrollbar{display:none}
+    .nav-links a{padding:7px 10px;font-size:.8rem;white-space:nowrap;flex-shrink:0}
+  }
   `;
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
