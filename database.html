@@ -158,6 +158,14 @@ const sb=window.supabase.createClient(SB_URL,SB_KEY);
 const catIcon={'Game':'🎮','Console/Pack':'📦','Figure':'🎯','Plush':'🧸','Goodie':'🎁','Clothing':'👕','Print':'🖼️','Book':'📖','Guide':'📗','Media':'🎬','Misc':'📌'};
 const CAT_ORDER=['Game','Console/Pack','Figure','Plush','Goodie','Clothing','Print','Book','Guide','Media','Misc'];
 let ALL=[];
+let RATING={};
+async function loadRating(){
+  try{
+    const {data}=await sb.from('market_rating').select('*');
+    RATING={};
+    (data||[]).forEach(r=>{ if(r.name_key) RATING[r.name_key]={median:r.median_price,count:r.sample_count}; });
+  }catch(e){ RATING={}; }
+}
 let activeCat='';
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
@@ -168,6 +176,7 @@ async function load(){
     if(error){throw error;}
     ALL=data||[];
     document.getElementById('state').style.display='none';
+    await loadRating();
     showCategoryMenu();
   }catch(e){
     document.getElementById('state').innerHTML='<div style="color:var(--text-dim)">Could not load the database right now. Please try again later.</div>';
@@ -283,8 +292,16 @@ function openLb(i){
   const c=ALL[i]; if(!c) return;
   document.getElementById('lb-img').innerHTML=c.image_url?`<img src="${esc(c.image_url)}"/>`:`<span style="font-size:3rem;opacity:.3">${catIcon[c.category]||'📦'}</span>`;
   document.getElementById('lb-name').textContent=c.name||'';
-  document.getElementById('lb-meta').textContent=[c.category,c.platform,c.year].filter(Boolean).join(' · ');
-  document.getElementById('lb-desc').textContent=c.description||'';
+  document.getElementById('lb-meta').textContent=[c.category,c.platform,c.region,c.year].filter(Boolean).join(' · ');
+  const r=RATING[(c.name||'').trim().toLowerCase()];
+  const ratingHtml = (r&&r.median!=null)
+    ? `<div style="margin:12px 0;padding:12px 14px;background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.3);border-radius:10px;text-align:center">
+        <div style="font-size:.66rem;color:var(--text-dim);letter-spacing:.04em">💰 COMMUNITY VALUE (median)</div>
+        <div style="font-family:Orbitron,sans-serif;font-weight:700;font-size:1.3rem;color:var(--green)">${parseFloat(r.median).toFixed(2).replace(/\.00$/,'')} €</div>
+        <div style="font-size:.62rem;color:var(--text-dim)">based on ${r.count} collector${r.count>1?'s':''}</div>
+      </div>` : '';
+  const dbox=document.getElementById('lb-desc');
+  dbox.innerHTML = ratingHtml + (c.description?esc(c.description):'');
   document.getElementById('lb').classList.add('open');
   document.body.style.overflow='hidden';
 }
