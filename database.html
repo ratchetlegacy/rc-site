@@ -124,8 +124,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 
 <div class="wrap">
   <div class="controls">
-    <input type="text" id="search" placeholder="🔍 Search by name..." oninput="applyFilters()"/>
-    <select id="fplat" onchange="applyFilters()"><option value="">All platforms</option></select>
+    <input type="text" id="search" placeholder="🔍 Search in this section..." oninput="applyFilters()"/>
   </div>
   <div class="cat-tabs" id="cat-tabs"></div>
   <div class="count-line" id="count">Loading the database…</div>
@@ -169,8 +168,6 @@ async function load(){
     if(error){throw error;}
     ALL=data||[];
     document.getElementById('state').style.display='none';
-    const plats=[...new Set(ALL.map(c=>c.platform).filter(Boolean))].sort();
-    document.getElementById('fplat').innerHTML='<option value="">All platforms</option>'+plats.map(p=>`<option>${esc(p)}</option>`).join('');
     showCategoryMenu();
   }catch(e){
     document.getElementById('state').innerHTML='<div style="color:var(--text-dim)">Could not load the database right now. Please try again later.</div>';
@@ -179,42 +176,91 @@ async function load(){
 }
 
 // STEP 1: show the big category menu
+// ===== Cascade nav: Category > Platform > Region > Items =====
+let navCat='', navPlat='', navReg='';
+
+function renderMenuCards(items, onClick){
+  const grid=document.getElementById('grid');
+  grid.className='cat-menu';
+  document.querySelector('.controls').style.display='none';
+  grid.innerHTML=items.map(it=>{
+    const sample=it.sampleImg;
+    const bg=sample?`background-image:linear-gradient(to top,rgba(10,11,20,.92),rgba(10,11,20,.35)),url(${esc(sample)});background-size:cover;background-position:center`:'';
+    return `<div class="cat-menu-card" style="${bg}" onclick="${onClick(it.key)}">
+      <div class="cm-shade"></div>
+      <span class="cm-ic">${it.icon||'📦'}</span>
+      <h3>${esc(it.label)}</h3>
+      <div class="cm-count">${it.count} item${it.count>1?'s':''}</div>
+    </div>`;
+  }).join('');
+}
+function crumb(){
+  const parts=['<button class="back-cat" onclick="showCategoryMenu()">🗂️ Categories</button>'];
+  if(navCat) parts.push(`<button class="back-cat" onclick="openCategory('${esc(navCat).replace(/'/g,"\\'")}')">${catIcon[navCat]||''} ${esc(navCat)}</button>`);
+  if(navPlat) parts.push(`<button class="back-cat" onclick="openPlatform('${esc(navPlat).replace(/'/g,"\\'")}')">${esc(navPlat)}</button>`);
+  if(navReg) parts.push(`<span class="back-cat" style="cursor:default">${esc(navReg)}</span>`);
+  document.getElementById('count').innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+parts.join('<span style="color:var(--text-dim)">›</span>')+'</div>';
+}
+
+// LEVEL 0: categories
 function showCategoryMenu(){
-  activeCat='';
+  navCat=''; navPlat=''; navReg='';
   const counts={};
   ALL.forEach(c=>{ const k=c.category||'Misc'; counts[k]=(counts[k]||0)+1; });
   const present=CAT_ORDER.filter(c=>counts[c]);
   Object.keys(counts).forEach(k=>{ if(!CAT_ORDER.includes(k)) present.push(k); });
-  // hide search/filter controls on the menu
-  document.getElementById('cat-tabs').style.display='none';
-  document.querySelector('.controls').style.display='none';
   document.getElementById('count').textContent='';
-  const grid=document.getElementById('grid');
-  grid.className='cat-menu';
-  grid.innerHTML=present.map(cat=>{
-    // pick a sample image from this category for the background
-    const sample=ALL.find(o=>(o.category||'Misc')===cat && o.image_url);
-    const bg=sample?`background-image:linear-gradient(to top,rgba(10,11,20,.92),rgba(10,11,20,.35)),url(${esc(sample.image_url)});background-size:cover;background-position:center`:'';
-    return `<div class="cat-menu-card" style="${bg}" onclick="openCategory('${esc(cat).replace(/'/g,"\\'")}')">
-      <div class="cm-shade"></div>
-      <span class="cm-ic">${catIcon[cat]||'📌'}</span>
-      <h3>${esc(cat)}</h3>
-      <div class="cm-count">${counts[cat]} item${counts[cat]>1?'s':''}</div>
-    </div>`;
-  }).join('');
+  renderMenuCards(present.map(cat=>({
+    key:cat, label:cat, icon:catIcon[cat]||'📌', count:counts[cat],
+    sampleImg:(ALL.find(o=>(o.category||'Misc')===cat && o.image_url)||{}).image_url
+  })), k=>`openCategory('${k.replace(/'/g,"\\'")}')`);
 }
 
-// STEP 2: open one category -> show its items
+// LEVEL 1: platforms within a category
 function openCategory(cat){
-  activeCat=cat;
+  navCat=cat; navPlat=''; navReg='';
+  const inCat=ALL.filter(c=>(c.category||'Misc')===cat);
+  const counts={};
+  inCat.forEach(c=>{ const k=c.platform||'—'; counts[k]=(counts[k]||0)+1; });
+  const plats=Object.keys(counts).sort();
+  crumb();
+  // If only one platform (or none meaningful), skip straight to regions
+  renderMenuCards(plats.map(p=>({
+    key:p, label:p==='—'?'(no platform)':p, icon:'🕹️', count:counts[p],
+    sampleImg:(inCat.find(o=>(o.platform||'—')===p && o.image_url)||{}).image_url
+  })), k=>`openPlatform('${k.replace(/'/g,"\\'")}')`);
+}
+
+// LEVEL 2: regions/versions within a platform
+function openPlatform(plat){
+  navPlat=plat; navReg='';
+  const inSel=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===plat);
+  const counts={};
+  inSel.forEach(c=>{ const k=c.region||'—'; counts[k]=(counts[k]||0)+1; });
+  const regs=Object.keys(counts).sort();
+  crumb();
+  // If there's only one region, go straight to items
+  if(regs.length<=1){ openRegion(regs[0]||'—'); return; }
+  renderMenuCards(regs.map(r=>({
+    key:r, label:r==='—'?'(no version)':r, icon:'🌍', count:counts[r],
+    sampleImg:(inSel.find(o=>(o.region||'—')===r && o.image_url)||{}).image_url
+  })), k=>`openRegion('${k.replace(/'/g,"\\'")}')`);
+}
+
+// LEVEL 3: the items
+function openRegion(reg){
+  navReg=reg;
+  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && (c.region||'—')===reg);
+  crumb();
   document.querySelector('.controls').style.display='flex';
-  document.getElementById('grid').className='grid';
-  applyFilters();
-  window.scrollTo({top:document.querySelector('.controls').offsetTop-90,behavior:'smooth'});
+  const grid=document.getElementById('grid'); grid.className='grid';
+  if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:40px">No item.</div>'; return; }
+  grid.innerHTML=list.map(cardHtml).join('');
+  window.scrollTo({top:document.getElementById('count').offsetTop-90,behavior:'smooth'});
 }
 
 function cardHtml(c){
-  const meta=[c.platform,c.year].filter(Boolean).join(' · ');
+  const meta=[c.platform,c.region,c.year].filter(Boolean).join(' · ');
   const cover=c.image_url?`<img src="${esc(c.image_url)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ph" style="display:none">${catIcon[c.category]||'📦'}</span>`:`<span class="ph">${catIcon[c.category]||'📦'}</span>`;
   return `<div class="card" onclick="openLb(${ALL.indexOf(c)})">
     <div class="card-cover">${cover}${c.category?`<span class="card-cat">${catIcon[c.category]||''} ${esc(c.category)}</span>`:''}</div>
@@ -222,16 +268,12 @@ function cardHtml(c){
   </div>`;
 }
 
+// search within the current items view
 function applyFilters(){
+  if(!navReg){ return; }
   const q=(document.getElementById('search').value||'').toLowerCase().trim();
-  const fp=document.getElementById('fplat').value;
-  const list=ALL.filter(c=>{
-    if(activeCat && (c.category||'Misc')!==activeCat) return false;
-    if(q && !((c.name||'').toLowerCase().includes(q))) return false;
-    if(fp && c.platform!==fp) return false;
-    return true;
-  });
-  document.getElementById('count').innerHTML=`<button class="back-cat" onclick="showCategoryMenu()">← All categories</button> <span style="margin-left:10px">${catIcon[activeCat]||''} <b>${esc(activeCat)}</b> — ${list.length} item${list.length!==1?'s':''}</span>`;
+  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && (c.region||'—')===navReg
+    && (!q || (c.name||'').toLowerCase().includes(q)));
   const grid=document.getElementById('grid');
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:40px">No item matches.</div>'; return; }
   grid.innerHTML=list.map(cardHtml).join('');
