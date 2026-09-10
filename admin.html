@@ -272,6 +272,8 @@ input:focus{border-color:var(--purple)}
         </div>
         <label>Photo URL</label>
         <input type="text" id="o-image" placeholder="https://res.cloudinary.com/..."/>
+        <label>Back photo URL (verso)</label>
+        <input type="text" id="o-imageback" placeholder="https://... (shown when you flip)"/>
         <label>Description</label>
         <input type="text" id="o-desc" placeholder="Short description"/>
         <button class="btn btn-primary" onclick="saveObj()" style="width:100%;margin-top:6px">💾 Save object</button>
@@ -736,13 +738,14 @@ function editObj(o){
   document.getElementById('o-platform').value=o.platform||'';
   document.getElementById('o-year').value=o.year||'';
   document.getElementById('o-image').value=o.image_url||'';
+  document.getElementById('o-imageback').value=o.image_back||'';
   document.getElementById('o-desc').value=o.description||'';
   document.getElementById('obj-modal-title').textContent='✏️ Edit object';
   document.getElementById('obj-modal').style.display='flex';
   document.body.style.overflow='hidden';
 }
 function clearObjForm(){
-  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-desc'].forEach(id=>document.getElementById(id).value='');
+  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc'].forEach(id=>document.getElementById(id).value='');
   const m=document.getElementById('obj-msg'); if(m) m.style.display='none';
 }
 async function saveObj(){
@@ -754,6 +757,7 @@ async function saveObj(){
     platform:document.getElementById('o-platform').value.trim()||null,
     year:yr!==''?parseInt(yr):null,
     image_url:document.getElementById('o-image').value.trim()||null,
+    image_back:document.getElementById('o-imageback').value.trim()||null,
     description:document.getElementById('o-desc').value.trim()||null
   };
   if(!row.name){ showMsg('obj-msg','Name is required.',false); return; }
