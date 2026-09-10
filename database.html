@@ -290,7 +290,16 @@ function applyFilters(){
 
 function openLb(i){
   const c=ALL[i]; if(!c) return;
-  document.getElementById('lb-img').innerHTML=c.image_url?`<img src="${esc(c.image_url)}"/>`:`<span style="font-size:3rem;opacity:.3">${catIcon[c.category]||'📦'}</span>`;
+  _lbFront=true;
+  const box=document.getElementById('lb-img');
+  if(c.image_url){
+    const hasBack = c.image_back && c.image_back.trim();
+    box.innerHTML = `<img id="lb-photo" src="${esc(c.image_url)}"/>`
+      + (hasBack?`<button onclick="lbFlip('${esc(c.image_url)}','${esc(c.image_back)}')" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:600;cursor:pointer;z-index:2">🔄 Flip</button>`:'');
+    box.style.position='relative';
+  } else {
+    box.innerHTML=`<span style="font-size:3rem;opacity:.3">${catIcon[c.category]||'📦'}</span>`;
+  }
   document.getElementById('lb-name').textContent=c.name||'';
   document.getElementById('lb-meta').textContent=[c.category,c.platform,c.region,c.year].filter(Boolean).join(' · ');
   const r=RATING[(c.name||'').trim().toLowerCase()];
@@ -306,6 +315,12 @@ function openLb(i){
   document.body.style.overflow='hidden';
 }
 function closeLb(){document.getElementById('lb').classList.remove('open');document.body.style.overflow='';}
+let _lbFront=true;
+function lbFlip(front,back){
+  const img=document.getElementById('lb-photo'); if(!img) return;
+  _lbFront=!_lbFront;
+  img.src=_lbFront?front:back;
+}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLb();});
 
 load();
