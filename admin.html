@@ -82,6 +82,34 @@ input:focus{border-color:var(--purple)}
   <div id="admin-area" class="hidden">
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📖 Lore &amp; History</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openLoreForm()">+ Add</button>
+      </div>
+      <div id="lore-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <!-- LORE FORM MODAL -->
+    <div class="fmodal" id="lore-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="lore-modal-title">📖 Add event</h2><button onclick="closeLoreForm()">✕</button></div>
+        <div class="msg" id="lore-msg"></div>
+        <input type="hidden" id="l-id"/>
+        <label>Year / period label</label>
+        <input type="text" id="l-year" placeholder="2002, Future saga..."/>
+        <label>Title *</label>
+        <input type="text" id="l-title" placeholder="The birth of a legend"/>
+        <label>Icon (emoji)</label>
+        <input type="text" id="l-icon" placeholder="🚀"/>
+        <label>Description</label>
+        <textarea id="l-desc" placeholder="What happened..." style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px;color:var(--text);font-family:Inter,sans-serif;font-size:.88rem;outline:none;min-height:90px;resize:vertical;margin-bottom:14px"></textarea>
+        <label>Order</label>
+        <input type="number" id="l-order" placeholder="1"/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveLore()">💾 Save event</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">📰 News</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openNewsForm()">+ Add</button>
       </div>
@@ -314,6 +342,64 @@ async function signIn(){
   showAdmin();
 }
 async function signOut(){ await sb.auth.signOut(); location.reload(); }
+// ── Lore ──
+async function loadLore(){
+  const box=document.getElementById('lore-list');
+  const {data,error}=await sb.from('site_lore').select('*').order('sort_order');
+  if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No events yet.</div>'; return; }
+  box.innerHTML=data.map(l=>
+    `<div class="guide-row">
+      <span class="gi">${esc(l.icon||'📖')}</span>
+      <div class="gt"><b>${esc(l.title)}</b><span>${esc(l.year_label||'—')} · order ${l.sort_order||0}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editLoreById('${esc(l.id)}')">Edit</button>
+      <button class="btn btn-danger" onclick="delLore('${esc(l.id)}')">Del</button>
+    </div>`
+  ).join('');
+  window._LORE=data;
+}
+function openLoreForm(){
+  ['l-id','l-year','l-title','l-icon','l-desc','l-order'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('lore-msg').style.display='none';
+  document.getElementById('lore-modal-title').textContent='📖 Add event';
+  document.getElementById('lore-modal').classList.add('open');
+}
+function closeLoreForm(){ document.getElementById('lore-modal').classList.remove('open'); }
+function editLoreById(id){
+  const l=(window._LORE||[]).find(x=>String(x.id)===String(id)); if(!l) return;
+  document.getElementById('l-id').value=l.id;
+  document.getElementById('l-year').value=l.year_label||'';
+  document.getElementById('l-title').value=l.title||'';
+  document.getElementById('l-icon').value=l.icon||'';
+  document.getElementById('l-desc').value=l.description||'';
+  document.getElementById('l-order').value=l.sort_order||'';
+  document.getElementById('lore-msg').style.display='none';
+  document.getElementById('lore-modal-title').textContent='✏️ Edit event';
+  document.getElementById('lore-modal').classList.add('open');
+}
+async function saveLore(){
+  const id=document.getElementById('l-id').value;
+  const row={
+    year_label:document.getElementById('l-year').value.trim()||null,
+    title:document.getElementById('l-title').value.trim(),
+    icon:document.getElementById('l-icon').value.trim()||'✨',
+    description:document.getElementById('l-desc').value.trim()||null,
+    sort_order:parseInt(document.getElementById('l-order').value)||0
+  };
+  if(!row.title){ showMsg('lore-msg','Title is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('site_lore').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('site_lore').insert([row])); }
+  if(error){ showMsg('lore-msg',error.message,false); return; }
+  showMsg('lore-msg',id?'Event updated! ✓':'Event added! ✓',true);
+  setTimeout(()=>{ closeLoreForm(); loadLore(); }, 700);
+}
+async function delLore(id){
+  if(!confirm('Delete this event?')) return;
+  const {error}=await sb.from('site_lore').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadLore();
+}
 // ── News ──
 async function loadNews(){
   const box=document.getElementById('news-list');
@@ -452,6 +538,7 @@ function showAdmin(){
   document.getElementById('login-card').classList.add('hidden');
   document.getElementById('admin-area').classList.remove('hidden');
   loadHomeImages();
+  loadLore();
   loadNews();
   loadGuides();
   loadChars();
