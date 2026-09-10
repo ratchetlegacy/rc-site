@@ -91,13 +91,17 @@ a{color:inherit;text-decoration:none}
 
 /* Lore */
 .lore{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.lore-card{position:relative;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:26px 26px 26px 30px;transition:.2s;overflow:hidden}
-.lore-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--purple),var(--orange));opacity:.7;transition:.2s}
-.lore-card:hover{border-color:var(--purple);transform:translateY(-4px);box-shadow:0 14px 34px -14px rgba(123,79,212,.5)}
-.lore-card:hover::before{opacity:1;width:5px}
-.lore-card h3{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:10px}
-.lore-card h3 span:first-child{font-size:1.5rem}
-.lore-card p{color:var(--text-mid);font-size:.92rem}
+/* Lore timeline */
+.lore-timeline{position:relative;padding-left:44px;max-width:760px}
+.lore-timeline::before{content:'';position:absolute;left:15px;top:12px;bottom:12px;width:2px;background:linear-gradient(180deg,var(--purple),var(--orange))}
+.lore-item{position:relative;margin-bottom:26px}
+.lore-item::before{content:'';position:absolute;left:-36px;top:6px;width:16px;height:16px;border-radius:50%;background:var(--bg);border:3px solid var(--purple-light);box-shadow:0 0 0 4px var(--bg),0 0 16px rgba(155,111,244,.6);z-index:1}
+.lore-year{font-family:'Orbitron',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.08em;color:var(--orange-light);margin-bottom:6px}
+.lore-box{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:20px 22px;transition:.2s}
+.lore-box:hover{border-color:var(--purple);transform:translateX(4px);box-shadow:0 12px 30px -14px rgba(123,79,212,.5)}
+.lore-box h3{font-family:'Orbitron',sans-serif;font-size:1.08rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.lore-box h3 .lore-ic{font-size:1.4rem}
+.lore-box p{color:var(--text-mid);font-size:.92rem}
 
 .back-home{display:inline-flex;align-items:center;gap:8px;margin:40px 0;color:var(--text-dim);font-weight:600;transition:.15s}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -187,14 +191,9 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <!-- LORE -->
   <section class="sec" id="lore">
     <div class="sec-title"><span class="em">📖</span> Lore &amp; History</div>
-    <div class="sec-sub">Where the series came from, and the story threads that tie the galaxy together.</div>
-    <div class="lore">
-      <div class="lore-card"><h3>🏭 Made by Insomniac</h3><p>Insomniac Games created Ratchet &amp; Clank in 2002 and has developed most mainline entries. The series became one of PlayStation's most beloved and enduring platformer-shooters.</p></div>
-      <div class="lore-card"><h3>🐾 The Lombax mystery</h3><p>The Future saga digs into Ratchet's origins and the fate of the Lombax race — a species of intelligent, technologically gifted felinoids who vanished from the galaxy.</p></div>
-      <div class="lore-card"><h3>🎮 The trilogy &amp; spin-offs</h3><p>The PS2 trilogy defined the series. High Impact Games later crafted handheld spin-offs on PSP, expanding the universe beyond the main console line.</p></div>
-      <div class="lore-card"><h3>🎬 Movie &amp; reimagining</h3><p>In 2016, Insomniac released a reimagining of the first game on PS4 alongside an animated feature film — a fresh take on the origin story.</p></div>
-      <div class="lore-card"><h3>🌌 Rift Apart's dimensions</h3><p>Rift Apart (2021) introduced dimensional rifts and Rivet, using the PS5's power for near-instant travel between shattered realities.</p></div>
-      <div class="lore-card"><h3>🔫 Weapons &amp; gadgets</h3><p>From the Groovitron to the RYNO, the series is famous for its inventive, over-the-top arsenal — a core part of R&amp;C's identity and humour.</p></div>
+    <div class="sec-sub">The journey of the series through the years — from Veldin to the shattered dimensions.</div>
+    <div class="lore-timeline" id="lore-timeline">
+      <div style="text-align:center;padding:30px;color:var(--text-dim)"><span style="display:inline-block;animation:spin 1s linear infinite;font-size:1.4rem">⚙️</span><div style="margin-top:8px">Loading history…</div></div>
     </div>
   </section>
 
@@ -314,6 +313,28 @@ function renderGames(){
   }).join('')+'</div>';
 }
 loadGames();
+
+// ── Lore timeline ──
+async function loadLore(){
+  const box=document.getElementById('lore-timeline');
+  try{
+    const {data,error}=await sb.from('site_lore').select('*').order('sort_order');
+    if(error) throw error;
+    if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);padding:20px">No history entries yet.</div>'; return; }
+    box.innerHTML=data.map(l=>
+      `<div class="lore-item">
+        ${l.year_label?`<div class="lore-year">${esc(l.year_label)}</div>`:''}
+        <div class="lore-box">
+          <h3><span class="lore-ic">${esc(l.icon||'✨')}</span> ${esc(l.title)}</h3>
+          ${l.description?`<p>${esc(l.description)}</p>`:''}
+        </div>
+      </div>`
+    ).join('');
+  }catch(e){
+    box.innerHTML='<div style="color:var(--text-dim);padding:20px">Could not load history.</div>';
+  }
+}
+loadLore();
 </script>
 <!-- CHARACTER DETAIL MODAL -->
 <div class="char-modal" id="char-modal" onclick="if(event.target===this)closeChar()">
