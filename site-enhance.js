@@ -89,7 +89,29 @@
 
     // ---- Homepage: fill universe cards with real images from the database ----
     injectUniverseImages();
+    injectHeroImage();
   });
+
+  async function injectHeroImage(){
+    const hero=document.querySelector('.page-hero, .hero');
+    if(!hero || !window.supabase) return;
+    // page key from filename (index, wiki, story, news, guides, trades, database, map, arcade)
+    let page=(location.pathname.split('/').pop()||'index.html').replace('.html','');
+    if(!page) page='index';
+    try{
+      const sb=window.supabase.createClient(
+        'https://ihucxnmqnhevfvlamgwc.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU'
+      );
+      const {data}=await sb.from('site_settings').select('value').eq('key','hero_img_'+page).maybeSingle();
+      const url=data&&data.value;
+      if(url){
+        hero.style.backgroundImage='linear-gradient(to bottom,rgba(10,11,20,.72),rgba(10,11,20,.92)),url('+url+')';
+        hero.style.backgroundSize='cover';
+        hero.style.backgroundPosition='center';
+      }
+    }catch(e){}
+  }
 
   async function injectUniverseImages(){
     if(!window.supabase) return;
