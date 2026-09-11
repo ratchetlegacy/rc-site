@@ -58,6 +58,7 @@ input:focus{border-color:var(--purple)}
 .admin-menu-card .amc-lbl{font-size:.74rem;font-weight:600;color:var(--text)}
 .admin-back-menu{display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 16px;color:var(--text);font-weight:600;font-size:.85rem;cursor:pointer;margin-bottom:16px}
 body.section-view .card:not(.sec-visible){display:none}
+body.menu-only .card{display:none}
 .fmodal{display:none;position:fixed;inset:0;z-index:400;background:rgba(5,6,12,.9);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px}
 .fmodal.open{display:flex}
 .fmodal-box{max-width:460px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;max-height:90vh;overflow-y:auto}
@@ -674,8 +675,12 @@ function buildAdminMenu(){
   menu.innerHTML=ADMIN_SECTIONS.map(s=>
     `<div class="admin-menu-card" onclick="showAdminSection('${s.key}')"><span class="amc-ic">${s.ic}</span><span class="amc-lbl">${s.lbl}</span></div>`
   ).join('');
+  // start with only the menu visible (no section open)
+  document.body.classList.add('menu-only');
+  document.body.classList.remove('section-view');
 }
 function showAdminSection(key){
+  document.body.classList.remove('menu-only');
   document.body.classList.add('section-view');
   document.querySelectorAll('#admin-area .card').forEach(c=>{
     c.classList.toggle('sec-visible', c.dataset.section===key);
@@ -693,6 +698,7 @@ function showAdminSection(key){
 }
 function showAllSections(){
   document.body.classList.remove('section-view');
+  document.body.classList.add('menu-only');
   document.querySelectorAll('.admin-menu-card').forEach(el=>el.classList.remove('active'));
   const b=document.getElementById('admin-back'); if(b) b.remove();
 }
