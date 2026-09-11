@@ -47,8 +47,16 @@ a{color:inherit;text-decoration:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* planet nodes */
 .planet-node{position:absolute;transform:translate(-50%,-50%);cursor:pointer;text-align:center;z-index:3}
-.planet-dot{width:26px;height:26px;border-radius:50%;margin:0 auto;background:radial-gradient(circle at 35% 30%,var(--orange-light),var(--purple));box-shadow:0 0 0 4px rgba(123,79,212,.2),0 0 18px rgba(255,138,42,.6);transition:.2s}
-.planet-node:hover .planet-dot{transform:scale(1.35);box-shadow:0 0 0 6px rgba(123,79,212,.3),0 0 26px rgba(255,138,42,.9)}
+.planet-dot{width:26px;height:26px;border-radius:50%;margin:0 auto;background:radial-gradient(circle at 35% 30%,var(--orange-light),var(--purple));box-shadow:0 0 0 4px rgba(123,79,212,.2),0 0 18px rgba(255,138,42,.6);transition:.2s;overflow:hidden}
+.planet-dot.has-photo{width:44px;height:44px;box-shadow:0 0 0 3px rgba(123,79,212,.35),0 0 22px rgba(255,138,42,.5)}
+.planet-dot img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.planet-node:hover .planet-dot{transform:scale(1.3);box-shadow:0 0 0 6px rgba(123,79,212,.3),0 0 26px rgba(255,138,42,.9)}
+/* location sub-points around a planet */
+.loc-point{position:absolute;transform:translate(-50%,-50%);z-index:2;text-align:center;animation:locPop .3s ease}
+@keyframes locPop{from{opacity:0;transform:translate(-50%,-50%) scale(.4)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.loc-dot{width:11px;height:11px;border-radius:50%;margin:0 auto;background:var(--gold);box-shadow:0 0 8px rgba(255,200,90,.8)}
+.loc-label{font-size:.56rem;color:var(--gold);margin-top:3px;text-shadow:0 1px 4px rgba(0,0,0,.9);white-space:nowrap}
+.loc-line{position:absolute;height:1px;background:rgba(255,200,90,.35);transform-origin:left center;z-index:1}
 .planet-label{font-size:.68rem;font-weight:600;color:#fff;margin-top:5px;text-shadow:0 1px 6px rgba(0,0,0,.9);white-space:nowrap}
 .map-line{position:absolute;height:1px;background:linear-gradient(90deg,rgba(155,111,244,.4),rgba(255,138,42,.4));transform-origin:left center;z-index:1}
 .map-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:.9rem;text-align:center;padding:20px}
@@ -179,7 +187,7 @@ function renderTabs(){
     `<button class="gal-tab ${g===activeGal?'active':''}" onclick="setGal('${esc(g).replace(/'/g,"\\'")}')">🌌 ${esc(g)}</button>`
   ).join('');
 }
-function setGal(g){ activeGal=g; renderTabs(); renderMap(); }
+function setGal(g){ activeGal=g; clearLocations(); renderTabs(); renderMap(); }
 function renderMap(){
   const stage=document.getElementById('map-stage');
   // remove old nodes/lines
@@ -204,11 +212,51 @@ function renderMap(){
   pts.forEach((pt,idx)=>{
     const node=document.createElement('div'); node.className='planet-node';
     node.style.left=pt.pos.x+'%'; node.style.top=pt.pos.y+'%';
-    node.innerHTML='<div class="planet-dot"></div><div class="planet-label">'+esc(pt.p.name)+'</div>';
-    node.onclick=()=>openP(pt.p);
+    const dot = (pt.p.image_url && pt.p.image_url.trim())
+      ? '<div class="planet-dot has-photo"><img src="'+esc(pt.p.image_url)+'" onerror="this.parentNode.classList.remove(\'has-photo\');this.remove()"/></div>'
+      : '<div class="planet-dot"></div>';
+    node.innerHTML=dot+'<div class="planet-label">'+esc(pt.p.name)+'</div>';
+    node.onclick=(e)=>{ e.stopPropagation(); toggleLocations(pt); };
     stage.appendChild(node);
   });
 }
+
+// show location sub-points around a planet when clicked; second click opens the full sheet
+let activeLocPlanet=null;
+function clearLocations(){
+  document.getElementById('map-stage').querySelectorAll('.loc-point,.loc-line').forEach(n=>n.remove());
+  activeLocPlanet=null;
+}
+function toggleLocations(pt){
+  const stage=document.getElementById('map-stage');
+  // if already showing this planet's locations, a click opens the detail sheet
+  if(activeLocPlanet===pt.p){ openP(pt.p); return; }
+  clearLocations();
+  activeLocPlanet=pt.p;
+  const locs=(pt.p.notable_locations||'').split(/[·,]/).map(s=>s.trim()).filter(Boolean);
+  if(!locs.length){ openP(pt.p); return; }  // no locations -> open sheet directly
+  locs.slice(0,6).forEach((loc,i)=>{
+    const ang=(i/Math.max(locs.length,1))*Math.PI*2 - Math.PI/2;
+    const rad=9; // % radius around the planet
+    const lx=pt.pos.x+Math.cos(ang)*rad;
+    const ly=pt.pos.y+Math.sin(ang)*rad*0.9;
+    // line
+    const line=document.createElement('div'); line.className='loc-line';
+    const dx=lx-pt.pos.x,dy=ly-pt.pos.y,len=Math.sqrt(dx*dx+dy*dy);
+    line.style.left=pt.pos.x+'%'; line.style.top=pt.pos.y+'%'; line.style.width=len+'%';
+    line.style.transform='rotate('+Math.atan2(dy,dx)+'rad)';
+    stage.appendChild(line);
+    // point
+    const lp=document.createElement('div'); lp.className='loc-point';
+    lp.style.left=lx+'%'; lp.style.top=ly+'%';
+    lp.innerHTML='<div class="loc-dot"></div><div class="loc-label">'+esc(loc)+'</div>';
+    lp.onclick=(e)=>{ e.stopPropagation(); openP(pt.p); };
+    stage.appendChild(lp);
+  });
+  // a hint bubble: tap the planet again for full details
+}
+// click empty space to clear locations
+document.getElementById('map-stage').addEventListener('click',()=>clearLocations());
 function openP(p){
   document.getElementById('p-img').innerHTML=p.image_url?`<img src="${esc(p.image_url)}" onerror="this.parentNode.textContent='🪐'"/>`:'🪐';
   document.getElementById('p-name').textContent=p.name||'';
