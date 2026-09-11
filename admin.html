@@ -59,6 +59,11 @@ input:focus{border-color:var(--purple)}
 .admin-back-menu{display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 16px;color:var(--text);font-weight:600;font-size:.85rem;cursor:pointer;margin-bottom:16px}
 body.section-view .card:not(.sec-visible){display:none}
 body.menu-only .card{display:none}
+/* collapsed cards inside a section: show only the header row */
+.card.collapsed > *:not(:first-child){display:none}
+.card.collapsed{cursor:pointer}
+.card.sec-visible h2::after{content:' ▾';color:var(--text-dim);font-size:.8rem}
+.card.collapsed.sec-visible h2::after{content:' ▸'}
 .fmodal{display:none;position:fixed;inset:0;z-index:400;background:rgba(5,6,12,.9);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px}
 .fmodal.open{display:flex}
 .fmodal-box{max-width:460px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;max-height:90vh;overflow-y:auto}
@@ -821,12 +826,13 @@ function showAdminSection(key){
   document.body.classList.remove('menu-only');
   document.body.classList.add('section-view');
   document.querySelectorAll('#admin-area .card').forEach(c=>{
-    c.classList.toggle('sec-visible', c.dataset.section===key);
+    const inSec = c.dataset.section===key;
+    c.classList.toggle('sec-visible', inSec);
+    if(inSec){ c.classList.add('collapsed'); setupCardToggle(c); }
   });
   document.querySelectorAll('.admin-menu-card').forEach((el,i)=>{
     el.classList.toggle('active', ADMIN_SECTIONS[i] && ADMIN_SECTIONS[i].key===key);
   });
-  // add a back button once
   if(!document.getElementById('admin-back')){
     const b=document.createElement('button'); b.id='admin-back'; b.className='admin-back-menu';
     b.textContent='← All sections'; b.onclick=showAllSections;
@@ -834,10 +840,23 @@ function showAdminSection(key){
   }
   window.scrollTo({top:0,behavior:'smooth'});
 }
+function setupCardToggle(card){
+  const h=card.querySelector('h2'); if(!h || h.dataset.toggle) return;
+  h.dataset.toggle='1';
+  h.style.cursor='pointer';
+  // wrap the h2 header row so clicking it expands/collapses
+  const headerRow = h.closest('div[style*="justify-content:space-between"]') || h;
+  (headerRow===h?h:headerRow).addEventListener('click',(e)=>{
+    // don't toggle when clicking the + Add button
+    if(e.target.closest('.btn')) return;
+    card.classList.toggle('collapsed');
+  });
+}
 function showAllSections(){
   document.body.classList.remove('section-view');
   document.body.classList.add('menu-only');
   document.querySelectorAll('.admin-menu-card').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('#admin-area .card').forEach(c=>c.classList.remove('collapsed'));
   const b=document.getElementById('admin-back'); if(b) b.remove();
 }
 // ── Homepage images ──
