@@ -34,6 +34,10 @@ a{color:inherit;text-decoration:none}
 .page-hero h1{position:relative;font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2rem,5.5vw,3.4rem);margin-bottom:14px}
 .page-hero h1 .grad{background:linear-gradient(120deg,var(--purple-light),var(--orange));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .page-hero p{position:relative;color:var(--text-mid);max-width:580px;margin:0 auto;font-size:1.02rem}
+.vault-stats{position:relative;display:flex;gap:26px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.vs-item{display:flex;flex-direction:column;align-items:center}
+.vs-item b{font-family:'Orbitron',sans-serif;font-size:1.7rem;background:linear-gradient(120deg,var(--purple-light),var(--orange));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.vs-item span{font-size:.72rem;color:var(--text-dim);letter-spacing:.02em}
 
 .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
 
@@ -106,6 +110,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <a href="index.html">Home</a>
     <a href="wiki.html">Wiki</a>
     <a href="map.html">Map</a>
+    <a href="arcade.html">Arcade</a>
     <a href="story.html">Story</a>
     <a href="news.html">News</a>
     <a href="database.html" class="active">Megacorp Vault</a>
@@ -121,6 +126,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <div class="tag">GADGETRON · MEGACORP REGISTRY</div>
   <h1>The <span class="grad">Megacorp</span> Vault</h1>
   <p>Every known Ratchet &amp; Clank collectible — games, figures, plush, guides and more. The most complete reference for collectors.</p>
+  <div class="vault-stats" id="vault-stats"></div>
 </header>
 
 <div class="wrap">
@@ -178,6 +184,14 @@ async function load(){
     ALL=data||[];
     document.getElementById('state').style.display='none';
     await loadRating();
+    // fill the stats banner
+    const nCats=new Set(ALL.map(c=>c.category||'Misc')).size;
+    const nPlats=new Set(ALL.map(c=>c.platform).filter(Boolean)).size;
+    const sb2=document.getElementById('vault-stats');
+    if(sb2) sb2.innerHTML=
+      '<div class="vs-item"><b>'+ALL.length+'</b><span>items</span></div>'
+     +'<div class="vs-item"><b>'+nCats+'</b><span>categories</span></div>'
+     +'<div class="vs-item"><b>'+nPlats+'</b><span>platforms</span></div>';
     showCategoryMenu();
   }catch(e){
     document.getElementById('state').innerHTML='<div style="color:var(--text-dim)">Could not load the database right now. Please try again later.</div>';
