@@ -408,6 +408,7 @@ async function loadWikiEntries(){
     const {data,error}=await sb.from('site_wiki_entries').select('*').order('sort_order').order('name');
     if(error) throw error;
     const byType={weapon:[],creature:[],planet:[],vehicle:[]};
+    WIKI_ENTRIES=data||[];
     (data||[]).forEach(e=>{ if(byType[e.type]) byType[e.type].push(e); });
     renderEntries('weapons-grid', byType.weapon);
     renderEntries('creatures-grid', byType.creature);
@@ -415,17 +416,43 @@ async function loadWikiEntries(){
     renderEntries('vehicles-grid', byType.vehicle);
   }catch(e){}
 }
+let WIKI_ENTRIES=[];
 function renderEntries(gridId, list){
   const grid=document.getElementById(gridId); if(!grid) return;
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Coming soon!</div>'; return; }
   grid.innerHTML=list.map(e=>{
+    const idx=WIKI_ENTRIES.indexOf(e);
     const pos=esc(e.img_pos||'center');
     const av=(e.image_url&&e.image_url.trim())
       ? `<div class="av"><img src="${esc(e.image_url)}" alt="" style="object-position:${pos}" onerror="this.parentNode.textContent='📦'"/></div>`
       : `<div class="av" style="background:linear-gradient(135deg,#7B4FD4,#FF6B1A);font-size:2rem">${gridId==='weapons-grid'?'🔫':gridId==='creatures-grid'?'👽':gridId==='planets-grid'?'🪐':'🚀'}</div>`;
-    return `<div class="char">${av}<h3>${esc(e.name)}</h3>${e.subtitle?`<div class="role">${esc(e.subtitle)}</div>`:''}${e.description?`<p>${esc(e.description)}</p>`:''}</div>`;
+    return `<div class="char" style="cursor:pointer" onclick="openEntry(${idx})">${av}<h3>${esc(e.name)}</h3>${e.subtitle?`<div class="role">${esc(e.subtitle)}</div>`:''}${e.description?`<p>${esc(e.description)}</p>`:''}</div>`;
   }).join('');
 }
+function openEntry(i){
+  const e=WIKI_ENTRIES[i]; if(!e) return;
+  const img=(e.image_url&&e.image_url.trim())
+    ? `<img src="${esc(e.image_url)}" style="width:100%;height:100%;object-fit:cover;object-position:${esc(e.img_pos||'center')}" onerror="this.parentNode.innerHTML='🪐'"/>`
+    : '🪐';
+  const rows=[
+    ['Galaxy',e.galaxy],['Dimension',e.dimension],['Main location',e.main_location],
+    ['Inhabitants',e.inhabitants],['First appearance',e.first_appearance],
+    ['Notable locations',e.notable_locations],['Notable events',e.notable_events]
+  ].filter(r=>r[1]&&r[1].trim());
+  const stats=rows.map(r=>`<div class="cd-row"><span class="cd-k">${r[0]}</span><span class="cd-v">${esc(r[1])}</span></div>`).join('');
+  document.getElementById('entry-body').innerHTML=`
+    <div class="cd-top">
+      <div class="cd-img" style="background:linear-gradient(135deg,#2a1d45,#3d2410)">${img}</div>
+      <div class="cd-top-info">
+        <div><h2>${esc(e.name)}</h2>${e.subtitle?`<div class="cd-role">${esc(e.subtitle)}</div>`:''}</div>
+        ${stats?`<div class="cd-stats">${stats}</div>`:''}
+      </div>
+    </div>
+    ${e.description?`<div class="cd-below"><p class="cd-desc">${esc(e.description)}</p></div>`:''}`;
+  document.getElementById('entry-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeEntry(){ document.getElementById('entry-modal').classList.remove('open'); document.body.style.overflow=''; }
 loadWikiEntries();
 
 // ── Hub card images (from admin settings) ──
@@ -457,5 +484,13 @@ loadHubImages();
 </div>
 
 <script src="site-enhance.js"></script>
+<!-- ENTRY DETAIL MODAL -->
+<div class="char-modal" id="entry-modal" onclick="if(event.target===this)closeEntry()">
+  <div class="cd-inner">
+    <button class="cd-close" onclick="closeEntry()">✕</button>
+    <div id="entry-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
