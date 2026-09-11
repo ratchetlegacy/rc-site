@@ -55,6 +55,10 @@ a{color:inherit;text-decoration:none}
 .loc-point{position:absolute;transform:translate(-50%,-50%);z-index:2;text-align:center;animation:locPop .3s ease}
 @keyframes locPop{from{opacity:0;transform:translate(-50%,-50%) scale(.4)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 .loc-dot{width:11px;height:11px;border-radius:50%;margin:0 auto;background:var(--gold);box-shadow:0 0 8px rgba(255,200,90,.8)}
+.loc-dot.loc-photo{width:30px;height:30px;overflow:hidden;box-shadow:0 0 0 2px rgba(255,200,90,.6),0 0 12px rgba(255,200,90,.5)}
+.loc-dot.loc-photo img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.loc-point{cursor:pointer}
+.loc-point:hover .loc-dot{transform:scale(1.25)}
 .loc-label{font-size:.56rem;color:var(--gold);margin-top:3px;text-shadow:0 1px 4px rgba(0,0,0,.9);white-space:nowrap}
 .loc-line{position:absolute;height:1px;background:rgba(255,200,90,.35);transform-origin:left center;z-index:1}
 .planet-label{font-size:.68rem;font-weight:600;color:#fff;margin-top:5px;text-shadow:0 1px 6px rgba(0,0,0,.9);white-space:nowrap}
@@ -147,7 +151,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','
 const stars=document.getElementById('map-stars');
 for(let i=0;i<90;i++){const s=document.createElement('div');s.className='map-star';const sz=Math.random()<.8?1:2;s.style.width=sz+'px';s.style.height=sz+'px';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.animationDelay=(Math.random()*3)+'s';stars.appendChild(s);}
 
-let PLANETS=[], GALAXIES=[], activeGal='';
+let PLANETS=[], GALAXIES=[], activeGal='', LOCATIONS=[];
 // deterministic pseudo-random position from a string, so a planet always sits in the same spot
 function posFor(str,i,total){
   let h=0; for(let k=0;k<str.length;k++){ h=(h*31+str.charCodeAt(k))%10000; }
@@ -160,9 +164,12 @@ function posFor(str,i,total){
 
 async function load(){
   try{
-    const {data}=await sb.from('site_wiki_entries').select('*').eq('type','planet').order('sort_order').order('name');
-    PLANETS=data||[];
-    // galaxies = distinct subtitles' galaxy word, else "Known Worlds"
+    const [planetsRes, locsRes] = await Promise.all([
+      sb.from('site_wiki_entries').select('*').eq('type','planet').order('sort_order').order('name'),
+      sb.from('site_locations').select('*').order('sort_order').order('name')
+    ]);
+    PLANETS=planetsRes.data||[];
+    LOCATIONS=locsRes.data||[];
     GALAXIES=[...new Set(PLANETS.map(p=>galaxyOf(p)).filter(Boolean))];
     if(!GALAXIES.length) GALAXIES=['Known Worlds'];
     activeGal=GALAXIES[0];
@@ -172,6 +179,7 @@ async function load(){
     document.getElementById('map-stage').innerHTML='<div class="map-empty">Could not load the map right now.</div>';
   }
 }
+function locationsFor(planetId){ return LOCATIONS.filter(l=>l.planet_id===planetId); }
 function galaxyOf(p){
   // 1) use the explicit galaxy field if set
   if(p.galaxy && p.galaxy.trim()) return p.galaxy.trim();
@@ -229,31 +237,45 @@ function clearLocations(){
 }
 function toggleLocations(pt){
   const stage=document.getElementById('map-stage');
-  // if already showing this planet's locations, a click opens the detail sheet
   if(activeLocPlanet===pt.p){ openP(pt.p); return; }
   clearLocations();
   activeLocPlanet=pt.p;
-  const locs=(pt.p.notable_locations||'').split(/[·,]/).map(s=>s.trim()).filter(Boolean);
-  if(!locs.length){ openP(pt.p); return; }  // no locations -> open sheet directly
-  locs.slice(0,6).forEach((loc,i)=>{
+  // real locations from the table, fallback to the text field
+  let locs=locationsFor(pt.p.id);
+  if(!locs.length){
+    // fallback: build lightweight locations from the notable_locations text
+    locs=(pt.p.notable_locations||'').split(/[·,]/).map(s=>s.trim()).filter(Boolean)
+      .map(name=>({name, _text:true}));
+  }
+  if(!locs.length){ openP(pt.p); return; }
+  locs.slice(0,7).forEach((loc,i)=>{
     const ang=(i/Math.max(locs.length,1))*Math.PI*2 - Math.PI/2;
-    const rad=9; // % radius around the planet
+    const rad=10;
     const lx=pt.pos.x+Math.cos(ang)*rad;
     const ly=pt.pos.y+Math.sin(ang)*rad*0.9;
-    // line
     const line=document.createElement('div'); line.className='loc-line';
     const dx=lx-pt.pos.x,dy=ly-pt.pos.y,len=Math.sqrt(dx*dx+dy*dy);
     line.style.left=pt.pos.x+'%'; line.style.top=pt.pos.y+'%'; line.style.width=len+'%';
     line.style.transform='rotate('+Math.atan2(dy,dx)+'rad)';
     stage.appendChild(line);
-    // point
     const lp=document.createElement('div'); lp.className='loc-point';
     lp.style.left=lx+'%'; lp.style.top=ly+'%';
-    lp.innerHTML='<div class="loc-dot"></div><div class="loc-label">'+esc(loc)+'</div>';
-    lp.onclick=(e)=>{ e.stopPropagation(); openP(pt.p); };
+    const dot = (loc.image_url && loc.image_url.trim())
+      ? '<div class="loc-dot loc-photo"><img src="'+esc(loc.image_url)+'" onerror="this.parentNode.classList.remove(\'loc-photo\');this.remove()"/></div>'
+      : '<div class="loc-dot"></div>';
+    lp.innerHTML=dot+'<div class="loc-label">'+esc(loc.name)+'</div>';
+    lp.onclick=(e)=>{ e.stopPropagation(); if(loc._text){ openP(pt.p); } else { openLoc(loc, pt.p); } };
     stage.appendChild(lp);
   });
-  // a hint bubble: tap the planet again for full details
+}
+// location detail sheet
+function openLoc(loc, planet){
+  document.getElementById('p-img').innerHTML=loc.image_url?`<img src="${esc(loc.image_url)}" onerror="this.parentNode.textContent='📍'"/>`:'📍';
+  document.getElementById('p-name').textContent=loc.name||'';
+  document.getElementById('p-sub').textContent=[loc.loc_type, planet?('on '+planet.name):''].filter(Boolean).join(' · ');
+  document.getElementById('p-desc').textContent=loc.description||'';
+  document.getElementById('pmodal').classList.add('open');
+  document.body.style.overflow='hidden';
 }
 // click empty space to clear locations
 document.getElementById('map-stage').addEventListener('click',()=>clearLocations());
