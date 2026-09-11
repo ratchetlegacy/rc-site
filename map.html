@@ -83,6 +83,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <a href="index.html">Home</a>
     <a href="wiki.html">Wiki</a>
     <a href="map.html" class="active">Map</a>
+    <a href="arcade.html">Arcade</a>
     <a href="story.html">Story</a>
     <a href="database.html">Megacorp Vault</a>
     <a href="guides.html">Guides</a>
@@ -164,7 +165,9 @@ async function load(){
   }
 }
 function galaxyOf(p){
-  // try to extract a galaxy name from the subtitle (e.g. "Kerwan · Solana")
+  // 1) use the explicit galaxy field if set
+  if(p.galaxy && p.galaxy.trim()) return p.galaxy.trim();
+  // 2) otherwise try to detect from the subtitle
   const s=(p.subtitle||'');
   if(/solana/i.test(s)) return 'Solana';
   if(/bogon/i.test(s)) return 'Bogon';
