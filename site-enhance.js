@@ -34,6 +34,36 @@
     .nav-links::-webkit-scrollbar{display:none}
     .nav-links a{padding:7px 10px;font-size:.8rem;white-space:nowrap;flex-shrink:0}
   }
+  /* ── Mobile refinements (phones) ── */
+  @media(max-width:600px){
+    .page-hero,.hero{padding-left:16px;padding-right:16px}
+    .page-hero h1,.hero h1{font-size:1.9rem!important;line-height:1.15}
+    .page-hero p,.hero p{font-size:.92rem}
+    .wrap,.layout{padding-left:16px!important;padding-right:16px!important}
+    /* grids collapse to 2 or 1 columns */
+    .chars{grid-template-columns:1fr 1fr!important;gap:12px!important}
+    .uni-grid,.uni-cards{grid-template-columns:1fr!important}
+    .cat-menu,.admin-cards{grid-template-columns:1fr 1fr!important;gap:12px!important}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))!important}
+    .guides,.news-grid,.listings{grid-template-columns:1fr!important}
+    .wiki-hub{grid-template-columns:1fr 1fr!important;gap:12px!important}
+    .vault-stats{gap:18px!important}
+    .vs-item b{font-size:1.3rem!important}
+    /* modals full-width-ish */
+    .cd-inner,.pmodal-box,.fmodal-box,.lb-inner{max-width:94vw!important}
+    .cd-top{grid-template-columns:1fr!important}
+    .chapter{grid-template-columns:1fr!important}
+    /* buttons easier to tap */
+    .btn{padding:12px 18px}
+    /* tables/rows wrap */
+    .guide-row{flex-wrap:wrap}
+    /* about section stacks */
+    .about{flex-direction:column!important;text-align:center}
+    .about-avatar{margin:0 auto}
+  }
+  @media(max-width:400px){
+    .chars,.cat-menu,.admin-cards,.wiki-hub{grid-template-columns:1fr!important}
+  }
   `;
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
