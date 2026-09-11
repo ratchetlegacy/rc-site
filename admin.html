@@ -104,6 +104,37 @@ body.menu-only .card{display:none}
       <div id="we-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
     </div>
 
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📍 Planet locations</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openLocForm()">+ Add</button>
+      </div>
+      <select id="loc-planet-filter" onchange="renderLocs()" style="margin-bottom:12px"><option value="">All planets</option></select>
+      <div id="loc-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <!-- LOCATION FORM MODAL -->
+    <div class="fmodal" id="loc-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="loc-modal-title">📍 Add location</h2><button onclick="closeLocForm()">✕</button></div>
+        <div class="msg" id="loc-msg"></div>
+        <input type="hidden" id="loc-id"/>
+        <label>Planet *</label>
+        <select id="loc-planet" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-family:Inter,sans-serif;font-size:.9rem;outline:none;margin-bottom:14px"></select>
+        <label>Name *</label>
+        <input type="text" id="loc-name" placeholder="Kyzil Plateau, Gadgetron HQ..."/>
+        <label>Type</label>
+        <input type="text" id="loc-type" placeholder="City, Base, Factory, Arena..."/>
+        <label>Description</label>
+        <textarea id="loc-desc" placeholder="What happens here..." style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px;color:var(--text);font-family:Inter,sans-serif;font-size:.88rem;outline:none;min-height:80px;resize:vertical;margin-bottom:14px"></textarea>
+        <label>Photo URL</label>
+        <input type="text" id="loc-img" placeholder="https://..."/>
+        <label>Order</label>
+        <input type="number" id="loc-order" placeholder="1"/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveLoc()">💾 Save location</button>
+      </div>
+    </div>
+
     <!-- WIKI ENTRY FORM MODAL -->
     <div class="fmodal" id="we-modal">
       <div class="fmodal-box">
@@ -564,6 +595,83 @@ async function delWiki(id){
   if(error){ alert(error.message); return; }
   loadWikiAdmin();
 }
+// ── Planet locations ──
+let _LOCS=[], _PLANETS=[];
+async function loadLocations(){
+  const [locsRes, planetsRes]=await Promise.all([
+    sb.from('site_locations').select('*').order('sort_order').order('name'),
+    sb.from('site_wiki_entries').select('id,name').eq('type','planet').order('name')
+  ]);
+  _LOCS=locsRes.data||[];
+  _PLANETS=planetsRes.data||[];
+  // fill planet dropdowns
+  const opts='<option value="">— select planet —</option>'+_PLANETS.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  const formSel=document.getElementById('loc-planet'); if(formSel) formSel.innerHTML=opts;
+  const filterSel=document.getElementById('loc-planet-filter');
+  if(filterSel){ const cur=filterSel.value; filterSel.innerHTML='<option value="">All planets</option>'+_PLANETS.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join(''); filterSel.value=cur; }
+  renderLocs();
+}
+function planetName(id){ const p=_PLANETS.find(x=>String(x.id)===String(id)); return p?p.name:'—'; }
+function renderLocs(){
+  const f=document.getElementById('loc-planet-filter').value;
+  const list=_LOCS.filter(l=>!f||String(l.planet_id)===String(f));
+  const box=document.getElementById('loc-list');
+  if(!list.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No location yet.</div>'; return; }
+  box.innerHTML=list.map(l=>
+    `<div class="guide-row">
+      <span class="gi">${l.image_url?'🖼️':'📍'}</span>
+      <div class="gt"><b>${esc(l.name)}</b><span>${esc(l.loc_type||'')} · ${esc(planetName(l.planet_id))}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editLocById('${esc(l.id)}')">Edit</button>
+      <button class="btn btn-danger" onclick="delLoc('${esc(l.id)}')">Del</button>
+    </div>`
+  ).join('');
+}
+function openLocForm(){
+  ['loc-id','loc-name','loc-type','loc-desc','loc-img','loc-order'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('loc-planet').value=document.getElementById('loc-planet-filter').value||'';
+  document.getElementById('loc-msg').style.display='none';
+  document.getElementById('loc-modal-title').textContent='📍 Add location';
+  document.getElementById('loc-modal').classList.add('open');
+}
+function closeLocForm(){ document.getElementById('loc-modal').classList.remove('open'); }
+function editLocById(id){
+  const l=_LOCS.find(x=>String(x.id)===String(id)); if(!l) return;
+  document.getElementById('loc-id').value=l.id;
+  document.getElementById('loc-planet').value=l.planet_id||'';
+  document.getElementById('loc-name').value=l.name||'';
+  document.getElementById('loc-type').value=l.loc_type||'';
+  document.getElementById('loc-desc').value=l.description||'';
+  document.getElementById('loc-img').value=l.image_url||'';
+  document.getElementById('loc-order').value=l.sort_order||'';
+  document.getElementById('loc-msg').style.display='none';
+  document.getElementById('loc-modal-title').textContent='✏️ Edit location';
+  document.getElementById('loc-modal').classList.add('open');
+}
+async function saveLoc(){
+  const id=document.getElementById('loc-id').value;
+  const row={
+    planet_id:document.getElementById('loc-planet').value||null,
+    name:document.getElementById('loc-name').value.trim(),
+    loc_type:document.getElementById('loc-type').value.trim()||null,
+    description:document.getElementById('loc-desc').value.trim()||null,
+    image_url:document.getElementById('loc-img').value.trim()||null,
+    sort_order:parseInt(document.getElementById('loc-order').value)||0
+  };
+  if(!row.name){ showMsg('loc-msg','Name is required.',false); return; }
+  if(!row.planet_id){ showMsg('loc-msg','Please pick a planet.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('site_locations').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('site_locations').insert([row])); }
+  if(error){ showMsg('loc-msg','Error: '+error.message,false); return; }
+  showMsg('loc-msg',id?'Location updated! ✓':'Location added! ✓',true);
+  setTimeout(()=>{ closeLocForm(); loadLocations(); }, 800);
+}
+async function delLoc(id){
+  if(!confirm('Delete this location?')) return;
+  const {error}=await sb.from('site_locations').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadLocations();
+}
 // ── Lore ──
 async function loadLore(){
   const box=document.getElementById('lore-list');
@@ -684,7 +792,7 @@ async function delNews(id){
 }
 // ── Admin section menu ──
 const ADMIN_SECTIONS=[
-  {key:'wiki', ic:'📚', lbl:'Wiki', match:['Wiki entries','Lore','Characters']},
+  {key:'wiki', ic:'📚', lbl:'Wiki', match:['Wiki entries','Planet locations','Lore','Characters']},
   {key:'games', ic:'🎮', lbl:'Games', match:['Games']},
   {key:'catalog', ic:'🗃️', lbl:'Catalog', match:['Catalog objects']},
   {key:'media', ic:'📗', lbl:'Guides & News', match:['Guides','News']},
@@ -814,6 +922,7 @@ function showAdmin(){
   loadWikiHubImages();
   loadHeroImages();
   loadWikiAdmin();
+  loadLocations();
   loadLore();
   loadNews();
   loadGuides();
