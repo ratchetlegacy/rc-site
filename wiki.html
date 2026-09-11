@@ -436,10 +436,15 @@ function openEntry(i){
     : '🪐';
   const rows=[
     ['Galaxy',e.galaxy],['Dimension',e.dimension],['Main location',e.main_location],
-    ['Inhabitants',e.inhabitants],['First appearance',e.first_appearance],
-    ['Notable locations',e.notable_locations],['Notable events',e.notable_events]
+    ['Inhabitants',e.inhabitants],['First appearance',e.first_appearance]
   ].filter(r=>r[1]&&r[1].trim());
   const stats=rows.map(r=>`<div class="cd-row"><span class="cd-k">${r[0]}</span><span class="cd-v">${esc(r[1])}</span></div>`).join('');
+  const chips=(label,val,ic)=>{
+    if(!val||!val.trim()) return '';
+    const items=val.split(/[·,]/).map(s=>s.trim()).filter(Boolean);
+    return `<div style="margin-top:16px"><div style="font-size:.7rem;color:var(--text-dim);font-weight:700;letter-spacing:.05em;margin-bottom:8px">${label}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">${items.map(it=>`<span style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--line);border-radius:100px;padding:6px 13px;font-size:.82rem;color:var(--text-mid)">${ic} ${esc(it)}</span>`).join('')}</div></div>`;
+  };
   document.getElementById('entry-body').innerHTML=`
     <div class="cd-top">
       <div class="cd-img" style="background:linear-gradient(135deg,#2a1d45,#3d2410)">${img}</div>
@@ -448,7 +453,11 @@ function openEntry(i){
         ${stats?`<div class="cd-stats">${stats}</div>`:''}
       </div>
     </div>
-    ${e.description?`<div class="cd-below"><p class="cd-desc">${esc(e.description)}</p></div>`:''}`;
+    <div class="cd-below">
+      ${e.description?`<p class="cd-desc">${esc(e.description)}</p>`:''}
+      ${chips('📍 Notable locations', e.notable_locations, '📍')}
+      ${chips('⭐ Notable events', e.notable_events, '⭐')}
+    </div>`;
   document.getElementById('entry-modal').classList.add('open');
   document.body.style.overflow='hidden';
 }
