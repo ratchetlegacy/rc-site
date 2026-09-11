@@ -152,6 +152,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <a href="index.html">Home</a>
     <a href="wiki.html" class="active">Wiki</a>
     <a href="map.html">Map</a>
+    <a href="arcade.html">Arcade</a>
     <a href="story.html">Story</a>
     <a href="news.html">News</a>
     <a href="database.html">Megacorp Vault</a>
@@ -173,13 +174,13 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 <div class="wrap">
   <!-- HUB: big clickable cards -->
   <div class="wiki-hub" id="wiki-hub">
-    <div class="wiki-hub-card" onclick="showWikiSection('games')"><span class="wh-ic">🎮</span><h3>Games</h3><p>The full saga, game by game</p></div>
-    <div class="wiki-hub-card" onclick="showWikiSection('characters')"><span class="wh-ic">🦊</span><h3>Characters</h3><p>Heroes, villains &amp; oddballs</p></div>
-    <div class="wiki-hub-card" onclick="showWikiSection('weapons')"><span class="wh-ic">🔫</span><h3>Weapons</h3><p>The legendary arsenal</p></div>
-    <div class="wiki-hub-card" onclick="showWikiSection('creatures')"><span class="wh-ic">👽</span><h3>Creatures</h3><p>Species of the galaxy</p></div>
-    <div class="wiki-hub-card" onclick="showWikiSection('planets')"><span class="wh-ic">🪐</span><h3>Planets</h3><p>Worlds &amp; locations</p></div>
-    <div class="wiki-hub-card" onclick="showWikiSection('vehicles')"><span class="wh-ic">🚀</span><h3>Vehicles</h3><p>Ships &amp; rides</p></div>
-    <div class="wiki-hub-card" onclick="showWikiSection('lore')"><span class="wh-ic">📖</span><h3>Lore &amp; History</h3><p>The story of the series</p></div>
+    <div class="wiki-hub-card" id="hub-games" onclick="showWikiSection('games')"><span class="wh-ic">🎮</span><h3>Games</h3><p>The full saga, game by game</p></div>
+    <div class="wiki-hub-card" id="hub-characters" onclick="showWikiSection('characters')"><span class="wh-ic">🦊</span><h3>Characters</h3><p>Heroes, villains &amp; oddballs</p></div>
+    <div class="wiki-hub-card" id="hub-weapons" onclick="showWikiSection('weapons')"><span class="wh-ic">🔫</span><h3>Weapons</h3><p>The legendary arsenal</p></div>
+    <div class="wiki-hub-card" id="hub-creatures" onclick="showWikiSection('creatures')"><span class="wh-ic">👽</span><h3>Creatures</h3><p>Species of the galaxy</p></div>
+    <div class="wiki-hub-card" id="hub-planets" onclick="showWikiSection('planets')"><span class="wh-ic">🪐</span><h3>Planets</h3><p>Worlds &amp; locations</p></div>
+    <div class="wiki-hub-card" id="hub-vehicles" onclick="showWikiSection('vehicles')"><span class="wh-ic">🚀</span><h3>Vehicles</h3><p>Ships &amp; rides</p></div>
+    <div class="wiki-hub-card" id="hub-lore" onclick="showWikiSection('lore')"><span class="wh-ic">📖</span><h3>Lore &amp; History</h3><p>The story of the series</p></div>
   </div>
 
   <button class="wiki-back" id="wiki-back" style="display:none" onclick="showWikiHub()">← All sections</button>
@@ -426,6 +427,26 @@ function renderEntries(gridId, list){
   }).join('');
 }
 loadWikiEntries();
+
+// ── Hub card images (from admin settings) ──
+async function loadHubImages(){
+  try{
+    const {data}=await sb.from('site_settings').select('key,value');
+    const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
+    const map={games:'wiki_img_games',characters:'wiki_img_characters',weapons:'wiki_img_weapons',creatures:'wiki_img_creatures',planets:'wiki_img_planets',vehicles:'wiki_img_vehicles',lore:'wiki_img_lore'};
+    Object.keys(map).forEach(k=>{
+      const url=S[map[k]];
+      const card=document.getElementById('hub-'+k);
+      if(url && card){
+        card.style.backgroundImage='linear-gradient(to top,rgba(16,18,31,.92),rgba(16,18,31,.45)),url('+url+')';
+        card.style.backgroundSize='cover';
+        card.style.backgroundPosition='center';
+        const ic=card.querySelector('.wh-ic'); if(ic) ic.style.opacity='.6';
+      }
+    });
+  }catch(e){}
+}
+loadHubImages();
 </script>
 <!-- CHARACTER DETAIL MODAL -->
 <div class="char-modal" id="char-modal" onclick="if(event.target===this)closeChar()">
