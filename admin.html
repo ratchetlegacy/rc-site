@@ -239,6 +239,21 @@ body.menu-only .card{display:none}
       <button class="btn btn-primary" style="width:100%" onclick="saveWikiHubImages()">💾 Save wiki hub images</button>
     </div>
     <div class="card">
+      <h2>🖼️ Page banners (hero)</h2>
+      <div class="msg" id="hero-msg"></div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Background image for the top banner of each page.</div>
+      <label>Home</label><input type="text" id="he-index" placeholder="https://..."/>
+      <label>Wiki</label><input type="text" id="he-wiki" placeholder="https://..."/>
+      <label>Story</label><input type="text" id="he-story" placeholder="https://..."/>
+      <label>Map</label><input type="text" id="he-map" placeholder="https://..."/>
+      <label>Megacorp Vault</label><input type="text" id="he-database" placeholder="https://..."/>
+      <label>Guides</label><input type="text" id="he-guides" placeholder="https://..."/>
+      <label>News</label><input type="text" id="he-news" placeholder="https://..."/>
+      <label>Trades</label><input type="text" id="he-trades" placeholder="https://..."/>
+      <label>Arcade</label><input type="text" id="he-arcade" placeholder="https://..."/>
+      <button class="btn btn-primary" style="width:100%" onclick="saveHeroImages()">💾 Save page banners</button>
+    </div>
+    <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">📗 Guides</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openGuideForm()">+ Add</button>
@@ -431,6 +446,21 @@ async function signIn(){
   showAdmin();
 }
 async function signOut(){ await sb.auth.signOut(); location.reload(); }
+// ── Page hero banners ──
+const HERO_PAGES=['index','wiki','story','map','database','guides','news','trades','arcade'];
+async function loadHeroImages(){
+  try{
+    const {data}=await sb.from('site_settings').select('key,value');
+    const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
+    HERO_PAGES.forEach(p=>{ const el=document.getElementById('he-'+p); if(el) el.value=S['hero_img_'+p]||''; });
+  }catch(e){}
+}
+async function saveHeroImages(){
+  const rows=HERO_PAGES.map(p=>({key:'hero_img_'+p, value:document.getElementById('he-'+p).value.trim()}));
+  const {error}=await sb.from('site_settings').upsert(rows);
+  if(error){ showMsg('hero-msg',error.message,false); return; }
+  showMsg('hero-msg','Page banners saved! ✓',true);
+}
 // ── Wiki hub images ──
 async function loadWikiHubImages(){
   try{
@@ -659,7 +689,7 @@ const ADMIN_SECTIONS=[
   {key:'catalog', ic:'🗃️', lbl:'Catalog', match:['Catalog objects']},
   {key:'media', ic:'📗', lbl:'Guides & News', match:['Guides','News']},
   {key:'trades', ic:'🤝', lbl:'Trades', match:['Trade listings']},
-  {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images']}
+  {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Page banners']}
 ];
 function buildAdminMenu(){
   const menu=document.getElementById('admin-menu');
@@ -782,6 +812,7 @@ function showAdmin(){
   buildAdminMenu();
   loadHomeImages();
   loadWikiHubImages();
+  loadHeroImages();
   loadWikiAdmin();
   loadLore();
   loadNews();
