@@ -82,6 +82,47 @@ input:focus{border-color:var(--purple)}
   <div id="admin-area" class="hidden">
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📚 Wiki entries</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openWikiForm()">+ Add</button>
+      </div>
+      <select id="we-filter" onchange="renderWikiEntries()" style="margin-bottom:12px">
+        <option value="weapon">🔫 Weapons</option>
+        <option value="creature">👽 Creatures</option>
+        <option value="planet">🪐 Planets</option>
+        <option value="vehicle">🚀 Vehicles</option>
+      </select>
+      <div id="we-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <!-- WIKI ENTRY FORM MODAL -->
+    <div class="fmodal" id="we-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="we-modal-title">📚 Add entry</h2><button onclick="closeWikiForm()">✕</button></div>
+        <div class="msg" id="we-msg"></div>
+        <input type="hidden" id="we-id"/>
+        <label>Type</label>
+        <select id="we-type" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-family:Inter,sans-serif;font-size:.9rem;outline:none;margin-bottom:14px">
+          <option value="weapon">🔫 Weapon / Gadget</option>
+          <option value="creature">👽 Creature / Species</option>
+          <option value="planet">🪐 Planet / Location</option>
+          <option value="vehicle">🚀 Vehicle / Ship</option>
+        </select>
+        <label>Name *</label>
+        <input type="text" id="we-name" placeholder="Combustor, Veldin..."/>
+        <label>Subtitle</label>
+        <input type="text" id="we-subtitle" placeholder="Blaster, Solana Galaxy..."/>
+        <label>Description</label>
+        <input type="text" id="we-desc" placeholder="Short description"/>
+        <label>Image URL</label>
+        <input type="text" id="we-img" placeholder="https://..."/>
+        <label>Order</label>
+        <input type="number" id="we-order" placeholder="1"/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveWikiEntry()">💾 Save entry</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">📖 Lore &amp; History</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openLoreForm()">+ Add</button>
       </div>
@@ -150,6 +191,26 @@ input:focus{border-color:var(--purple)}
       <label>About image URL</label>
       <input type="text" id="hi-about" placeholder="https://..."/>
       <button class="btn btn-primary" style="width:100%" onclick="saveHomeImages()">💾 Save homepage images</button>
+    </div>
+
+    <div class="card">
+      <h2>🎴 Wiki hub images</h2>
+      <div class="msg" id="wikihub-msg"></div>
+      <label>Games card</label>
+      <input type="text" id="wi-games" placeholder="https://..."/>
+      <label>Characters card</label>
+      <input type="text" id="wi-characters" placeholder="https://..."/>
+      <label>Weapons card</label>
+      <input type="text" id="wi-weapons" placeholder="https://..."/>
+      <label>Creatures card</label>
+      <input type="text" id="wi-creatures" placeholder="https://..."/>
+      <label>Planets card</label>
+      <input type="text" id="wi-planets" placeholder="https://..."/>
+      <label>Vehicles card</label>
+      <input type="text" id="wi-vehicles" placeholder="https://..."/>
+      <label>Lore card</label>
+      <input type="text" id="wi-lore" placeholder="https://..."/>
+      <button class="btn btn-primary" style="width:100%" onclick="saveWikiHubImages()">💾 Save wiki hub images</button>
     </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -344,6 +405,91 @@ async function signIn(){
   showAdmin();
 }
 async function signOut(){ await sb.auth.signOut(); location.reload(); }
+// ── Wiki hub images ──
+async function loadWikiHubImages(){
+  try{
+    const {data}=await sb.from('site_settings').select('key,value');
+    const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
+    ['games','characters','weapons','creatures','planets','vehicles','lore'].forEach(k=>{
+      const el=document.getElementById('wi-'+k); if(el) el.value=S['wiki_img_'+k]||'';
+    });
+  }catch(e){}
+}
+async function saveWikiHubImages(){
+  const rows=['games','characters','weapons','creatures','planets','vehicles','lore'].map(k=>
+    ({key:'wiki_img_'+k, value:document.getElementById('wi-'+k).value.trim()}));
+  const {error}=await sb.from('site_settings').upsert(rows);
+  if(error){ showMsg('wikihub-msg',error.message,false); return; }
+  showMsg('wikihub-msg','Wiki hub images saved! ✓',true);
+}
+// ── Wiki entries ──
+let _WE=[];
+async function loadWikiAdmin(){
+  const {data,error}=await sb.from('site_wiki_entries').select('*').order('type').order('sort_order').order('name');
+  if(error){ document.getElementById('we-list').innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  _WE=data||[];
+  renderWikiEntries();
+}
+function renderWikiEntries(){
+  const t=document.getElementById('we-filter').value;
+  const list=_WE.filter(e=>e.type===t);
+  const box=document.getElementById('we-list');
+  if(!list.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No entry yet.</div>'; return; }
+  box.innerHTML=list.map(e=>
+    `<div class="guide-row">
+      <span class="gi">${e.image_url?'🖼️':'📦'}</span>
+      <div class="gt"><b>${esc(e.name)}</b><span>${esc(e.subtitle||'—')}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editWikiById('${esc(e.id)}')">Edit</button>
+      <button class="btn btn-danger" onclick="delWiki('${esc(e.id)}')">Del</button>
+    </div>`
+  ).join('');
+}
+function openWikiForm(){
+  ['we-id','we-name','we-subtitle','we-desc','we-img','we-order'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('we-type').value=document.getElementById('we-filter').value;
+  document.getElementById('we-msg').style.display='none';
+  document.getElementById('we-modal-title').textContent='📚 Add entry';
+  document.getElementById('we-modal').classList.add('open');
+}
+function closeWikiForm(){ document.getElementById('we-modal').classList.remove('open'); }
+function editWikiById(id){
+  const e=_WE.find(x=>String(x.id)===String(id)); if(!e) return;
+  document.getElementById('we-id').value=e.id;
+  document.getElementById('we-type').value=e.type||'weapon';
+  document.getElementById('we-name').value=e.name||'';
+  document.getElementById('we-subtitle').value=e.subtitle||'';
+  document.getElementById('we-desc').value=e.description||'';
+  document.getElementById('we-img').value=e.image_url||'';
+  document.getElementById('we-order').value=e.sort_order||'';
+  document.getElementById('we-msg').style.display='none';
+  document.getElementById('we-modal-title').textContent='✏️ Edit entry';
+  document.getElementById('we-modal').classList.add('open');
+}
+async function saveWikiEntry(){
+  const id=document.getElementById('we-id').value;
+  const row={
+    type:document.getElementById('we-type').value,
+    name:document.getElementById('we-name').value.trim(),
+    subtitle:document.getElementById('we-subtitle').value.trim()||null,
+    description:document.getElementById('we-desc').value.trim()||null,
+    image_url:document.getElementById('we-img').value.trim()||null,
+    sort_order:parseInt(document.getElementById('we-order').value)||0
+  };
+  if(!row.name){ showMsg('we-msg','Name is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('site_wiki_entries').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('site_wiki_entries').insert([row])); }
+  if(error){ showMsg('we-msg',error.message,false); return; }
+  showMsg('we-msg',id?'Entry updated! ✓':'Entry added! ✓',true);
+  document.getElementById('we-filter').value=row.type;
+  setTimeout(()=>{ closeWikiForm(); loadWikiAdmin(); }, 700);
+}
+async function delWiki(id){
+  if(!confirm('Delete this entry?')) return;
+  const {error}=await sb.from('site_wiki_entries').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadWikiAdmin();
+}
 // ── Lore ──
 async function loadLore(){
   const box=document.getElementById('lore-list');
@@ -540,6 +686,8 @@ function showAdmin(){
   document.getElementById('login-card').classList.add('hidden');
   document.getElementById('admin-area').classList.remove('hidden');
   loadHomeImages();
+  loadWikiHubImages();
+  loadWikiAdmin();
   loadLore();
   loadNews();
   loadGuides();
