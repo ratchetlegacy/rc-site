@@ -50,6 +50,14 @@ input:focus{border-color:var(--purple)}
 .guide-row .gt b{font-size:.9rem}
 .guide-row .gt span{display:block;font-size:.72rem;color:var(--text-dim)}
 .hidden{display:none}
+.admin-menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:22px}
+.admin-menu-card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 10px;text-align:center;cursor:pointer;transition:.16s}
+.admin-menu-card:hover{border-color:var(--purple);transform:translateY(-3px)}
+.admin-menu-card.active{background:linear-gradient(160deg,rgba(123,79,212,.2),var(--bg2));border-color:var(--purple)}
+.admin-menu-card .amc-ic{font-size:1.6rem;display:block;margin-bottom:6px}
+.admin-menu-card .amc-lbl{font-size:.74rem;font-weight:600;color:var(--text)}
+.admin-back-menu{display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 16px;color:var(--text);font-weight:600;font-size:.85rem;cursor:pointer;margin-bottom:16px}
+body.section-view .card:not(.sec-visible){display:none}
 .fmodal{display:none;position:fixed;inset:0;z-index:400;background:rgba(5,6,12,.9);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px}
 .fmodal.open{display:flex}
 .fmodal-box{max-width:460px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;max-height:90vh;overflow-y:auto}
@@ -80,6 +88,7 @@ input:focus{border-color:var(--purple)}
 
   <!-- MANAGERS -->
   <div id="admin-area" class="hidden">
+    <div class="admin-menu" id="admin-menu"></div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">📚 Wiki entries</h2>
@@ -112,9 +121,25 @@ input:focus{border-color:var(--purple)}
         <label>Subtitle</label>
         <input type="text" id="we-subtitle" placeholder="Blaster, Solana Galaxy..."/>
         <label>Description</label>
-        <input type="text" id="we-desc" placeholder="Short description"/>
+        <textarea id="we-desc" placeholder="Full description" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px;color:var(--text);font-family:Inter,sans-serif;font-size:.88rem;outline:none;min-height:80px;resize:vertical;margin-bottom:14px"></textarea>
         <label>Image URL</label>
         <input type="text" id="we-img" placeholder="https://..."/>
+        <!-- Extra details (mainly for planets, optional for others) -->
+        <div style="border-top:1px solid var(--line);margin:8px 0 10px;padding-top:12px;font-size:.72rem;color:var(--text-dim);font-weight:700;letter-spacing:.05em">EXTRA DETAILS (optional)</div>
+        <label>Galaxy</label>
+        <input type="text" id="we-galaxy" placeholder="Polaris, Solana..."/>
+        <label>Dimension</label>
+        <input type="text" id="we-dimension" placeholder="Rivet's Dimension..."/>
+        <label>Main location</label>
+        <input type="text" id="we-mainloc" placeholder="Outpost L51..."/>
+        <label>Inhabitants</label>
+        <input type="text" id="we-inhabitants" placeholder="Morts · Grunthors..."/>
+        <label>First appearance</label>
+        <input type="text" id="we-first" placeholder="Tools of Destruction (2007)"/>
+        <label>Notable locations</label>
+        <input type="text" id="we-notloc" placeholder="Gelatonium Factory · Rivet's Hideout"/>
+        <label>Notable events</label>
+        <input type="text" id="we-notev" placeholder="Rivet's home · Seekerpede attack"/>
         <label>Order</label>
         <input type="number" id="we-order" placeholder="1"/>
         <button class="btn btn-primary" style="width:100%" onclick="saveWikiEntry()">💾 Save entry</button>
@@ -445,7 +470,7 @@ function renderWikiEntries(){
   ).join('');
 }
 function openWikiForm(){
-  ['we-id','we-name','we-subtitle','we-desc','we-img','we-order'].forEach(id=>document.getElementById(id).value='');
+  ['we-id','we-name','we-subtitle','we-desc','we-img','we-order','we-galaxy','we-dimension','we-mainloc','we-inhabitants','we-first','we-notloc','we-notev'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('we-type').value=document.getElementById('we-filter').value;
   document.getElementById('we-msg').style.display='none';
   document.getElementById('we-modal-title').textContent='📚 Add entry';
@@ -461,28 +486,46 @@ function editWikiById(id){
   document.getElementById('we-desc').value=e.description||'';
   document.getElementById('we-img').value=e.image_url||'';
   document.getElementById('we-order').value=e.sort_order||'';
+  document.getElementById('we-galaxy').value=e.galaxy||'';
+  document.getElementById('we-dimension').value=e.dimension||'';
+  document.getElementById('we-mainloc').value=e.main_location||'';
+  document.getElementById('we-inhabitants').value=e.inhabitants||'';
+  document.getElementById('we-first').value=e.first_appearance||'';
+  document.getElementById('we-notloc').value=e.notable_locations||'';
+  document.getElementById('we-notev').value=e.notable_events||'';
   document.getElementById('we-msg').style.display='none';
   document.getElementById('we-modal-title').textContent='✏️ Edit entry';
   document.getElementById('we-modal').classList.add('open');
 }
 async function saveWikiEntry(){
-  const id=document.getElementById('we-id').value;
-  const row={
-    type:document.getElementById('we-type').value,
-    name:document.getElementById('we-name').value.trim(),
-    subtitle:document.getElementById('we-subtitle').value.trim()||null,
-    description:document.getElementById('we-desc').value.trim()||null,
-    image_url:document.getElementById('we-img').value.trim()||null,
-    sort_order:parseInt(document.getElementById('we-order').value)||0
-  };
-  if(!row.name){ showMsg('we-msg','Name is required.',false); return; }
-  let error;
-  if(id){ ({error}=await sb.from('site_wiki_entries').update(row).eq('id',id)); }
-  else { ({error}=await sb.from('site_wiki_entries').insert([row])); }
-  if(error){ showMsg('we-msg',error.message,false); return; }
-  showMsg('we-msg',id?'Entry updated! ✓':'Entry added! ✓',true);
-  document.getElementById('we-filter').value=row.type;
-  setTimeout(()=>{ closeWikiForm(); loadWikiAdmin(); }, 700);
+  try{
+    const id=document.getElementById('we-id').value;
+    const row={
+      type:document.getElementById('we-type').value,
+      name:document.getElementById('we-name').value.trim(),
+      subtitle:document.getElementById('we-subtitle').value.trim()||null,
+      description:document.getElementById('we-desc').value.trim()||null,
+      image_url:document.getElementById('we-img').value.trim()||null,
+      sort_order:parseInt(document.getElementById('we-order').value)||0,
+      galaxy:document.getElementById('we-galaxy').value.trim()||null,
+      dimension:document.getElementById('we-dimension').value.trim()||null,
+      main_location:document.getElementById('we-mainloc').value.trim()||null,
+      inhabitants:document.getElementById('we-inhabitants').value.trim()||null,
+      first_appearance:document.getElementById('we-first').value.trim()||null,
+      notable_locations:document.getElementById('we-notloc').value.trim()||null,
+      notable_events:document.getElementById('we-notev').value.trim()||null
+    };
+    if(!row.name){ showMsg('we-msg','Name is required.',false); return; }
+    let error;
+    if(id){ ({error}=await sb.from('site_wiki_entries').update(row).eq('id',id)); }
+    else { ({error}=await sb.from('site_wiki_entries').insert([row])); }
+    if(error){ showMsg('we-msg','Error: '+error.message,false); return; }
+    showMsg('we-msg',id?'Entry updated! ✓':'Entry added! ✓',true);
+    document.getElementById('we-filter').value=row.type;
+    setTimeout(()=>{ closeWikiForm(); loadWikiAdmin(); }, 900);
+  }catch(e){
+    alert('Save failed: '+e.message);
+  }
 }
 async function delWiki(id){
   if(!confirm('Delete this entry?')) return;
@@ -608,6 +651,51 @@ async function delNews(id){
   if(error){ alert(error.message); return; }
   loadNews();
 }
+// ── Admin section menu ──
+const ADMIN_SECTIONS=[
+  {key:'wiki', ic:'📚', lbl:'Wiki', match:['Wiki entries','Lore','Characters']},
+  {key:'games', ic:'🎮', lbl:'Games', match:['Games']},
+  {key:'catalog', ic:'🗃️', lbl:'Catalog', match:['Catalog objects']},
+  {key:'media', ic:'📗', lbl:'Guides & News', match:['Guides','News']},
+  {key:'trades', ic:'🤝', lbl:'Trades', match:['Trade listings']},
+  {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images']}
+];
+function buildAdminMenu(){
+  const menu=document.getElementById('admin-menu');
+  if(!menu) return;
+  // tag each card with its section based on its <h2> text
+  document.querySelectorAll('#admin-area .card').forEach(card=>{
+    if(card.id==='login-card') return;
+    const h=card.querySelector('h2'); if(!h) return;
+    const txt=h.textContent;
+    const sec=ADMIN_SECTIONS.find(s=>s.match.some(m=>txt.includes(m)));
+    card.dataset.section = sec?sec.key:'other';
+  });
+  menu.innerHTML=ADMIN_SECTIONS.map(s=>
+    `<div class="admin-menu-card" onclick="showAdminSection('${s.key}')"><span class="amc-ic">${s.ic}</span><span class="amc-lbl">${s.lbl}</span></div>`
+  ).join('');
+}
+function showAdminSection(key){
+  document.body.classList.add('section-view');
+  document.querySelectorAll('#admin-area .card').forEach(c=>{
+    c.classList.toggle('sec-visible', c.dataset.section===key);
+  });
+  document.querySelectorAll('.admin-menu-card').forEach((el,i)=>{
+    el.classList.toggle('active', ADMIN_SECTIONS[i] && ADMIN_SECTIONS[i].key===key);
+  });
+  // add a back button once
+  if(!document.getElementById('admin-back')){
+    const b=document.createElement('button'); b.id='admin-back'; b.className='admin-back-menu';
+    b.textContent='← All sections'; b.onclick=showAllSections;
+    document.getElementById('admin-menu').insertAdjacentElement('afterend', b);
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showAllSections(){
+  document.body.classList.remove('section-view');
+  document.querySelectorAll('.admin-menu-card').forEach(el=>el.classList.remove('active'));
+  const b=document.getElementById('admin-back'); if(b) b.remove();
+}
 // ── Homepage images ──
 async function loadHomeImages(){
   try{
@@ -685,6 +773,7 @@ async function delGuide(id){
 function showAdmin(){
   document.getElementById('login-card').classList.add('hidden');
   document.getElementById('admin-area').classList.remove('hidden');
+  buildAdminMenu();
   loadHomeImages();
   loadWikiHubImages();
   loadWikiAdmin();
