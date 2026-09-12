@@ -40,6 +40,7 @@ a{color:inherit;text-decoration:none}
 
 /* The map canvas */
 .map-stage{position:relative;width:100%;aspect-ratio:16/10;max-height:620px;border-radius:20px;border:1px solid var(--line);overflow:hidden;background:radial-gradient(ellipse at 30% 30%,#1a1240,#0A0B14 70%)}
+.map-world{position:absolute;inset:0;transition:transform .5s cubic-bezier(.3,.7,.3,1);transform-origin:center center}
 .map-stars{position:absolute;inset:0}
 .map-star{position:absolute;background:#fff;border-radius:50%;animation:tw 3s infinite ease-in-out}
 @keyframes tw{0%,100%{opacity:.2}50%{opacity:1}}
@@ -117,7 +118,9 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <div class="map-stage" id="map-stage">
     <div class="map-stars" id="map-stars"></div>
     <div class="map-galaxy-glow"></div>
+    <div class="map-world" id="map-world"></div>
   </div>
+  <div style="text-align:center;margin-top:10px"><button id="map-reset" onclick="resetMapView()" style="display:none;background:var(--bg2);border:1px solid var(--line);border-radius:100px;padding:8px 18px;color:var(--text);font-weight:600;font-size:.82rem;cursor:pointer">🔍 Reset view</button></div>
   <div class="map-hint">💡 Planets are pulled from the wiki — add or edit them from the admin.</div>
   <a href="index.html" class="back-home">← Back to home</a>
 </div>
@@ -197,17 +200,16 @@ function renderTabs(){
 }
 function setGal(g){ activeGal=g; clearLocations(); renderTabs(); renderMap(); }
 function renderMap(){
-  const stage=document.getElementById('map-stage');
-  // remove old nodes/lines
-  stage.querySelectorAll('.planet-node,.map-line').forEach(n=>n.remove());
+  const world=document.getElementById('map-world');
+  world.querySelectorAll('.planet-node,.map-line').forEach(n=>n.remove());
+  resetMapView();
   const list=PLANETS.filter(p=>galaxyOf(p)===activeGal);
   if(!list.length){
-    const e=document.createElement('div'); e.className='map-empty';
-    e.innerHTML='No planet in this galaxy yet.<br>Add planets from the admin (Wiki entries → Planets).';
-    stage.appendChild(e); return;
+    world.innerHTML='<div class="map-empty">No planet in this galaxy yet.<br>Add planets from the admin (Wiki entries → Planets).</div>';
+    return;
   }
+  world.innerHTML='';
   const pts=list.map((p,i)=>({p,pos:posFor(p.name||('P'+i),i,list.length)}));
-  // draw connecting lines (a simple constellation from center)
   pts.forEach(pt=>{
     const line=document.createElement('div'); line.className='map-line';
     const x1=50,y1=50,x2=pt.pos.x,y2=pt.pos.y;
@@ -215,7 +217,7 @@ function renderMap(){
     line.style.left=x1+'%'; line.style.top=y1+'%';
     line.style.width=len+'%';
     line.style.transform='rotate('+Math.atan2(dy,dx)+'rad)';
-    stage.appendChild(line);
+    world.appendChild(line);
   });
   pts.forEach((pt,idx)=>{
     const node=document.createElement('div'); node.className='planet-node';
@@ -225,29 +227,45 @@ function renderMap(){
       : '<div class="planet-dot"></div>';
     node.innerHTML=dot+'<div class="planet-label">'+esc(pt.p.name)+'</div>';
     node.onclick=(e)=>{ e.stopPropagation(); toggleLocations(pt); };
-    stage.appendChild(node);
+    world.appendChild(node);
   });
+}
+function resetMapView(){
+  const world=document.getElementById('map-world');
+  if(world) world.style.transform='none';
+  const btn=document.getElementById('map-reset'); if(btn) btn.style.display='none';
+}
+function zoomToPlanet(pos){
+  const world=document.getElementById('map-world');
+  if(!world) return;
+  const scale=1.6;
+  // translate so the planet moves toward center, then scale
+  const tx=(50-pos.x)*scale;
+  const ty=(50-pos.y)*scale;
+  world.style.transform='translate('+tx+'%,'+ty+'%) scale('+scale+')';
+  const btn=document.getElementById('map-reset'); if(btn) btn.style.display='inline-block';
 }
 
 // show location sub-points around a planet when clicked; second click opens the full sheet
 let activeLocPlanet=null;
 function clearLocations(){
-  document.getElementById('map-stage').querySelectorAll('.loc-point,.loc-line').forEach(n=>n.remove());
+  document.getElementById('map-world').querySelectorAll('.loc-point,.loc-line').forEach(n=>n.remove());
   activeLocPlanet=null;
+  resetMapView();
 }
 function toggleLocations(pt){
-  const stage=document.getElementById('map-stage');
+  const world=document.getElementById('map-world');
   if(activeLocPlanet===pt.p){ openP(pt.p); return; }
   clearLocations();
   activeLocPlanet=pt.p;
+  zoomToPlanet(pt.pos);
   // real locations from the table, fallback to the text field
   let locs=locationsFor(pt.p.id);
   if(!locs.length){
-    // fallback: build lightweight locations from the notable_locations text
     locs=(pt.p.notable_locations||'').split(/[·,]/).map(s=>s.trim()).filter(Boolean)
       .map(name=>({name, _text:true}));
   }
-  if(!locs.length){ openP(pt.p); return; }
+  if(!locs.length){ resetMapView(); openP(pt.p); return; }
   locs.slice(0,7).forEach((loc,i)=>{
     const ang=(i/Math.max(locs.length,1))*Math.PI*2 - Math.PI/2;
     const rad=10;
@@ -257,7 +275,7 @@ function toggleLocations(pt){
     const dx=lx-pt.pos.x,dy=ly-pt.pos.y,len=Math.sqrt(dx*dx+dy*dy);
     line.style.left=pt.pos.x+'%'; line.style.top=pt.pos.y+'%'; line.style.width=len+'%';
     line.style.transform='rotate('+Math.atan2(dy,dx)+'rad)';
-    stage.appendChild(line);
+    world.appendChild(line);
     const lp=document.createElement('div'); lp.className='loc-point';
     lp.style.left=lx+'%'; lp.style.top=ly+'%';
     const dot = (loc.image_url && loc.image_url.trim())
@@ -265,7 +283,7 @@ function toggleLocations(pt){
       : '<div class="loc-dot"></div>';
     lp.innerHTML=dot+'<div class="loc-label">'+esc(loc.name)+'</div>';
     lp.onclick=(e)=>{ e.stopPropagation(); if(loc._text){ openP(pt.p); } else { openLoc(loc, pt.p); } };
-    stage.appendChild(lp);
+    world.appendChild(lp);
   });
 }
 // location detail sheet
