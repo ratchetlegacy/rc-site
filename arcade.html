@@ -136,7 +136,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <div class="game-panel g-hidden" id="game-catch">
     <div class="g-title"><span>🦊 Bolt Catcher</span><span class="g-score" id="catch-score">0</span></div>
     <div id="catch-stage"><div id="basket">🦊</div></div>
-    <div class="catch-hint">⬅️➡️ arrows or drag / tap to move Ratchet. Catch 🔩, avoid 💣!</div>
+    <div class="catch-hint">⬅️➡️ arrows or drag / tap to move Ratchet. Catch 🔩, avoid 💣 (−1 life), grab 💊 for a rare extra life! You have 3 lives.</div>
     <div style="text-align:center;margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
       <button class="btn btn-primary" onclick="startCatch()">Start / Restart</button>
       <button class="btn btn-ghost btn-sm" onclick="submitScore('catch',catchScore)">💾 Save my score</button>
@@ -149,7 +149,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <div class="g-title"><span>🃏 Memory</span><span class="g-score" id="mem-moves">0 moves</span></div>
     <div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap">
       <button class="btn btn-primary btn-sm" id="mem-8" onclick="setMemSize(8)">8 pairs</button>
-      <button class="btn btn-ghost btn-sm" id="mem-16" onclick="setMemSize(16)">16 pairs</button>
+      <button class="btn btn-ghost btn-sm" id="mem-16" onclick="setMemSize(20)">20 pairs</button>
       <button class="btn btn-primary btn-sm" onclick="startMem()" style="margin-left:auto">New game</button>
     </div>
     <div class="mem-grid" id="mem-grid"></div>
@@ -262,12 +262,17 @@ function answer(i){
 }
 
 /* ===== BOLT CATCHER ===== */
-let catchTimer=null, catchSpawn=null, basketX=50, catchScore=0, catchDrops=[];
+let catchTimer=null, catchSpawn=null, basketX=50, catchScore=0, catchDrops=[], catchLives=3;
+function updateLivesUI(){
+  const el=document.getElementById('catch-score');
+  if(el) el.innerHTML=catchScore+' pts &nbsp; '+'❤️'.repeat(Math.max(0,catchLives))+'🖤'.repeat(Math.max(0,3-catchLives));
+}
 function startCatch(){
   stopCatch();
   const stage=document.getElementById('catch-stage');
+  const over=document.getElementById('catch-over'); if(over) over.remove();
   stage.querySelectorAll('.bolt').forEach(b=>b.remove());
-  catchScore=0; catchDrops=[]; document.getElementById('catch-score').textContent='0';
+  catchScore=0; catchDrops=[]; catchLives=3; updateLivesUI();
   basketX=50; positionBasket();
   catchSpawn=setInterval(spawnDrop, 900);
   catchTimer=setInterval(tickCatch, 30);
@@ -277,8 +282,12 @@ function positionBasket(){ const b=document.getElementById('basket'); if(b) b.st
 function spawnDrop(){
   const stage=document.getElementById('catch-stage');
   const el=document.createElement('div'); el.className='bolt';
-  const bomb=Math.random()<0.22;
-  el.textContent=bomb?'💣':'🔩'; el.dataset.bomb=bomb?'1':'0';
+  const r=Math.random();
+  let kind='bolt';
+  if(r<0.06) kind='nano';       // rare blue nanotech pill = +1 life
+  else if(r<0.28) kind='bomb';  // bomb
+  el.textContent = kind==='nano'?'💊':(kind==='bomb'?'💣':'🔩');
+  el.dataset.kind=kind;
   el.style.left=(6+Math.random()*88)+'%'; el.style.top='-8%';
   stage.appendChild(el);
   catchDrops.push({el, y:-8, speed:0.8+Math.random()*1.2});
@@ -289,13 +298,22 @@ function tickCatch(){
     if(d.y>=84){
       const dx=parseFloat(d.el.style.left);
       if(Math.abs(dx-basketX)<9){
-        if(d.el.dataset.bomb==='1'){ catchScore=Math.max(0,catchScore-3); flash('#FF4D6A'); }
+        const kind=d.el.dataset.kind;
+        if(kind==='bomb'){ catchLives--; flash('#FF4D6A'); }
+        else if(kind==='nano'){ catchLives=Math.min(3,catchLives+1); flash('#3DD68C'); }
         else { catchScore++; }
-        document.getElementById('catch-score').textContent=catchScore;
+        updateLivesUI();
         d.el.remove(); catchDrops.splice(i,1);
+        if(catchLives<=0){ gameOverCatch(); return; }
       } else if(d.y>108){ d.el.remove(); catchDrops.splice(i,1); }
     }
   }
+}
+function gameOverCatch(){
+  stopCatch();
+  const stage=document.getElementById('catch-stage');
+  stage.querySelectorAll('.bolt').forEach(b=>b.remove());
+  stage.insertAdjacentHTML('beforeend','<div id="catch-over" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,6,12,.85);z-index:5"><div style="font-family:Orbitron,sans-serif;font-size:1.4rem;color:#FF4D6A;margin-bottom:6px">💀 GAME OVER</div><div style="color:#EEF0F8;margin-bottom:14px">Score: '+catchScore+' pts</div><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="btn btn-primary btn-sm" onclick="startCatch()">Play again</button><button class="btn btn-ghost btn-sm" onclick="submitScore(\'catch\',catchScore)">💾 Save score</button></div></div>');
 }
 function flash(col){ const s=document.getElementById('catch-stage'); s.style.boxShadow='inset 0 0 40px '+col; setTimeout(()=>s.style.boxShadow='',150); }
 document.addEventListener('keydown',e=>{
@@ -311,13 +329,13 @@ document.addEventListener('keydown',e=>{
 })();
 
 /* ===== MEMORY (8 or 16 pairs, admin photos) ===== */
-const MEM_EMOJI=['🦊','🤖','💪','😈','⚡','🔧','🔩','🚀','🪐','👽','🛠️','🎮','🕹️','🏆','💎','🌌'];
+const MEM_EMOJI=['🦊','🤖','💪','😈','⚡','🔧','🔩','🚀','🪐','👽','🛠️','🎮','🕹️','🏆','💎','🌌','⭐','🔫','🧿','🛸'];
 let MEM_PHOTOS=[];
 let memSize=8, memFlipped=[], memMatched=0, memMoves=0, memLock=false;
 function setMemSize(n){
   memSize=n;
   document.getElementById('mem-8').className='btn btn-sm '+(n===8?'btn-primary':'btn-ghost');
-  document.getElementById('mem-16').className='btn btn-sm '+(n===16?'btn-primary':'btn-ghost');
+  document.getElementById('mem-16').className='btn btn-sm '+(n===20?'btn-primary':'btn-ghost');
   startMem();
 }
 async function loadMemPhotos(){
@@ -338,7 +356,7 @@ function startMem(){
   memFlipped=[]; memMatched=0; memMoves=0; memLock=false;
   document.getElementById('mem-moves').textContent='0 moves';
   const grid=document.getElementById('mem-grid');
-  grid.style.gridTemplateColumns='repeat('+(memSize<=8?4:6)+',1fr)';
+  grid.style.gridTemplateColumns='repeat('+(memSize<=8?4:8)+',1fr)';
   grid.innerHTML=deck.map((c,i)=>{
     const key=c.img?('i:'+c.img):('e:'+c.emoji);
     const front=c.img?`<img src="${esc(c.img)}"/>`:c.emoji;
