@@ -144,7 +144,45 @@
     injectUniverseImages();
     injectHeroImage();
     buildMobileMenu();
+    injectAppCarousel();
   });
+
+  async function injectAppCarousel(){
+    const screen=document.getElementById('app-carousel-screen');
+    if(!screen || !window.supabase) return;
+    try{
+      const sb=window.supabase.createClient(
+        'https://ihucxnmqnhevfvlamgwc.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU'
+      );
+      const {data}=await sb.from('site_settings').select('key,value').in('key',['app_shot_1','app_shot_2','app_shot_3','app_shot_4','app_shot_5']);
+      if(!data) return;
+      const S={}; data.forEach(r=>{ S[r.key]=r.value; });
+      const shots=['app_shot_1','app_shot_2','app_shot_3','app_shot_4','app_shot_5'].map(k=>S[k]).filter(u=>u&&u.trim());
+      if(!shots.length) return; // keep the mockup if no screenshots
+      // replace phone content with a carousel
+      const st=document.createElement('style');
+      st.textContent='#app-carousel-screen{padding:0!important;overflow:hidden;position:relative}'
+        +'.ac-track{display:flex;transition:transform .5s cubic-bezier(.3,.7,.3,1);height:100%}'
+        +'.ac-slide{min-width:100%;height:100%}'
+        +'.ac-slide img{width:100%;height:100%;object-fit:cover;display:block}'
+        +'.ac-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;gap:6px;justify-content:center;z-index:2}'
+        +'.ac-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.4)}'
+        +'.ac-dot.on{background:#fff;width:18px;border-radius:100px}';
+      document.head.appendChild(st);
+      screen.innerHTML='<div class="ac-track" id="ac-track">'
+        + shots.map(u=>'<div class="ac-slide"><img src="'+u+'" alt=""/></div>').join('')
+        + '</div><div class="ac-dots" id="ac-dots">'
+        + shots.map((_,i)=>'<div class="ac-dot'+(i===0?' on':'')+'"></div>').join('')
+        + '</div>';
+      let idx=0;
+      setInterval(()=>{
+        idx=(idx+1)%shots.length;
+        document.getElementById('ac-track').style.transform='translateX(-'+(idx*100)+'%)';
+        document.querySelectorAll('#ac-dots .ac-dot').forEach((d,i)=>d.classList.toggle('on',i===idx));
+      }, 2800);
+    }catch(e){}
+  }
 
   function buildMobileMenu(){
     const nav=document.querySelector('.nav');
