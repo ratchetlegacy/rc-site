@@ -32,8 +32,6 @@ a{color:inherit;text-decoration:none}
 .page-hero p{position:relative;color:var(--text-mid);max-width:560px;margin:0 auto;font-size:1rem}
 
 .wrap{max-width:720px;margin:0 auto;padding:10px 20px 60px}
-
-/* game picker */
 .picker{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}
 .pick-card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px 16px;text-align:center;cursor:pointer;transition:.2s}
 .pick-card:hover{transform:translateY(-5px);border-color:var(--purple)}
@@ -49,6 +47,9 @@ a{color:inherit;text-decoration:none}
 .btn{border:none;border-radius:10px;padding:12px 22px;font-weight:700;font-size:.9rem;cursor:pointer;font-family:Inter,sans-serif}
 .btn-primary{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff}
 .btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line)}
+.btn-sm{padding:8px 14px;font-size:.8rem}
+
+.level-badge{display:inline-block;background:rgba(123,79,212,.2);border:1px solid var(--purple);color:var(--purple-light);font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:100px;margin-left:8px}
 
 /* QUIZ */
 .q-question{font-size:1.1rem;font-weight:600;margin:16px 0 18px}
@@ -62,17 +63,27 @@ a{color:inherit;text-decoration:none}
 /* CATCHER */
 #catch-stage{position:relative;width:100%;height:340px;background:radial-gradient(ellipse at 50% 0%,#1a1240,#0A0B14);border-radius:12px;overflow:hidden;border:1px solid var(--line);touch-action:none}
 .bolt{position:absolute;font-size:1.6rem;user-select:none;will-change:top}
-#basket{position:absolute;bottom:8px;font-size:2rem;transform:translateX(-50%);transition:left .05s}
+#basket{position:absolute;bottom:6px;font-size:2.2rem;transform:translateX(-50%);transition:left .05s;user-select:none}
 .catch-hint{text-align:center;color:var(--text-dim);font-size:.78rem;margin-top:10px}
 
 /* MEMORY */
-.mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
-.mem-card{aspect-ratio:1;border-radius:12px;background:var(--bg3);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;transition:transform .25s;transform-style:preserve-3d;position:relative}
-.mem-card .mc-face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;border-radius:12px}
+.mem-grid{display:grid;gap:10px;margin-top:16px}
+.mem-card{aspect-ratio:1;border-radius:12px;background:var(--bg3);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;transition:transform .25s;transform-style:preserve-3d;position:relative;overflow:hidden}
+.mem-card .mc-face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;border-radius:12px;overflow:hidden}
 .mem-card .mc-back{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;font-size:1.4rem}
 .mem-card .mc-front{transform:rotateY(180deg);background:var(--bg)}
+.mem-card .mc-front img{width:100%;height:100%;object-fit:cover}
 .mem-card.flipped{transform:rotateY(180deg)}
 .mem-card.matched{opacity:.45}
+
+/* scoreboard */
+.leaderboard{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+.leaderboard h4{font-family:'Orbitron',sans-serif;font-size:.85rem;color:var(--text-dim);margin-bottom:10px;letter-spacing:.05em}
+.lb-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:.88rem}
+.lb-row:nth-child(even){background:rgba(255,255,255,.03)}
+.lb-rank{width:26px;font-family:'Orbitron',sans-serif;font-weight:700;color:var(--gold)}
+.lb-name{flex:1;font-weight:600}
+.lb-score{font-family:'Orbitron',sans-serif;color:var(--purple-light)}
 
 .win-msg{text-align:center;padding:20px;color:var(--green);font-weight:700;font-size:1.05rem}
 .back-home{display:inline-flex;align-items:center;gap:8px;margin:24px 0;color:var(--text-dim);font-weight:600}
@@ -89,6 +100,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <div class="nav-links">
     <a href="index.html">Home</a>
     <a href="wiki.html">Wiki</a>
+    <a href="map.html">Map</a>
     <a href="arcade.html" class="active">Arcade</a>
     <a href="story.html">Story</a>
     <a href="database.html">Megacorp Vault</a>
@@ -103,35 +115,45 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 <header class="page-hero">
   <div class="tag">MINI-GAMES</div>
   <h1>The <span class="grad">Arcade</span></h1>
-  <p>Original fan-made mini-games. Pick one and have fun!</p>
+  <p>Original fan-made mini-games. Pick one, beat the leaderboard!</p>
 </header>
 
 <div class="wrap">
   <div class="picker">
-    <div class="pick-card active" id="pk-quiz" onclick="pick('quiz')"><span class="pic">🧠</span><h3>Lombax Quiz</h3><p>Test your R&C knowledge</p></div>
-    <div class="pick-card" id="pk-catch" onclick="pick('catch')"><span class="pic">🔩</span><h3>Bolt Catcher</h3><p>Catch falling bolts</p></div>
+    <div class="pick-card active" id="pk-quiz" onclick="pick('quiz')"><span class="pic">🧠</span><h3>Lombax Quiz</h3><p>Levels get harder</p></div>
+    <div class="pick-card" id="pk-catch" onclick="pick('catch')"><span class="pic">🦊</span><h3>Bolt Catcher</h3><p>Catch falling bolts</p></div>
     <div class="pick-card" id="pk-mem" onclick="pick('mem')"><span class="pic">🃏</span><h3>Memory</h3><p>Match the pairs</p></div>
   </div>
 
   <!-- QUIZ -->
   <div class="game-panel" id="game-quiz">
-    <div class="g-title"><span>🧠 Lombax Quiz</span><span class="g-score" id="quiz-score"></span></div>
+    <div class="g-title"><span>🧠 Lombax Quiz <span class="level-badge" id="quiz-level">Level 1</span></span><span class="g-score" id="quiz-score"></span></div>
     <div id="quiz-area"></div>
+    <div class="leaderboard" id="lb-quiz"></div>
   </div>
 
   <!-- CATCHER -->
   <div class="game-panel g-hidden" id="game-catch">
-    <div class="g-title"><span>🔩 Bolt Catcher</span><span class="g-score" id="catch-score">0</span></div>
-    <div id="catch-stage"><div id="basket">🧺</div></div>
-    <div class="catch-hint">⬅️➡️ arrows or drag / tap to move the basket. Catch 🔩, avoid 💣!</div>
-    <div style="text-align:center;margin-top:14px"><button class="btn btn-primary" onclick="startCatch()">Start / Restart</button></div>
+    <div class="g-title"><span>🦊 Bolt Catcher</span><span class="g-score" id="catch-score">0</span></div>
+    <div id="catch-stage"><div id="basket">🦊</div></div>
+    <div class="catch-hint">⬅️➡️ arrows or drag / tap to move Ratchet. Catch 🔩, avoid 💣!</div>
+    <div style="text-align:center;margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="startCatch()">Start / Restart</button>
+      <button class="btn btn-ghost btn-sm" onclick="submitScore('catch',catchScore)">💾 Save my score</button>
+    </div>
+    <div class="leaderboard" id="lb-catch"></div>
   </div>
 
   <!-- MEMORY -->
   <div class="game-panel g-hidden" id="game-mem">
     <div class="g-title"><span>🃏 Memory</span><span class="g-score" id="mem-moves">0 moves</span></div>
+    <div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" id="mem-8" onclick="setMemSize(8)">8 pairs</button>
+      <button class="btn btn-ghost btn-sm" id="mem-16" onclick="setMemSize(16)">16 pairs</button>
+      <button class="btn btn-primary btn-sm" onclick="startMem()" style="margin-left:auto">New game</button>
+    </div>
     <div class="mem-grid" id="mem-grid"></div>
-    <div style="text-align:center;margin-top:14px"><button class="btn btn-ghost" onclick="startMem()">New game</button></div>
+    <div class="leaderboard" id="lb-mem"></div>
   </div>
 
   <a href="index.html" class="back-home">← Back to home</a>
@@ -144,45 +166,98 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 </footer>
 
 <script>
+const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function getPseudo(){ return localStorage.getItem('rl_pseudo')||''; }
+function setPseudoLS(p){ localStorage.setItem('rl_pseudo',p); }
+
 function pick(g){
   ['quiz','catch','mem'].forEach(k=>{
     document.getElementById('game-'+k).classList.toggle('g-hidden',k!==g);
-    document.getElementById('pk-'+(k==='catch'?'catch':k==='mem'?'mem':'quiz')).classList.toggle('active',k===g);
+    document.getElementById('pk-'+k).classList.toggle('active',k===g);
   });
   if(g==='catch') stopCatch();
   if(g==='mem') startMem();
+  loadBoard(g);
 }
 
-/* ===== QUIZ ===== */
-const QUIZ=[
-  {q:"What species is Ratchet?",a:["Lombax","Blarg","Cragmite","Human"],c:0},
-  {q:"What is Clank's official designation?",a:["B5429","XJ-0461","RC-01","Z9"],c:1},
-  {q:"Who is the mad robot-obsessed scientist?",a:["Chairman Drek","Qwark","Dr. Nefarious","Tachyon"],c:2},
-  {q:"On which planet does the first game begin?",a:["Kerwan","Veldin","Aranos","Pokitaru"],c:1},
-  {q:"What weapon's name means 'Rip Ya a New One'?",a:["Groovitron","Combustor","RYNO","Warmonger"],c:2},
-  {q:"Which Lombax is introduced in Rift Apart?",a:["Angela","Rivet","Talwyn","Sasha"],c:1},
-  {q:"What console did Rift Apart launch on?",a:["PS3","PS4","PS5","PSP"],c:2},
-  {q:"Who is Ratchet's bumbling 'hero' ally?",a:["Big Al","Captain Qwark","Lawrence","Sigmund"],c:1}
+// ===== SCORES =====
+async function submitScore(game, score, detail){
+  let pseudo=getPseudo();
+  pseudo=prompt('Enter your pseudo for the leaderboard:', pseudo||'');
+  if(!pseudo||!pseudo.trim()) return;
+  pseudo=pseudo.trim().slice(0,20); setPseudoLS(pseudo);
+  try{
+    await sb.from('arcade_scores').insert([{game, pseudo, score, detail:detail||null}]);
+    loadBoard(game);
+    alert('Score saved! 🏆');
+  }catch(e){ alert('Could not save score.'); }
+}
+async function loadBoard(game){
+  const box=document.getElementById('lb-'+game);
+  if(!box) return;
+  const asc = (game==='mem'); // memory: fewer moves = better
+  try{
+    const {data}=await sb.from('arcade_scores').select('*').eq('game',game).order('score',{ascending:asc}).limit(8);
+    if(!data||!data.length){ box.innerHTML='<h4>🏆 Leaderboard</h4><div style="color:var(--text-dim);font-size:.82rem">No scores yet — be the first!</div>'; return; }
+    box.innerHTML='<h4>🏆 Leaderboard</h4>'+data.map((r,i)=>
+      `<div class="lb-row"><span class="lb-rank">${i+1}</span><span class="lb-name">${esc(r.pseudo)}</span><span class="lb-score">${r.score}${r.detail?' · '+esc(r.detail):''}</span></div>`
+    ).join('');
+  }catch(e){ box.innerHTML=''; }
+}
+
+/* ===== QUIZ (levels get harder) ===== */
+const QUIZ_LEVELS=[
+  [
+    {q:"What species is Ratchet?",a:["Lombax","Blarg","Cragmite","Human"],c:0},
+    {q:"What is Clank — Ratchet's partner?",a:["A dog","A robot","A Lombax","An alien"],c:1},
+    {q:"On which planet does the first game begin?",a:["Kerwan","Veldin","Aranos","Pokitaru"],c:1},
+    {q:"What does Ratchet use as his main melee tool?",a:["A sword","The OmniWrench","A hammer","A stick"],c:1}
+  ],
+  [
+    {q:"Who is the robot-obsessed mad scientist villain?",a:["Chairman Drek","Qwark","Dr. Nefarious","Tachyon"],c:2},
+    {q:"What weapon's name means 'Rip Ya a New One'?",a:["Groovitron","Combustor","RYNO","Warmonger"],c:2},
+    {q:"Which Lombax is introduced in Rift Apart?",a:["Angela","Rivet","Talwyn","Sasha"],c:1},
+    {q:"Which studio created Ratchet & Clank?",a:["Naughty Dog","Insomniac Games","Sucker Punch","Guerrilla"],c:1}
+  ],
+  [
+    {q:"What is Clank's official designation?",a:["B5429","XJ-0461","RC-01","Z9"],c:1},
+    {q:"Which galaxy does Going Commando take place in?",a:["Solana","Bogon","Polaris","Andromeda"],c:1},
+    {q:"What is the name of the Lombax homeworld?",a:["Fastoon","Veldin","Igliak","Kerwan"],c:0},
+    {q:"Which structure does Clank protect in A Crack in Time?",a:["The Great Clock","The Dimensionator","The Obelisk","The Nexus"],c:0}
+  ]
 ];
-let qIdx=0,qScore=0;
-function startQuiz(){ qIdx=0; qScore=0; renderQuiz(); }
+let qLevel=0, qIdx=0, qScore=0;
+function startQuiz(){ qLevel=0; qIdx=0; qScore=0; renderQuiz(); }
+function currentQuizSet(){ return QUIZ_LEVELS[qLevel]||[]; }
 function renderQuiz(){
   const area=document.getElementById('quiz-area');
-  document.getElementById('quiz-score').textContent=qScore+' / '+QUIZ.length;
-  if(qIdx>=QUIZ.length){
-    area.innerHTML='<div class="win-msg">🏆 Finished! Score: '+qScore+' / '+QUIZ.length+'</div><div style="text-align:center"><button class="btn btn-primary" onclick="startQuiz()">Play again</button></div>';
-    return;
+  document.getElementById('quiz-level').textContent='Level '+(qLevel+1);
+  document.getElementById('quiz-score').textContent=qScore+' pts';
+  const set=currentQuizSet();
+  if(qIdx>=set.length){
+    if(qLevel < QUIZ_LEVELS.length-1){
+      qLevel++; qIdx=0;
+      area.innerHTML='<div class="win-msg">✅ Level cleared! Moving to Level '+(qLevel+1)+'…</div>';
+      setTimeout(renderQuiz, 1200); return;
+    } else {
+      area.innerHTML='<div class="win-msg">🏆 All levels done! Final score: '+qScore+' pts</div>'
+        +'<div style="text-align:center;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-primary" onclick="submitScore(\'quiz\','+qScore+',\'all levels\')">💾 Save score</button><button class="btn btn-ghost" onclick="startQuiz()">Play again</button></div>';
+      return;
+    }
   }
-  const item=QUIZ[qIdx];
-  area.innerHTML='<div class="q-progress">Question '+(qIdx+1)+' / '+QUIZ.length+'</div>'
-    +'<div class="q-question">'+item.q+'</div>'
-    +'<div class="q-opts">'+item.a.map((o,i)=>'<div class="q-opt" onclick="answer('+i+')">'+o+'</div>').join('')+'</div>';
+  const item=set[qIdx];
+  area.innerHTML='<div class="q-progress">Level '+(qLevel+1)+' — Question '+(qIdx+1)+' / '+set.length+'</div>'
+    +'<div class="q-question">'+esc(item.q)+'</div>'
+    +'<div class="q-opts">'+item.a.map((o,i)=>'<div class="q-opt" onclick="answer('+i+')">'+esc(o)+'</div>').join('')+'</div>';
 }
 function answer(i){
-  const item=QUIZ[qIdx];
+  const item=currentQuizSet()[qIdx];
   const opts=document.querySelectorAll('#quiz-area .q-opt');
   opts.forEach((o,k)=>{ o.style.pointerEvents='none'; if(k===item.c)o.classList.add('correct'); if(k===i&&i!==item.c)o.classList.add('wrong'); });
-  if(i===item.c) qScore++;
+  if(i===item.c) qScore += (qLevel+1)*10;
   setTimeout(()=>{ qIdx++; renderQuiz(); }, 900);
 }
 
@@ -209,11 +284,9 @@ function spawnDrop(){
   catchDrops.push({el, y:-8, speed:0.8+Math.random()*1.2});
 }
 function tickCatch(){
-  const stage=document.getElementById('catch-stage');
-  const h=stage.clientH||stage.clientHeight;
   for(let i=catchDrops.length-1;i>=0;i--){
     const d=catchDrops[i]; d.y+=d.speed; d.el.style.top=d.y+'%';
-    if(d.y>=86){
+    if(d.y>=84){
       const dx=parseFloat(d.el.style.left);
       if(Math.abs(dx-basketX)<9){
         if(d.el.dataset.bomb==='1'){ catchScore=Math.max(0,catchScore-3); flash('#FF4D6A'); }
@@ -237,16 +310,41 @@ document.addEventListener('keydown',e=>{
   stage.addEventListener('touchmove',e=>{ move(e.touches[0].clientX); },{passive:true});
 })();
 
-/* ===== MEMORY ===== */
-const MEM_ICONS=['🦊','🤖','💪','😈','⚡','🔧','🔩','🚀'];
-let memFlipped=[], memMatched=0, memMoves=0, memLock=false;
+/* ===== MEMORY (8 or 16 pairs, admin photos) ===== */
+const MEM_EMOJI=['🦊','🤖','💪','😈','⚡','🔧','🔩','🚀','🪐','👽','🛠️','🎮','🕹️','🏆','💎','🌌'];
+let MEM_PHOTOS=[];
+let memSize=8, memFlipped=[], memMatched=0, memMoves=0, memLock=false;
+function setMemSize(n){
+  memSize=n;
+  document.getElementById('mem-8').className='btn btn-sm '+(n===8?'btn-primary':'btn-ghost');
+  document.getElementById('mem-16').className='btn btn-sm '+(n===16?'btn-primary':'btn-ghost');
+  startMem();
+}
+async function loadMemPhotos(){
+  try{ const {data}=await sb.from('arcade_memory_images').select('*').order('sort_order'); MEM_PHOTOS=(data||[]).map(r=>r.image_url).filter(Boolean); }catch(e){ MEM_PHOTOS=[]; }
+}
+function memFaces(n){
+  const faces=[];
+  for(let i=0;i<n;i++){
+    if(MEM_PHOTOS[i]) faces.push({img:MEM_PHOTOS[i]});
+    else faces.push({emoji:MEM_EMOJI[i%MEM_EMOJI.length]});
+  }
+  return faces;
+}
 function startMem(){
-  const deck=[...MEM_ICONS,...MEM_ICONS].sort(()=>Math.random()-0.5);
+  const winOld=document.getElementById('mem-win'); if(winOld) winOld.remove();
+  const faces=memFaces(memSize);
+  const deck=[...faces,...faces].sort(()=>Math.random()-0.5);
   memFlipped=[]; memMatched=0; memMoves=0; memLock=false;
   document.getElementById('mem-moves').textContent='0 moves';
   const grid=document.getElementById('mem-grid');
-  grid.innerHTML=deck.map((ic,i)=>`<div class="mem-card" data-i="${i}" data-ic="${ic}" onclick="flipMem(${i})">
-    <div class="mc-face mc-back">?</div><div class="mc-face mc-front">${ic}</div></div>`).join('');
+  grid.style.gridTemplateColumns='repeat('+(memSize<=8?4:6)+',1fr)';
+  grid.innerHTML=deck.map((c,i)=>{
+    const key=c.img?('i:'+c.img):('e:'+c.emoji);
+    const front=c.img?`<img src="${esc(c.img)}"/>`:c.emoji;
+    return `<div class="mem-card" data-i="${i}" data-key="${esc(key)}" onclick="flipMem(${i})">
+      <div class="mc-face mc-back">?</div><div class="mc-face mc-front">${front}</div></div>`;
+  }).join('');
 }
 function flipMem(i){
   if(memLock) return;
@@ -258,9 +356,11 @@ function flipMem(i){
     memMoves++; document.getElementById('mem-moves').textContent=memMoves+' move'+(memMoves>1?'s':'');
     memLock=true;
     const [a,b]=memFlipped;
-    if(a.dataset.ic===b.dataset.ic){
+    if(a.dataset.key===b.dataset.key){
       setTimeout(()=>{ a.classList.add('matched'); b.classList.add('matched'); memFlipped=[]; memLock=false; memMatched++;
-        if(memMatched===MEM_ICONS.length){ document.getElementById('mem-grid').insertAdjacentHTML('afterend','<div class="win-msg" id="mem-win">🎉 Solved in '+memMoves+' moves!</div>'); }
+        if(memMatched===memSize){
+          document.getElementById('mem-grid').insertAdjacentHTML('afterend','<div class="win-msg" id="mem-win">🎉 Solved in '+memMoves+' moves! <button class="btn btn-primary btn-sm" onclick="submitScore(\'mem\','+memMoves+',\''+memSize+' pairs\')">💾 Save score</button></div>');
+        }
       }, 500);
     } else {
       setTimeout(()=>{ a.classList.remove('flipped'); b.classList.remove('flipped'); memFlipped=[]; memLock=false; }, 800);
@@ -269,7 +369,11 @@ function flipMem(i){
 }
 
 // init
-startQuiz();
+(async function(){
+  await loadMemPhotos();
+  startQuiz();
+  loadBoard('quiz');
+})();
 </script>
 <script src="site-enhance.js"></script>
 </body>
