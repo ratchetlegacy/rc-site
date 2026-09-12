@@ -290,6 +290,17 @@ body.menu-only .card{display:none}
       <button class="btn btn-primary" style="width:100%" onclick="saveHeroImages()">💾 Save page banners</button>
     </div>
     <div class="card">
+      <h2>📱 App screenshots (home carousel)</h2>
+      <div class="msg" id="appshot-msg"></div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Up to 5 tracker screenshots for the carousel in the "The App" section. Leave empty to keep the default mockup.</div>
+      <label>Screenshot 1</label><input type="text" id="as-1" placeholder="https://..."/>
+      <label>Screenshot 2</label><input type="text" id="as-2" placeholder="https://..."/>
+      <label>Screenshot 3</label><input type="text" id="as-3" placeholder="https://..."/>
+      <label>Screenshot 4</label><input type="text" id="as-4" placeholder="https://..."/>
+      <label>Screenshot 5</label><input type="text" id="as-5" placeholder="https://..."/>
+      <button class="btn btn-primary" style="width:100%" onclick="saveAppShots()">💾 Save app screenshots</button>
+    </div>
+    <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">🃏 Arcade Memory images</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openMemImgForm()">+ Add</button>
@@ -504,6 +515,21 @@ async function signIn(){
   showAdmin();
 }
 async function signOut(){ await sb.auth.signOut(); location.reload(); }
+// ── App screenshots ──
+async function loadAppShots(){
+  try{
+    const {data}=await sb.from('site_settings').select('key,value').in('key',['app_shot_1','app_shot_2','app_shot_3','app_shot_4','app_shot_5']);
+    const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
+    for(let i=1;i<=5;i++){ const el=document.getElementById('as-'+i); if(el) el.value=S['app_shot_'+i]||''; }
+  }catch(e){}
+}
+async function saveAppShots(){
+  const rows=[];
+  for(let i=1;i<=5;i++){ rows.push({key:'app_shot_'+i, value:document.getElementById('as-'+i).value.trim()}); }
+  const {error}=await sb.from('site_settings').upsert(rows);
+  if(error){ showMsg('appshot-msg',error.message,false); return; }
+  showMsg('appshot-msg','App screenshots saved! ✓',true);
+}
 // ── Arcade Memory images ──
 let _MEMIMG=[];
 async function loadMemImages(){
@@ -879,7 +905,7 @@ const ADMIN_SECTIONS=[
   {key:'catalog', ic:'🗃️', lbl:'Catalog', match:['Catalog objects']},
   {key:'media', ic:'📗', lbl:'Guides & News', match:['Guides','News']},
   {key:'trades', ic:'🤝', lbl:'Trades', match:['Trade listings']},
-  {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Page banners','Arcade Memory']}
+  {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Page banners','Arcade Memory','App screenshots']}
 ];
 function buildAdminMenu(){
   const menu=document.getElementById('admin-menu');
@@ -1017,6 +1043,7 @@ function showAdmin(){
   loadHomeImages();
   loadWikiHubImages();
   loadHeroImages();
+  loadAppShots();
   loadMemImages();
   loadWikiAdmin();
   loadLocations();
