@@ -145,7 +145,21 @@
     injectHeroImage();
     buildMobileMenu();
     injectAppCarousel();
+    updateCatalogCount();
   });
+
+  async function updateCatalogCount(){
+    const els=document.querySelectorAll('.rl-count');
+    if(!els.length || !window.supabase) return;
+    try{
+      const sb=window.supabase.createClient(
+        'https://ihucxnmqnhevfvlamgwc.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU'
+      );
+      const {count}=await sb.from('catalog').select('*',{count:'exact',head:true});
+      if(count!=null){ els.forEach(e=>{ e.textContent=count; }); }
+    }catch(e){}
+  }
 
   async function injectAppCarousel(){
     const screen=document.getElementById('app-carousel-screen');
