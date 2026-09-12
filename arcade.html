@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Arcade — Ratchet Legacy</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0A0B14;--bg2:#10121F;--bg3:#181B2E;
+  --purple:#7B4FD4;--purple-light:#9B6FF4;--orange:#FF6B1A;--orange-light:#FF8A3D;
+  --gold:#FFC85A;--green:#3DD68C;--red:#FF4D6A;--text:#EEF0F8;--text-dim:#8B92AD;--text-mid:#B8BED4;--line:rgba(255,255,255,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.6}
+a{color:inherit;text-decoration:none}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(10,11,20,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav-logo{display:flex;align-items:center;gap:11px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.02rem;letter-spacing:.06em}
+.nav-logo .mark{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+.nav-links{display:flex;gap:6px;align-items:center}
+.nav-links a{padding:8px 15px;border-radius:8px;font-size:.86rem;font-weight:500;color:var(--text-mid);transition:.18s}
+.nav-links a:hover,.nav-links a.active{color:var(--text);background:rgba(255,255,255,.05)}
+.nav-cta{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff!important;font-weight:700!important}
+.nav-burger{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+
+.page-hero{padding:120px 24px 12px;text-align:center;position:relative;overflow:hidden}
+.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 0%,rgba(123,79,212,.2),transparent 70%)}
+.page-hero .tag{position:relative;font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:.24em;color:var(--gold);margin-bottom:12px}
+.page-hero h1{position:relative;font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2rem,5.5vw,3.4rem);margin-bottom:12px}
+.page-hero h1 .grad{background:linear-gradient(120deg,var(--purple-light),var(--orange));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.page-hero p{position:relative;color:var(--text-mid);max-width:560px;margin:0 auto;font-size:1rem}
+
+.wrap{max-width:720px;margin:0 auto;padding:10px 20px 60px}
+
+/* game picker */
+.picker{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}
+.pick-card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px 16px;text-align:center;cursor:pointer;transition:.2s}
+.pick-card:hover{transform:translateY(-5px);border-color:var(--purple)}
+.pick-card.active{border-color:var(--purple);background:linear-gradient(160deg,rgba(123,79,212,.15),var(--bg2))}
+.pick-card .pic{font-size:2.4rem;display:block;margin-bottom:10px}
+.pick-card h3{font-family:'Orbitron',sans-serif;font-size:.92rem;font-weight:700}
+.pick-card p{color:var(--text-dim);font-size:.72rem;margin-top:4px}
+
+.game-panel{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:26px;min-height:300px}
+.g-hidden{display:none}
+.g-title{font-family:'Orbitron',sans-serif;font-size:1.2rem;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.g-score{font-family:'Orbitron',sans-serif;color:var(--gold);font-size:1rem}
+.btn{border:none;border-radius:10px;padding:12px 22px;font-weight:700;font-size:.9rem;cursor:pointer;font-family:Inter,sans-serif}
+.btn-primary{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line)}
+
+/* QUIZ */
+.q-question{font-size:1.1rem;font-weight:600;margin:16px 0 18px}
+.q-opts{display:flex;flex-direction:column;gap:10px}
+.q-opt{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:13px 16px;cursor:pointer;transition:.15s;font-size:.92rem}
+.q-opt:hover{border-color:var(--purple)}
+.q-opt.correct{background:rgba(61,214,140,.15);border-color:var(--green)}
+.q-opt.wrong{background:rgba(255,77,106,.15);border-color:var(--red)}
+.q-progress{color:var(--text-dim);font-size:.8rem;margin-bottom:6px}
+
+/* CATCHER */
+#catch-stage{position:relative;width:100%;height:340px;background:radial-gradient(ellipse at 50% 0%,#1a1240,#0A0B14);border-radius:12px;overflow:hidden;border:1px solid var(--line);touch-action:none}
+.bolt{position:absolute;font-size:1.6rem;user-select:none;will-change:top}
+#basket{position:absolute;bottom:8px;font-size:2rem;transform:translateX(-50%);transition:left .05s}
+.catch-hint{text-align:center;color:var(--text-dim);font-size:.78rem;margin-top:10px}
+
+/* MEMORY */
+.mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+.mem-card{aspect-ratio:1;border-radius:12px;background:var(--bg3);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;transition:transform .25s;transform-style:preserve-3d;position:relative}
+.mem-card .mc-face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;border-radius:12px}
+.mem-card .mc-back{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;font-size:1.4rem}
+.mem-card .mc-front{transform:rotateY(180deg);background:var(--bg)}
+.mem-card.flipped{transform:rotateY(180deg)}
+.mem-card.matched{opacity:.45}
+
+.win-msg{text-align:center;padding:20px;color:var(--green);font-weight:700;font-size:1.05rem}
+.back-home{display:inline-flex;align-items:center;gap:8px;margin:24px 0;color:var(--text-dim);font-weight:600}
+footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;color:var(--text-dim)}
+.foot-logo{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.06em;color:var(--text);margin-bottom:12px}
+.foot-small{font-size:.8rem}
+@media(max-width:820px){.nav-links{display:flex;overflow-x:auto;gap:2px;max-width:60vw}.nav-burger{display:none}.picker{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo"><span class="mark">🔧</span> RATCHET LEGACY</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="wiki.html">Wiki</a>
+    <a href="arcade.html" class="active">Arcade</a>
+    <a href="story.html">Story</a>
+    <a href="database.html">Megacorp Vault</a>
+    <a href="guides.html">Guides</a>
+    <a href="trades.html">Trades</a>
+    <a href="https://instagram.com/ratchetlegacy" target="_blank" class="nav-insta-btn" title="Instagram">📸</a>
+    <a href="https://ratchetlegacy.github.io/rc-tracker" target="_blank" class="nav-cta">Open the tracker</a>
+  </div>
+  <button class="nav-burger" onclick="document.querySelector('.nav-links').style.display='flex';this.style.display='none'">☰</button>
+</nav>
+
+<header class="page-hero">
+  <div class="tag">MINI-GAMES</div>
+  <h1>The <span class="grad">Arcade</span></h1>
+  <p>Original fan-made mini-games. Pick one and have fun!</p>
+</header>
+
+<div class="wrap">
+  <div class="picker">
+    <div class="pick-card active" id="pk-quiz" onclick="pick('quiz')"><span class="pic">🧠</span><h3>Lombax Quiz</h3><p>Test your R&C knowledge</p></div>
+    <div class="pick-card" id="pk-catch" onclick="pick('catch')"><span class="pic">🔩</span><h3>Bolt Catcher</h3><p>Catch falling bolts</p></div>
+    <div class="pick-card" id="pk-mem" onclick="pick('mem')"><span class="pic">🃏</span><h3>Memory</h3><p>Match the pairs</p></div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="game-panel" id="game-quiz">
+    <div class="g-title"><span>🧠 Lombax Quiz</span><span class="g-score" id="quiz-score"></span></div>
+    <div id="quiz-area"></div>
+  </div>
+
+  <!-- CATCHER -->
+  <div class="game-panel g-hidden" id="game-catch">
+    <div class="g-title"><span>🔩 Bolt Catcher</span><span class="g-score" id="catch-score">0</span></div>
+    <div id="catch-stage"><div id="basket">🧺</div></div>
+    <div class="catch-hint">⬅️➡️ arrows or drag / tap to move the basket. Catch 🔩, avoid 💣!</div>
+    <div style="text-align:center;margin-top:14px"><button class="btn btn-primary" onclick="startCatch()">Start / Restart</button></div>
+  </div>
+
+  <!-- MEMORY -->
+  <div class="game-panel g-hidden" id="game-mem">
+    <div class="g-title"><span>🃏 Memory</span><span class="g-score" id="mem-moves">0 moves</span></div>
+    <div class="mem-grid" id="mem-grid"></div>
+    <div style="text-align:center;margin-top:14px"><button class="btn btn-ghost" onclick="startMem()">New game</button></div>
+  </div>
+
+  <a href="index.html" class="back-home">← Back to home</a>
+</div>
+
+<footer>
+  <div class="foot-logo">RATCHET LEGACY</div>
+  <div class="foot-small">Made with 💜 by Ratchet Legacy · Original fan-made games, not affiliated with Insomniac Games or Sony.</div>
+  <div style="margin-top:14px"><a href="admin.html" style="color:var(--text-dim);font-size:.75rem;opacity:.6;text-decoration:none">⚙️ Admin</a></div>
+</footer>
+
+<script>
+function pick(g){
+  ['quiz','catch','mem'].forEach(k=>{
+    document.getElementById('game-'+k).classList.toggle('g-hidden',k!==g);
+    document.getElementById('pk-'+(k==='catch'?'catch':k==='mem'?'mem':'quiz')).classList.toggle('active',k===g);
+  });
+  if(g==='catch') stopCatch();
+  if(g==='mem') startMem();
+}
+
+/* ===== QUIZ ===== */
+const QUIZ=[
+  {q:"What species is Ratchet?",a:["Lombax","Blarg","Cragmite","Human"],c:0},
+  {q:"What is Clank's official designation?",a:["B5429","XJ-0461","RC-01","Z9"],c:1},
+  {q:"Who is the mad robot-obsessed scientist?",a:["Chairman Drek","Qwark","Dr. Nefarious","Tachyon"],c:2},
+  {q:"On which planet does the first game begin?",a:["Kerwan","Veldin","Aranos","Pokitaru"],c:1},
+  {q:"What weapon's name means 'Rip Ya a New One'?",a:["Groovitron","Combustor","RYNO","Warmonger"],c:2},
+  {q:"Which Lombax is introduced in Rift Apart?",a:["Angela","Rivet","Talwyn","Sasha"],c:1},
+  {q:"What console did Rift Apart launch on?",a:["PS3","PS4","PS5","PSP"],c:2},
+  {q:"Who is Ratchet's bumbling 'hero' ally?",a:["Big Al","Captain Qwark","Lawrence","Sigmund"],c:1}
+];
+let qIdx=0,qScore=0;
+function startQuiz(){ qIdx=0; qScore=0; renderQuiz(); }
+function renderQuiz(){
+  const area=document.getElementById('quiz-area');
+  document.getElementById('quiz-score').textContent=qScore+' / '+QUIZ.length;
+  if(qIdx>=QUIZ.length){
+    area.innerHTML='<div class="win-msg">🏆 Finished! Score: '+qScore+' / '+QUIZ.length+'</div><div style="text-align:center"><button class="btn btn-primary" onclick="startQuiz()">Play again</button></div>';
+    return;
+  }
+  const item=QUIZ[qIdx];
+  area.innerHTML='<div class="q-progress">Question '+(qIdx+1)+' / '+QUIZ.length+'</div>'
+    +'<div class="q-question">'+item.q+'</div>'
+    +'<div class="q-opts">'+item.a.map((o,i)=>'<div class="q-opt" onclick="answer('+i+')">'+o+'</div>').join('')+'</div>';
+}
+function answer(i){
+  const item=QUIZ[qIdx];
+  const opts=document.querySelectorAll('#quiz-area .q-opt');
+  opts.forEach((o,k)=>{ o.style.pointerEvents='none'; if(k===item.c)o.classList.add('correct'); if(k===i&&i!==item.c)o.classList.add('wrong'); });
+  if(i===item.c) qScore++;
+  setTimeout(()=>{ qIdx++; renderQuiz(); }, 900);
+}
+
+/* ===== BOLT CATCHER ===== */
+let catchTimer=null, catchSpawn=null, basketX=50, catchScore=0, catchDrops=[];
+function startCatch(){
+  stopCatch();
+  const stage=document.getElementById('catch-stage');
+  stage.querySelectorAll('.bolt').forEach(b=>b.remove());
+  catchScore=0; catchDrops=[]; document.getElementById('catch-score').textContent='0';
+  basketX=50; positionBasket();
+  catchSpawn=setInterval(spawnDrop, 900);
+  catchTimer=setInterval(tickCatch, 30);
+}
+function stopCatch(){ if(catchTimer)clearInterval(catchTimer); if(catchSpawn)clearInterval(catchSpawn); catchTimer=catchSpawn=null; }
+function positionBasket(){ const b=document.getElementById('basket'); if(b) b.style.left=basketX+'%'; }
+function spawnDrop(){
+  const stage=document.getElementById('catch-stage');
+  const el=document.createElement('div'); el.className='bolt';
+  const bomb=Math.random()<0.22;
+  el.textContent=bomb?'💣':'🔩'; el.dataset.bomb=bomb?'1':'0';
+  el.style.left=(6+Math.random()*88)+'%'; el.style.top='-8%';
+  stage.appendChild(el);
+  catchDrops.push({el, y:-8, speed:0.8+Math.random()*1.2});
+}
+function tickCatch(){
+  const stage=document.getElementById('catch-stage');
+  const h=stage.clientH||stage.clientHeight;
+  for(let i=catchDrops.length-1;i>=0;i--){
+    const d=catchDrops[i]; d.y+=d.speed; d.el.style.top=d.y+'%';
+    if(d.y>=86){
+      const dx=parseFloat(d.el.style.left);
+      if(Math.abs(dx-basketX)<9){
+        if(d.el.dataset.bomb==='1'){ catchScore=Math.max(0,catchScore-3); flash('#FF4D6A'); }
+        else { catchScore++; }
+        document.getElementById('catch-score').textContent=catchScore;
+        d.el.remove(); catchDrops.splice(i,1);
+      } else if(d.y>108){ d.el.remove(); catchDrops.splice(i,1); }
+    }
+  }
+}
+function flash(col){ const s=document.getElementById('catch-stage'); s.style.boxShadow='inset 0 0 40px '+col; setTimeout(()=>s.style.boxShadow='',150); }
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('game-catch').classList.contains('g-hidden')) return;
+  if(e.key==='ArrowLeft'){ basketX=Math.max(4,basketX-6); positionBasket(); }
+  if(e.key==='ArrowRight'){ basketX=Math.min(96,basketX+6); positionBasket(); }
+});
+(function(){
+  const stage=document.getElementById('catch-stage');
+  function move(clientX){ const r=stage.getBoundingClientRect(); basketX=Math.max(4,Math.min(96,((clientX-r.left)/r.width)*100)); positionBasket(); }
+  stage.addEventListener('mousemove',e=>move(e.clientX));
+  stage.addEventListener('touchmove',e=>{ move(e.touches[0].clientX); },{passive:true});
+})();
+
+/* ===== MEMORY ===== */
+const MEM_ICONS=['🦊','🤖','💪','😈','⚡','🔧','🔩','🚀'];
+let memFlipped=[], memMatched=0, memMoves=0, memLock=false;
+function startMem(){
+  const deck=[...MEM_ICONS,...MEM_ICONS].sort(()=>Math.random()-0.5);
+  memFlipped=[]; memMatched=0; memMoves=0; memLock=false;
+  document.getElementById('mem-moves').textContent='0 moves';
+  const grid=document.getElementById('mem-grid');
+  grid.innerHTML=deck.map((ic,i)=>`<div class="mem-card" data-i="${i}" data-ic="${ic}" onclick="flipMem(${i})">
+    <div class="mc-face mc-back">?</div><div class="mc-face mc-front">${ic}</div></div>`).join('');
+}
+function flipMem(i){
+  if(memLock) return;
+  const card=document.querySelector('.mem-card[data-i="'+i+'"]');
+  if(!card||card.classList.contains('flipped')||card.classList.contains('matched')) return;
+  card.classList.add('flipped');
+  memFlipped.push(card);
+  if(memFlipped.length===2){
+    memMoves++; document.getElementById('mem-moves').textContent=memMoves+' move'+(memMoves>1?'s':'');
+    memLock=true;
+    const [a,b]=memFlipped;
+    if(a.dataset.ic===b.dataset.ic){
+      setTimeout(()=>{ a.classList.add('matched'); b.classList.add('matched'); memFlipped=[]; memLock=false; memMatched++;
+        if(memMatched===MEM_ICONS.length){ document.getElementById('mem-grid').insertAdjacentHTML('afterend','<div class="win-msg" id="mem-win">🎉 Solved in '+memMoves+' moves!</div>'); }
+      }, 500);
+    } else {
+      setTimeout(()=>{ a.classList.remove('flipped'); b.classList.remove('flipped'); memFlipped=[]; memLock=false; }, 800);
+    }
+  }
+}
+
+// init
+startQuiz();
+</script>
+<script src="site-enhance.js"></script>
+</body>
+</html>
