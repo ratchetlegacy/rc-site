@@ -60,10 +60,33 @@
     /* about section stacks */
     .about{flex-direction:column!important;text-align:center}
     .about-avatar{margin:0 auto}
+    /* map taller on phones so it's usable */
+    .map-stage{aspect-ratio:1/1!important;max-height:none!important}
+    .gal-tabs{gap:6px}
+    .gal-tab{padding:8px 14px;font-size:.72rem}
+    /* story side nav becomes horizontal scroll */
+    .story-nav{position:static!important;flex-direction:row!important;overflow-x:auto;max-height:none!important;padding-bottom:8px}
+    /* picker (arcade) stacks */
+    .picker{grid-template-columns:1fr!important}
   }
   @media(max-width:400px){
     .chars,.cat-menu,.admin-cards,.wiki-hub{grid-template-columns:1fr!important}
   }
+  /* ── Mobile hamburger menu ── */
+  .rl-burger{display:none;background:none;border:none;color:var(--text,#EEF0F8);font-size:1.5rem;cursor:pointer;padding:4px 8px;flex-shrink:0}
+  @media(max-width:820px){
+    .nav-links{display:none!important}
+    .rl-burger{display:block}
+    .nav-insta-btn,.nav-cta{display:none!important}
+    .nav-burger{display:none!important}
+  }
+  .rl-mobile-menu{position:fixed;inset:0;z-index:2000;background:rgba(10,11,20,.98);backdrop-filter:blur(10px);display:none;flex-direction:column;padding:80px 24px 24px;overflow-y:auto}
+  .rl-mobile-menu.open{display:flex}
+  .rl-mobile-menu a{padding:16px 8px;font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:600;color:var(--text,#EEF0F8);border-bottom:1px solid rgba(255,255,255,.08);text-decoration:none}
+  .rl-mobile-menu a:active{color:var(--purple-light,#9B6FF4)}
+  .rl-mobile-close{position:absolute;top:20px;right:22px;background:rgba(255,255,255,.1);border:none;color:#fff;width:42px;height:42px;border-radius:12px;font-size:1.3rem;cursor:pointer}
+  .rl-mobile-menu .rl-mm-cta{background:linear-gradient(135deg,var(--purple,#7B4FD4),var(--orange,#FF6B1A));color:#fff;border-radius:12px;text-align:center;margin-top:18px;border:none}
+  .rl-mobile-menu .rl-mm-insta{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border-radius:12px;text-align:center;margin-top:10px;border:none}
   `;
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
@@ -120,7 +143,33 @@
     // ---- Homepage: fill universe cards with real images from the database ----
     injectUniverseImages();
     injectHeroImage();
+    buildMobileMenu();
   });
+
+  function buildMobileMenu(){
+    const nav=document.querySelector('.nav');
+    const links=document.querySelector('.nav-links');
+    if(!nav || !links || document.querySelector('.rl-burger')) return;
+    // burger button
+    const burger=document.createElement('button');
+    burger.className='rl-burger'; burger.setAttribute('aria-label','Menu'); burger.innerHTML='☰';
+    nav.appendChild(burger);
+    // overlay menu
+    const menu=document.createElement('div');
+    menu.className='rl-mobile-menu';
+    let html='<button class="rl-mobile-close" aria-label="Close">✕</button>';
+    links.querySelectorAll('a').forEach(a=>{
+      const cls = a.classList.contains('nav-cta') ? 'rl-mm-cta' : (a.classList.contains('nav-insta-btn') ? 'rl-mm-insta' : '');
+      let label=a.textContent.trim();
+      if(a.classList.contains('nav-insta-btn')) label='📸 Instagram';
+      html+='<a href="'+a.getAttribute('href')+'"'+(a.target?' target="'+a.target+'"':'')+(cls?' class="'+cls+'"':'')+'>'+label+'</a>';
+    });
+    menu.innerHTML=html;
+    document.body.appendChild(menu);
+    burger.addEventListener('click',()=>{ menu.classList.add('open'); document.body.style.overflow='hidden'; });
+    menu.querySelector('.rl-mobile-close').addEventListener('click',()=>{ menu.classList.remove('open'); document.body.style.overflow=''; });
+    menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{ menu.classList.remove('open'); document.body.style.overflow=''; }));
+  }
 
   async function injectHeroImage(){
     const hero=document.querySelector('.page-hero, .hero');
