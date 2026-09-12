@@ -291,6 +291,28 @@ body.menu-only .card{display:none}
     </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">🃏 Arcade Memory images</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openMemImgForm()">+ Add</button>
+      </div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Add up to 16 photos for the Memory game. The game uses your photos first, then emojis.</div>
+      <div id="memimg-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+    <div class="fmodal" id="memimg-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="memimg-modal-title">🃏 Add memory image</h2><button onclick="closeMemImgForm()">✕</button></div>
+        <div class="msg" id="memimg-msg"></div>
+        <input type="hidden" id="mi-id"/>
+        <label>Image URL *</label>
+        <input type="text" id="mi-img" placeholder="https://..."/>
+        <label>Label (optional)</label>
+        <input type="text" id="mi-label" placeholder="Ratchet, Clank..."/>
+        <label>Order</label>
+        <input type="number" id="mi-order" placeholder="1"/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveMemImg()">💾 Save</button>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">📗 Guides</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openGuideForm()">+ Add</button>
       </div>
@@ -482,6 +504,61 @@ async function signIn(){
   showAdmin();
 }
 async function signOut(){ await sb.auth.signOut(); location.reload(); }
+// ── Arcade Memory images ──
+let _MEMIMG=[];
+async function loadMemImages(){
+  const {data,error}=await sb.from('arcade_memory_images').select('*').order('sort_order');
+  if(error){ const b=document.getElementById('memimg-list'); if(b) b.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  _MEMIMG=data||[];
+  const box=document.getElementById('memimg-list'); if(!box) return;
+  if(!_MEMIMG.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No image yet.</div>'; return; }
+  box.innerHTML=_MEMIMG.map(m=>
+    `<div class="guide-row">
+      <span class="gi">${m.image_url?'🖼️':'🃏'}</span>
+      <div class="gt"><b>${esc(m.label||'Image')}</b><span>order ${m.sort_order||0}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editMemImgById('${esc(m.id)}')">Edit</button>
+      <button class="btn btn-danger" onclick="delMemImg('${esc(m.id)}')">Del</button>
+    </div>`
+  ).join('');
+}
+function openMemImgForm(){
+  ['mi-id','mi-img','mi-label','mi-order'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('memimg-msg').style.display='none';
+  document.getElementById('memimg-modal-title').textContent='🃏 Add memory image';
+  document.getElementById('memimg-modal').classList.add('open');
+}
+function closeMemImgForm(){ document.getElementById('memimg-modal').classList.remove('open'); }
+function editMemImgById(id){
+  const m=_MEMIMG.find(x=>String(x.id)===String(id)); if(!m) return;
+  document.getElementById('mi-id').value=m.id;
+  document.getElementById('mi-img').value=m.image_url||'';
+  document.getElementById('mi-label').value=m.label||'';
+  document.getElementById('mi-order').value=m.sort_order||'';
+  document.getElementById('memimg-msg').style.display='none';
+  document.getElementById('memimg-modal-title').textContent='✏️ Edit memory image';
+  document.getElementById('memimg-modal').classList.add('open');
+}
+async function saveMemImg(){
+  const id=document.getElementById('mi-id').value;
+  const row={
+    image_url:document.getElementById('mi-img').value.trim(),
+    label:document.getElementById('mi-label').value.trim()||null,
+    sort_order:parseInt(document.getElementById('mi-order').value)||0
+  };
+  if(!row.image_url){ showMsg('memimg-msg','Image URL is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('arcade_memory_images').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('arcade_memory_images').insert([row])); }
+  if(error){ showMsg('memimg-msg','Error: '+error.message,false); return; }
+  showMsg('memimg-msg',id?'Image updated! ✓':'Image added! ✓',true);
+  setTimeout(()=>{ closeMemImgForm(); loadMemImages(); }, 700);
+}
+async function delMemImg(id){
+  if(!confirm('Delete this image?')) return;
+  const {error}=await sb.from('arcade_memory_images').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadMemImages();
+}
 // ── Page hero banners ──
 const HERO_PAGES=['index','wiki','story','map','database','guides','news','trades','arcade'];
 async function loadHeroImages(){
@@ -802,7 +879,7 @@ const ADMIN_SECTIONS=[
   {key:'catalog', ic:'🗃️', lbl:'Catalog', match:['Catalog objects']},
   {key:'media', ic:'📗', lbl:'Guides & News', match:['Guides','News']},
   {key:'trades', ic:'🤝', lbl:'Trades', match:['Trade listings']},
-  {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Page banners']}
+  {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Page banners','Arcade Memory']}
 ];
 function buildAdminMenu(){
   const menu=document.getElementById('admin-menu');
@@ -940,6 +1017,7 @@ function showAdmin(){
   loadHomeImages();
   loadWikiHubImages();
   loadHeroImages();
+  loadMemImages();
   loadWikiAdmin();
   loadLocations();
   loadLore();
