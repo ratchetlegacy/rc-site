@@ -290,15 +290,28 @@ body.menu-only .card{display:none}
       <button class="btn btn-primary" style="width:100%" onclick="saveHeroImages()">💾 Save page banners</button>
     </div>
     <div class="card">
-      <h2>📱 App screenshots (home carousel)</h2>
-      <div class="msg" id="appshot-msg"></div>
-      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Up to 5 tracker screenshots for the carousel in the "The App" section. Leave empty to keep the default mockup.</div>
-      <label>Screenshot 1</label><input type="text" id="as-1" placeholder="https://..."/>
-      <label>Screenshot 2</label><input type="text" id="as-2" placeholder="https://..."/>
-      <label>Screenshot 3</label><input type="text" id="as-3" placeholder="https://..."/>
-      <label>Screenshot 4</label><input type="text" id="as-4" placeholder="https://..."/>
-      <label>Screenshot 5</label><input type="text" id="as-5" placeholder="https://..."/>
-      <button class="btn btn-primary" style="width:100%" onclick="saveAppShots()">💾 Save app screenshots</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📱 App screenshots (home carousel)</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openScrForm()">+ Add</button>
+      </div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Add as many tracker screenshots as you want for the carousel. Leave empty to keep the default mockup.</div>
+      <div id="scr-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <!-- SCREENSHOT FORM MODAL -->
+    <div class="fmodal" id="scr-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="scr-modal-title">📱 Add screenshot</h2><button onclick="closeScrForm()">✕</button></div>
+        <div class="msg" id="scr-msg"></div>
+        <input type="hidden" id="scr-id"/>
+        <label>Image URL *</label>
+        <input type="text" id="scr-img" placeholder="https://... (tracker screenshot)"/>
+        <label>Label (optional)</label>
+        <input type="text" id="scr-label" placeholder="Home, Collection, Stats..."/>
+        <label>Order</label>
+        <input type="number" id="scr-order" placeholder="1"/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveScr()">💾 Save</button>
+      </div>
     </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -515,20 +528,61 @@ async function signIn(){
   showAdmin();
 }
 async function signOut(){ await sb.auth.signOut(); location.reload(); }
-// ── App screenshots ──
+// ── App screenshots (table-based, add freely) ──
+let _SCR=[];
 async function loadAppShots(){
-  try{
-    const {data}=await sb.from('site_settings').select('key,value').in('key',['app_shot_1','app_shot_2','app_shot_3','app_shot_4','app_shot_5']);
-    const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
-    for(let i=1;i<=5;i++){ const el=document.getElementById('as-'+i); if(el) el.value=S['app_shot_'+i]||''; }
-  }catch(e){}
+  const box=document.getElementById('scr-list');
+  const {data,error}=await sb.from('app_screenshots').select('*').order('sort_order');
+  if(error){ if(box) box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  _SCR=data||[];
+  if(!box) return;
+  if(!_SCR.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No screenshot yet.</div>'; return; }
+  box.innerHTML=_SCR.map(s=>
+    `<div class="guide-row">
+      <span class="gi">🖼️</span>
+      <div class="gt"><b>${esc(s.label||'Screenshot')}</b><span>order ${s.sort_order||0}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editScrById('${esc(s.id)}')">Edit</button>
+      <button class="btn btn-danger" onclick="delScr('${esc(s.id)}')">Del</button>
+    </div>`
+  ).join('');
 }
-async function saveAppShots(){
-  const rows=[];
-  for(let i=1;i<=5;i++){ rows.push({key:'app_shot_'+i, value:document.getElementById('as-'+i).value.trim()}); }
-  const {error}=await sb.from('site_settings').upsert(rows);
-  if(error){ showMsg('appshot-msg',error.message,false); return; }
-  showMsg('appshot-msg','App screenshots saved! ✓',true);
+function openScrForm(){
+  ['scr-id','scr-img','scr-label','scr-order'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('scr-msg').style.display='none';
+  document.getElementById('scr-modal-title').textContent='📱 Add screenshot';
+  document.getElementById('scr-modal').classList.add('open');
+}
+function closeScrForm(){ document.getElementById('scr-modal').classList.remove('open'); }
+function editScrById(id){
+  const s=_SCR.find(x=>String(x.id)===String(id)); if(!s) return;
+  document.getElementById('scr-id').value=s.id;
+  document.getElementById('scr-img').value=s.image_url||'';
+  document.getElementById('scr-label').value=s.label||'';
+  document.getElementById('scr-order').value=s.sort_order||'';
+  document.getElementById('scr-msg').style.display='none';
+  document.getElementById('scr-modal-title').textContent='✏️ Edit screenshot';
+  document.getElementById('scr-modal').classList.add('open');
+}
+async function saveScr(){
+  const id=document.getElementById('scr-id').value;
+  const row={
+    image_url:document.getElementById('scr-img').value.trim(),
+    label:document.getElementById('scr-label').value.trim()||null,
+    sort_order:parseInt(document.getElementById('scr-order').value)||0
+  };
+  if(!row.image_url){ showMsg('scr-msg','Image URL is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('app_screenshots').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('app_screenshots').insert([row])); }
+  if(error){ showMsg('scr-msg','Error: '+error.message,false); return; }
+  showMsg('scr-msg',id?'Saved! ✓':'Added! ✓',true);
+  setTimeout(()=>{ closeScrForm(); loadAppShots(); }, 700);
+}
+async function delScr(id){
+  if(!confirm('Delete this screenshot?')) return;
+  const {error}=await sb.from('app_screenshots').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadAppShots();
 }
 // ── Arcade Memory images ──
 let _MEMIMG=[];
