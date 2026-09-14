@@ -84,8 +84,11 @@ section{position:relative;z-index:2}
 .app-feats li b{color:var(--text)}
 .app-feats .chk{color:var(--green);font-weight:800;flex-shrink:0}
 .app-visual{position:relative;display:flex;justify-content:center}
-.phone{width:340px;background:var(--bg3);border:1px solid var(--line);border-radius:36px;padding:16px;box-shadow:0 30px 80px -20px rgba(123,79,212,.5)}
-.phone-screen{background:var(--bg);border-radius:24px;overflow:hidden;padding:16px;aspect-ratio:9/17}
+.phone{width:100%;max-width:560px;background:var(--bg3);border:1px solid var(--line);border-radius:14px;padding:0;box-shadow:0 30px 80px -20px rgba(123,79,212,.5);overflow:hidden}
+.browser-bar{display:flex;align-items:center;gap:7px;padding:11px 14px;background:var(--bg2);border-bottom:1px solid var(--line)}
+.browser-bar .dot{width:11px;height:11px;border-radius:50%}
+.browser-bar .url{flex:1;margin-left:10px;background:var(--bg);border-radius:7px;padding:5px 12px;font-size:.72rem;color:var(--text-dim);font-family:Inter,sans-serif;text-align:center}
+.phone-screen{background:#05060c;overflow:hidden;padding:0;aspect-ratio:16/10}
 .phone-h{display:flex;align-items:center;gap:9px;margin-bottom:14px}
 .phone-h .l{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--purple),var(--orange))}
 .phone-h .t{font-family:'Orbitron',sans-serif;font-weight:700;font-size:.62rem;letter-spacing:.05em}
@@ -238,11 +241,14 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
       </div>
       <div class="app-visual">
         <div class="phone">
+          <div class="browser-bar">
+            <span class="dot" style="background:#FF5F57"></span>
+            <span class="dot" style="background:#FEBC2E"></span>
+            <span class="dot" style="background:#28C840"></span>
+            <span class="url">ratchetlegacy.github.io/rc-tracker</span>
+          </div>
           <div class="phone-screen" id="app-carousel-screen">
-            <div class="phone-h"><div class="l"></div><div class="t">RATCHET LEGACY</div></div>
-            <div class="phone-feat"><span class="badge">MAIN</span><span class="fn">Ratchet &amp; Clank</span></div>
-            <div class="phone-row"><div class="phone-tile" style="background:linear-gradient(135deg,#1a3a8a,#12294f)"></div><div class="phone-tile" style="background:linear-gradient(135deg,#8a4a1a,#4f2e12)"></div><div class="phone-tile" style="background:linear-gradient(135deg,#1a6a3a,#124f2e)"></div></div>
-            <div class="phone-bar"><span>👤</span><span>🔍</span><span>➕</span><span>🗂️</span><span>⚙️</span></div>
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:.85rem;text-align:center;padding:20px">Screenshots of the tracker appear here.<br>Add them from the admin.</div>
           </div>
         </div>
       </div>
