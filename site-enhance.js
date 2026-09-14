@@ -183,7 +183,7 @@
       st.textContent='#app-carousel-screen{padding:0!important;overflow:hidden;position:relative;background:#05060c}'
         +'.ac-track{display:flex;transition:transform .5s cubic-bezier(.3,.7,.3,1);height:100%}'
         +'.ac-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#05060c}'
-        +'.ac-slide img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}'
+        +'.ac-slide img{width:100%;height:100%;object-fit:contain;display:block}'
         +'.ac-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;gap:6px;justify-content:center;z-index:2}'
         +'.ac-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.4)}'
         +'.ac-dot.on{background:#fff;width:18px;border-radius:100px}';
@@ -278,3 +278,4 @@
     const ic=card.querySelector('.ic'); if(ic) ic.style.opacity='.5';
   }
 })();
+   
