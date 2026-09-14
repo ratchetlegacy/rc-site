@@ -387,6 +387,16 @@ async function loadLore(){
 }
 loadLore();
 
+// Open a section directly if the URL has a hash (e.g. wiki.html#lore)
+(function(){
+  const hash=(location.hash||'').replace('#','');
+  const valid=['games','characters','weapons','creatures','planets','vehicles','lore'];
+  if(valid.includes(hash)){
+    // wait a tick so the DOM/functions are ready
+    setTimeout(()=>{ if(typeof showWikiSection==='function') showWikiSection(hash); }, 60);
+  }
+})();
+
 // ── Wiki hub navigation ──
 function showWikiSection(id){
   document.getElementById('wiki-hub').style.display='none';
