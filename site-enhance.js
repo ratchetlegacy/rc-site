@@ -169,17 +169,21 @@
         'https://ihucxnmqnhevfvlamgwc.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU'
       );
-      const {data}=await sb.from('site_settings').select('key,value').in('key',['app_shot_1','app_shot_2','app_shot_3','app_shot_4','app_shot_5']);
-      if(!data) return;
-      const S={}; data.forEach(r=>{ S[r.key]=r.value; });
-      const shots=['app_shot_1','app_shot_2','app_shot_3','app_shot_4','app_shot_5'].map(k=>S[k]).filter(u=>u&&u.trim());
+      // Try the dedicated table first (unlimited), fall back to old settings keys
+      let shots=[];
+      const {data:tbl}=await sb.from('app_screenshots').select('image_url').order('sort_order');
+      if(tbl && tbl.length){ shots=tbl.map(r=>r.image_url).filter(u=>u&&u.trim()); }
+      else {
+        const {data}=await sb.from('site_settings').select('key,value').in('key',['app_shot_1','app_shot_2','app_shot_3','app_shot_4','app_shot_5']);
+        if(data){ const S={}; data.forEach(r=>{ S[r.key]=r.value; }); shots=['app_shot_1','app_shot_2','app_shot_3','app_shot_4','app_shot_5'].map(k=>S[k]).filter(u=>u&&u.trim()); }
+      }
       if(!shots.length) return; // keep the mockup if no screenshots
       // replace phone content with a carousel
       const st=document.createElement('style');
-      st.textContent='#app-carousel-screen{padding:0!important;overflow:hidden;position:relative}'
+      st.textContent='#app-carousel-screen{padding:0!important;overflow:hidden;position:relative;background:#05060c}'
         +'.ac-track{display:flex;transition:transform .5s cubic-bezier(.3,.7,.3,1);height:100%}'
-        +'.ac-slide{min-width:100%;height:100%}'
-        +'.ac-slide img{width:100%;height:100%;object-fit:cover;display:block}'
+        +'.ac-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#05060c}'
+        +'.ac-slide img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}'
         +'.ac-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;gap:6px;justify-content:center;z-index:2}'
         +'.ac-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.4)}'
         +'.ac-dot.on{background:#fff;width:18px;border-radius:100px}';
