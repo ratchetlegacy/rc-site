@@ -466,6 +466,13 @@ body.menu-only .card{display:none}
           <div style="flex:1"><label>Platform</label><input type="text" id="o-platform" placeholder="Playstation 2..."/></div>
           <div style="width:100px"><label>Year</label><input type="number" id="o-year" placeholder="2004"/></div>
         </div>
+        <label>Edition</label>
+        <input type="text" id="o-edition" placeholder="Standard, Platinum, Essentials, Collector, Coffret, Disc only..." list="edition-list"/>
+        <datalist id="edition-list">
+          <option value="Standard"></option><option value="Platinum"></option><option value="Essentials"></option>
+          <option value="Collector"></option><option value="Coffret"></option><option value="Greatest Hits"></option>
+          <option value="Disc only"></option><option value="Boxset"></option>
+        </datalist>
         <label>Photo URL</label>
         <input type="text" id="o-image" placeholder="https://res.cloudinary.com/..."/>
         <label>Back photo URL (verso)</label>
@@ -1248,7 +1255,7 @@ function renderObjs(){
       <div class="ac-cover">${cover}</div>
       <div class="ac-body">
         <div class="ac-name">${esc(o.name)}</div>
-        <div class="ac-meta">${esc([o.platform,o.year].filter(Boolean).join(' · ')||o.category||'')}</div>
+        <div class="ac-meta">${esc([o.platform,o.edition,o.year].filter(Boolean).join(' · ')||o.category||'')}</div>
       </div>
       <div class="ac-actions">
         <button type="button" class="btn btn-ghost" style="flex:1;padding:6px;font-size:.72rem" onclick="editObjById('${esc(o.id)}')">Edit</button>
@@ -1319,6 +1326,7 @@ function editObj(o){
   document.getElementById('o-platform').value=o.platform||'';
   document.getElementById('o-year').value=o.year||'';
   document.getElementById('o-image').value=o.image_url||'';
+  document.getElementById('o-edition').value=o.edition||'';
   document.getElementById('o-imageback').value=o.image_back||'';
   document.getElementById('o-desc').value=o.description||'';
   document.getElementById('obj-modal-title').textContent='✏️ Edit object';
@@ -1326,7 +1334,7 @@ function editObj(o){
   document.body.style.overflow='hidden';
 }
 function clearObjForm(){
-  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc'].forEach(id=>document.getElementById(id).value='');
+  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition'].forEach(id=>document.getElementById(id).value='');
   const m=document.getElementById('obj-msg'); if(m) m.style.display='none';
 }
 async function saveObj(){
@@ -1338,6 +1346,7 @@ async function saveObj(){
     platform:document.getElementById('o-platform').value.trim()||null,
     year:yr!==''?parseInt(yr):null,
     image_url:document.getElementById('o-image').value.trim()||null,
+    edition:document.getElementById('o-edition').value.trim()||null,
     image_back:document.getElementById('o-imageback').value.trim()||null,
     description:document.getElementById('o-desc').value.trim()||null
   };
