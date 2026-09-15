@@ -69,7 +69,7 @@ section{position:relative;z-index:2}
 .uni-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .uni-card{position:relative;border-radius:16px;overflow:hidden;min-height:230px;display:flex;flex-direction:column;justify-content:flex-end;padding:24px;border:1px solid var(--line);background:var(--bg2);transition:.22s}
 .uni-card:hover{transform:translateY(-5px);border-color:var(--purple)}
-.uni-card .ic{position:absolute;top:20px;right:22px;font-size:2.6rem;opacity:.85}
+.uni-card .ic{display:none}
 .uni-card .shade{position:absolute;inset:0;z-index:0}
 .uni-card h3{position:relative;z-index:1;font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:8px}
 .uni-card p{position:relative;z-index:1;color:var(--text-mid);font-size:.9rem}
@@ -299,6 +299,9 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
           <a href="https://instagram.com/ratchetlegacy" target="_blank" class="btn btn-insta">📸 Follow us on Instagram</a>
           <a href="https://ko-fi.com/ratchetlegacy" target="_blank" class="btn btn-ghost">☕ Support on Ko-fi</a>
         </div>
+        <a href="https://instagram.com/ratchetlegacy" target="_blank" id="about-insta-feed" style="display:none;margin-top:22px;border-radius:16px;overflow:hidden;border:1px solid var(--line)">
+          <img id="about-insta-img" src="" alt="Instagram feed" style="width:100%;display:block"/>
+        </a>
       </div>
     </div>
   </div>
