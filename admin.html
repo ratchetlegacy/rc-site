@@ -443,10 +443,10 @@ body.menu-only .card{display:none}
         <h2 style="margin:0">🗃️ Catalog objects</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openObjForm()">+ Add</button>
       </div>
-      <input type="text" id="obj-search" placeholder="🔍 Search objects..." oninput="renderObjs()" style="margin-bottom:10px"/>
-      <select id="obj-cat-filter" onchange="renderObjs()" style="margin-bottom:12px"><option value="">All categories</option></select>
-      <div id="objs-list" style="max-height:460px;overflow-y:auto"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
-      <div style="font-size:.72rem;color:var(--text-dim);margin-top:8px">💡 Use the ▲▼ arrows on each card to reorder within a category.</div>
+      <input type="text" id="obj-search" placeholder="🔍 Search the whole catalog..." oninput="renderObjs()" style="margin-bottom:10px"/>
+      <div id="obj-crumb" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px"></div>
+      <div id="objs-list" style="max-height:560px;overflow-y:auto"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+      <div style="font-size:.72rem;color:var(--text-dim);margin-top:8px">💡 Category → platform → region. Search goes through the whole catalog. Use ▲▼ on a card to reorder within its category.</div>
     </div>
 
     <!-- OBJECT FORM MODAL -->
@@ -477,6 +477,18 @@ body.menu-only .card{display:none}
         <input type="text" id="o-image" placeholder="https://res.cloudinary.com/..."/>
         <label>Back photo URL (verso)</label>
         <input type="text" id="o-imageback" placeholder="https://... (shown when you flip)"/>
+        <label>Region</label>
+        <input type="text" id="o-region" placeholder="FR (PAL), USA (NTSC-U), JAP (NTSC-J)..." list="region-list"/>
+        <datalist id="region-list">
+          <option value="FR (PAL)"></option><option value="USA (NTSC-U)"></option><option value="JAP (NTSC-J)"></option>
+          <option value="DE (PAL)"></option><option value="PT (PAL)"></option>
+        </datalist>
+        <label>💰 Rating estimate (€)</label>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1"><input type="number" step="0.01" id="o-price-new" placeholder="New / sealed"/></div>
+          <div style="flex:1"><input type="number" step="0.01" id="o-price-used" placeholder="Pre-owned"/></div>
+        </div>
+        <div style="font-size:.72rem;color:var(--text-dim);margin:-4px 0 10px">Your estimate is the rating as long as no collector has entered a purchase price. After that it counts as one vote in the median.</div>
         <label>Description</label>
         <input type="text" id="o-desc" placeholder="Short description"/>
         <button class="btn btn-primary" onclick="saveObj()" style="width:100%;margin-top:6px">💾 Save object</button>
@@ -1218,32 +1230,105 @@ async function delChar(id){
 }
 // ── Catalog objects (table: catalog, same as the app) ──
 let ALL_OBJS=[];
+let objNavCat='', objNavPlat='', objNavReg='';
+const OBJ_ICON={'Game':'🎮','Console/Pack':'📦','Figure':'🎯','Plush':'🧸','Goodie':'🎁','Clothing':'👕','Print':'🖼️','Book':'📖','Guide':'📗','Media':'🎬','Misc':'📌'};
+function objQ(s){ return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function objPlatOf(o){ return (o.platform && o.platform!=='-') ? o.platform : '—'; }
+function objRegOf(o){ return o.region || '—'; }
+
 async function loadObjs(){
   const box=document.getElementById('objs-list');
   try{
     const {data,error}=await sb.from('catalog').select('*').order('category').order('sort_order').order('name');
     if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">Load error: '+esc(error.message)+'</div>'; return; }
     ALL_OBJS=data||[];
-    const cats=[...new Set(ALL_OBJS.map(o=>o.category).filter(Boolean))].sort();
-    const sel=document.getElementById('obj-cat-filter');
-    const cur=sel.value;
-    sel.innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option${c===cur?' selected':''}>${esc(c)}</option>`).join('');
     renderObjs();
   }catch(e){
     box.innerHTML='<div style="color:var(--red);font-size:.85rem">JS error: '+esc(e.message)+'</div>';
   }
 }
+
+// ---- navigation : categorie > plateforme > region > objets ----
+function objShowCats(){ objNavCat=''; objNavPlat=''; objNavReg=''; renderObjs(); }
+function objOpenCat(c){ objNavCat=c; objNavPlat=''; objNavReg=''; renderObjs(); }
+function objOpenPlat(p){ objNavPlat=p; objNavReg=''; renderObjs(); }
+function objOpenReg(r){ objNavReg=r; renderObjs(); }
+
+function objCrumb(){
+  const box=document.getElementById('obj-crumb'); if(!box) return;
+  const btn=(lbl,fn)=>'<button type="button" class="btn btn-ghost" style="padding:5px 11px;font-size:.75rem" onclick="'+fn+'">'+lbl+'</button>';
+  const parts=[btn('🗂️ Categories','objShowCats()')];
+  if(objNavCat) parts.push(btn((OBJ_ICON[objNavCat]||'📦')+' '+esc(objNavCat), "objOpenCat('"+objQ(objNavCat)+"')"));
+  if(objNavPlat) parts.push(btn(esc(objNavPlat), "objOpenPlat('"+objQ(objNavPlat)+"')"));
+  if(objNavReg) parts.push('<span style="font-size:.75rem;color:var(--text-dim);padding:5px 2px">'+esc(objNavReg)+'</span>');
+  box.innerHTML=parts.join('<span style="color:var(--text-dim)">›</span>');
+}
+
+function objMenuCards(list, onClick){
+  return '<div class="admin-cards" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">'+list.map(it=>{
+    const bg=it.img?'background-image:linear-gradient(to top,rgba(10,11,20,.92),rgba(10,11,20,.3)),url('+esc(it.img)+');background-size:cover;background-position:center':'';
+    return '<div class="admin-card" style="cursor:pointer;min-height:118px;display:flex;align-items:flex-end;'+bg+'" onclick="'+onClick(it.key)+'">'
+      + '<div style="padding:12px">'
+      +   '<div style="font-size:1.5rem;margin-bottom:4px">'+(it.icon||'📦')+'</div>'
+      +   '<div style="font-weight:700;font-size:.85rem;color:#fff">'+esc(it.label)+'</div>'
+      +   '<div style="font-size:.68rem;color:rgba(255,255,255,.75);margin-top:2px">'+it.count+' item'+(it.count>1?'s':'')+'</div>'
+      + '</div></div>';
+  }).join('')+'</div>';
+}
+
+function objLevelCats(){
+  const counts={}, imgs={};
+  ALL_OBJS.forEach(o=>{ const k=o.category||'Misc'; counts[k]=(counts[k]||0)+1; if(!imgs[k]&&o.image_url) imgs[k]=o.image_url; });
+  const list=Object.keys(counts).sort().map(k=>({key:k,label:k,icon:OBJ_ICON[k]||'📦',count:counts[k],img:imgs[k]}));
+  document.getElementById('objs-list').innerHTML=objMenuCards(list, k=>"objOpenCat('"+objQ(k)+"')");
+}
+function objLevelPlats(){
+  const inCat=ALL_OBJS.filter(o=>(o.category||'Misc')===objNavCat);
+  const counts={}, imgs={};
+  inCat.forEach(o=>{ const k=objPlatOf(o); counts[k]=(counts[k]||0)+1; if(!imgs[k]&&o.image_url) imgs[k]=o.image_url; });
+  const keys=Object.keys(counts).sort();
+  if(keys.length<=1){ objNavPlat=keys[0]||'—'; objCrumb(); return objLevelRegs(); }
+  const list=keys.map(k=>({key:k,label:k==='—'?'(no platform)':k,icon:'🕹️',count:counts[k],img:imgs[k]}));
+  document.getElementById('objs-list').innerHTML=objMenuCards(list, k=>"objOpenPlat('"+objQ(k)+"')");
+}
+function objLevelRegs(){
+  const inSel=ALL_OBJS.filter(o=>(o.category||'Misc')===objNavCat && objPlatOf(o)===objNavPlat);
+  const counts={}, imgs={};
+  inSel.forEach(o=>{ const k=objRegOf(o); counts[k]=(counts[k]||0)+1; if(!imgs[k]&&o.image_url) imgs[k]=o.image_url; });
+  const keys=Object.keys(counts).sort();
+  if(keys.length<=1){ objNavReg=keys[0]||'—'; objCrumb(); return objLevelItems(); }
+  const list=keys.map(k=>({key:k,label:k==='—'?'(no region)':k,icon:'🌍',count:counts[k],img:imgs[k]}));
+  document.getElementById('objs-list').innerHTML=objMenuCards(list, k=>"objOpenReg('"+objQ(k)+"')");
+}
+function objLevelItems(){
+  const list=ALL_OBJS.filter(o=>(o.category||'Misc')===objNavCat && objPlatOf(o)===objNavPlat && objRegOf(o)===objNavReg);
+  const box=document.getElementById('objs-list');
+  box.innerHTML = list.length
+    ? '<div class="admin-cards">'+list.map(objCardHtml).join('')+'</div>'
+    : '<div style="color:var(--text-dim);font-size:.85rem">No object here.</div>';
+}
+
 function renderObjs(){
   const q=(document.getElementById('obj-search').value||'').toLowerCase().trim();
-  const fc=document.getElementById('obj-cat-filter').value;
-  let list=ALL_OBJS.filter(o=>{
-    if(q && !((o.name||'').toLowerCase().includes(q))) return false;
-    if(fc && (o.category||'')!==fc) return false;
-    return true;
-  });
   const box=document.getElementById('objs-list');
-  if(!list.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No object.</div>'; return; }
-  const cardHtml=(o)=>{
+  const crumb=document.getElementById('obj-crumb');
+  if(q){
+    if(crumb) crumb.innerHTML='<span style="font-size:.75rem;color:var(--text-dim)">🔍 Searching the whole catalog — clear the field to go back to browsing</span>';
+    const list=ALL_OBJS.filter(o=>(o.name||'').toLowerCase().includes(q));
+    box.innerHTML = list.length
+      ? '<div class="admin-cards">'+list.slice(0,300).map(objCardHtml).join('')+'</div>'
+        + (list.length>300?'<div style="color:var(--text-dim);font-size:.75rem;text-align:center;padding:8px">Showing the first 300 of '+list.length+'.</div>':'')
+      : '<div style="color:var(--text-dim);font-size:.85rem">No object.</div>';
+    return;
+  }
+  objCrumb();
+  if(!objNavCat)  return objLevelCats();
+  if(!objNavPlat) return objLevelPlats();
+  if(!objNavReg)  return objLevelRegs();
+  return objLevelItems();
+}
+
+  const objCardHtml=(o)=>{
     const cover=o.image_url
       ? `<img src="${esc(o.image_url)}" style="width:100%;height:100%;object-fit:contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ac-ph" style="display:none">📦</span>`
       : `<span class="ac-ph">📦</span>`;
@@ -1263,8 +1348,6 @@ function renderObjs(){
       </div>
     </div>`;
   };
-  box.innerHTML='<div class="admin-cards">'+list.slice(0,300).map(cardHtml).join('')+'</div>' + (list.length>300?'<div style="color:var(--text-dim);font-size:.75rem;text-align:center;padding:8px">Showing first 300. Use search to narrow down.</div>':'');
-}
 // Move an object up/down within its category (swaps sort_order)
 async function moveObj(id, dir){
   const obj=ALL_OBJS.find(o=>String(o.id)===String(id));
@@ -1327,6 +1410,9 @@ function editObj(o){
   document.getElementById('o-year').value=o.year||'';
   document.getElementById('o-image').value=o.image_url||'';
   document.getElementById('o-edition').value=o.edition||'';
+  document.getElementById('o-region').value=o.region||'';
+  document.getElementById('o-price-new').value=(o.price_new!=null?o.price_new:'');
+  document.getElementById('o-price-used').value=(o.price_used!=null?o.price_used:'');
   document.getElementById('o-imageback').value=o.image_back||'';
   document.getElementById('o-desc').value=o.description||'';
   document.getElementById('obj-modal-title').textContent='✏️ Edit object';
@@ -1334,7 +1420,7 @@ function editObj(o){
   document.body.style.overflow='hidden';
 }
 function clearObjForm(){
-  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition'].forEach(id=>document.getElementById(id).value='');
+  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition','o-region','o-price-new','o-price-used'].forEach(id=>document.getElementById(id).value='');
   const m=document.getElementById('obj-msg'); if(m) m.style.display='none';
 }
 async function saveObj(){
@@ -1347,6 +1433,9 @@ async function saveObj(){
     year:yr!==''?parseInt(yr):null,
     image_url:document.getElementById('o-image').value.trim()||null,
     edition:document.getElementById('o-edition').value.trim()||null,
+    region:document.getElementById('o-region').value.trim()||null,
+    price_new:document.getElementById('o-price-new').value!==''?parseFloat(document.getElementById('o-price-new').value):null,
+    price_used:document.getElementById('o-price-used').value!==''?parseFloat(document.getElementById('o-price-used').value):null,
     image_back:document.getElementById('o-imageback').value.trim()||null,
     description:document.getElementById('o-desc').value.trim()||null
   };
