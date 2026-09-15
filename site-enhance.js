@@ -268,6 +268,13 @@
         aboutLogo.textContent='';
         aboutLogo.innerHTML='<img src="'+S.home_img_about+'" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.textContent=\'🦊\'"/>';
       }
+      // Instagram feed capture in About
+      const feedLink=document.getElementById('about-insta-feed');
+      const feedImg=document.getElementById('about-insta-img');
+      if(S.about_insta_feed && feedLink && feedImg){
+        feedImg.src=S.about_insta_feed;
+        feedLink.style.display='block';
+      }
     }catch(e){ /* silent */ }
   }
   function setCardBg(card, url){
@@ -278,4 +285,3 @@
     const ic=card.querySelector('.ic'); if(ic) ic.style.opacity='.5';
   }
 })();
-   
