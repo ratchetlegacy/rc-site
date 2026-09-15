@@ -277,6 +277,13 @@ body.menu-only .card{display:none}
       <button class="btn btn-primary" style="width:100%" onclick="saveWikiHubImages()">💾 Save wiki hub images</button>
     </div>
     <div class="card">
+      <h2>🗃️ Vault category images</h2>
+      <div class="msg" id="vaultimg-msg"></div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Cover image of each category card in the Megacorp Vault. Leave empty and the Vault falls back to a photo picked from the category.</div>
+      <div id="vaultimg-fields"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="saveVaultImages()">💾 Save Vault images</button>
+    </div>
+    <div class="card">
       <h2>🖼️ Page banners (hero)</h2>
       <div class="msg" id="hero-msg"></div>
       <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Background image for the top banner of each page.</div>
@@ -674,6 +681,46 @@ async function delMemImg(id){
   if(error){ alert(error.message); return; }
   loadMemImages();
 }
+// ── Vault category images ──
+let VAULT_CATS=[];
+async function loadVaultImages(){
+  const box=document.getElementById('vaultimg-fields'); if(!box) return;
+  try{
+    const [{data:cat},{data:set}]=await Promise.all([
+      sb.from('catalog').select('category,image_url'),
+      sb.from('site_settings').select('key,value')
+    ]);
+    const S={}; (set||[]).forEach(r=>{ S[r.key]=r.value; });
+    const counts={}, fallback={};
+    (cat||[]).forEach(o=>{ const k=o.category||'Misc'; counts[k]=(counts[k]||0)+1; if(!fallback[k]&&o.image_url) fallback[k]=o.image_url; });
+    VAULT_CATS=Object.keys(counts).sort();
+    if(!VAULT_CATS.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No category in the catalog yet.</div>'; return; }
+    box.innerHTML=VAULT_CATS.map((c,i)=>{
+      const cur=S['vault_img_'+c]||'';
+      const thumb=cur||fallback[c]||'';
+      return '<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px">'
+        + '<div style="width:52px;height:52px;flex-shrink:0;border-radius:8px;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center">'
+        +   (thumb?'<img id="vi-thumb-'+i+'" src="'+esc(thumb)+'" style="width:100%;height:100%;object-fit:cover"'
+              +' onerror="this.style.display=\'none\'"/>':'<span style="opacity:.4">📦</span>')
+        + '</div>'
+        + '<div style="flex:1">'
+        +   '<label style="margin-top:0">'+esc(c)+' <span style="color:var(--text-dim);font-weight:400">· '+counts[c]+' items'+(cur?'':' · auto')+'</span></label>'
+        +   '<input type="text" id="vi-'+i+'" value="'+esc(cur)+'" placeholder="https://res.cloudinary.com/... (leave empty = automatic)"'
+        +     ' oninput="const t=document.getElementById(\'vi-thumb-'+i+'\'); if(t&&this.value.trim()){t.src=this.value.trim();t.style.display=\'\';}"/>'
+        + '</div></div>';
+    }).join('');
+  }catch(e){
+    box.innerHTML='<div style="color:var(--red);font-size:.85rem">Load error: '+esc(e.message)+'</div>';
+  }
+}
+async function saveVaultImages(){
+  const rows=VAULT_CATS.map((c,i)=>({key:'vault_img_'+c, value:(document.getElementById('vi-'+i).value||'').trim()}));
+  if(!rows.length) return;
+  const {error}=await sb.from('site_settings').upsert(rows);
+  if(error){ showMsg('vaultimg-msg',error.message,false); return; }
+  showMsg('vaultimg-msg','Vault images saved! ✓',true);
+  loadVaultImages();
+}
 // ── Page hero banners ──
 const HERO_PAGES=['index','wiki','story','map','database','guides','news','trades','arcade'];
 async function loadHeroImages(){
@@ -994,7 +1041,7 @@ const ADMIN_SECTIONS=[
   {key:'catalog', ic:'🗃️', lbl:'Catalog', match:['Catalog objects']},
   {key:'media', ic:'📗', lbl:'Guides & News', match:['Guides','News']},
   {key:'trades', ic:'🤝', lbl:'Trades', match:['Trade listings']},
-  {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Page banners','Arcade Memory','App screenshots']}
+  {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Vault category images','Page banners','Arcade Memory','App screenshots']}
 ];
 function buildAdminMenu(){
   const menu=document.getElementById('admin-menu');
@@ -1135,6 +1182,7 @@ function showAdmin(){
   buildAdminMenu();
   loadHomeImages();
   loadWikiHubImages();
+  loadVaultImages();
   loadHeroImages();
   loadAppShots();
   loadMemImages();
