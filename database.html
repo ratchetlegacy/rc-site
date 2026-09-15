@@ -166,6 +166,14 @@ const catIcon={'Game':'🎮','Console/Pack':'📦','Figure':'🎯','Plush':'🧸
 const CAT_ORDER=['Game','Console/Pack','Figure','Plush','Goodie','Clothing','Print','Book','Guide','Media','Misc'];
 let ALL=[];
 let RATING={};
+let VAULTIMG={};   // vault_img_<category> choisi dans l'admin
+async function loadVaultImages(){
+  try{
+    const {data}=await sb.from('site_settings').select('key,value');
+    VAULTIMG={};
+    (data||[]).forEach(r=>{ if(r.key&&r.key.indexOf('vault_img_')===0 && r.value) VAULTIMG[r.key.slice(10)]=r.value; });
+  }catch(e){ VAULTIMG={}; }
+}
 async function loadRating(){
   try{
     const {data}=await sb.from('market_rating').select('*');
@@ -192,6 +200,7 @@ async function load(){
     ALL=data||[];
     document.getElementById('state').style.display='none';
     await loadRating();
+    await loadVaultImages();
     // fill the stats banner
     const nCats=new Set(ALL.map(c=>c.category||'Misc')).size;
     const nPlats=new Set(ALL.map(c=>c.platform).filter(Boolean)).size;
@@ -244,7 +253,7 @@ function showCategoryMenu(){
   document.getElementById('count').textContent='';
   renderMenuCards(present.map(cat=>({
     key:cat, label:cat, icon:catIcon[cat]||'📌', count:counts[cat],
-    sampleImg:(ALL.find(o=>(o.category||'Misc')===cat && o.image_url)||{}).image_url
+    sampleImg: VAULTIMG[cat] || (ALL.find(o=>(o.category||'Misc')===cat && o.image_url)||{}).image_url
   })), k=>`openCategory('${k.replace(/'/g,"\\'")}')`);
 }
 
