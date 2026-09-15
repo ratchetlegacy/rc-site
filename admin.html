@@ -252,6 +252,8 @@ body.menu-only .card{display:none}
       <input type="text" id="hi-lore" placeholder="https://..."/>
       <label>About image URL</label>
       <input type="text" id="hi-about" placeholder="https://..."/>
+      <label>About — Instagram feed capture</label>
+      <input type="text" id="hi-instafeed" placeholder="https://... (screenshot of your Insta feed)"/>
       <button class="btn btn-primary" style="width:100%" onclick="saveHomeImages()">💾 Save homepage images</button>
     </div>
 
@@ -357,6 +359,16 @@ body.menu-only .card{display:none}
         <input type="text" id="g-url" placeholder="https://... (Cloudinary, Drive, direct PDF)"/>
         <label>Cover image URL</label>
         <input type="text" id="g-cover" placeholder="https://... (game box art or your own photo)"/>
+        <label>Cover framing (position)</label>
+        <select id="g-coverpos" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-family:Inter,sans-serif;font-size:.9rem;outline:none;margin-bottom:14px">
+          <option value="center">Center</option>
+          <option value="top">Top</option>
+          <option value="bottom">Bottom</option>
+          <option value="center 25%">Upper</option>
+          <option value="center 75%">Lower</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
         <div class="note">Upload your PDF and paste the link here.</div>
         <button class="btn btn-primary" style="width:100%" onclick="saveGuide()">💾 Save guide</button>
       </div>
@@ -501,6 +513,10 @@ body.menu-only .card{display:none}
         <input type="text" id="ga-anec" placeholder="A fun fact"/>
         <label>Full story (for the Story page)</label>
         <textarea id="ga-story" placeholder="The detailed narrative. Use blank lines between paragraphs." style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px;color:var(--text);font-family:Inter,sans-serif;font-size:.88rem;outline:none;min-height:120px;resize:vertical;margin-bottom:14px"></textarea>
+        <label>Story image 1 (appears in the text)</label>
+        <input type="text" id="ga-simg1" placeholder="https://..."/>
+        <label>Story image 2 (appears in the text)</label>
+        <input type="text" id="ga-simg2" placeholder="https://..."/>
         <button class="btn btn-primary" style="width:100%" onclick="saveGame()">💾 Save game</button>
       </div>
     </div>
@@ -1025,6 +1041,7 @@ async function loadHomeImages(){
     document.getElementById('hi-characters').value=S.home_img_characters||'';
     document.getElementById('hi-lore').value=S.home_img_lore||'';
     document.getElementById('hi-about').value=S.home_img_about||'';
+    document.getElementById('hi-instafeed').value=S.about_insta_feed||'';
   }catch(e){}
 }
 async function saveHomeImages(){
@@ -1032,7 +1049,8 @@ async function saveHomeImages(){
     {key:'home_img_games',value:document.getElementById('hi-games').value.trim()},
     {key:'home_img_characters',value:document.getElementById('hi-characters').value.trim()},
     {key:'home_img_lore',value:document.getElementById('hi-lore').value.trim()},
-    {key:'home_img_about',value:document.getElementById('hi-about').value.trim()}
+    {key:'home_img_about',value:document.getElementById('hi-about').value.trim()},
+    {key:'about_insta_feed',value:document.getElementById('hi-instafeed').value.trim()}
   ];
   const {error}=await sb.from('site_settings').upsert(rows);
   if(error){ showMsg('home-msg',error.message,false); return; }
@@ -1053,7 +1071,7 @@ async function loadGuides(){
   ).join('');
 }
 function openGuideForm(){
-  ['g-id','g-title','g-game','g-url','g-cover'].forEach(id=>document.getElementById(id).value='');
+  ['g-id','g-title','g-game','g-url','g-cover','g-coverpos'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('add-msg').style.display='none';
   document.getElementById('guide-modal-title').textContent='📗 Add guide';
   document.getElementById('guide-modal').classList.add('open');
@@ -1065,6 +1083,7 @@ function editGuide(g){
   document.getElementById('g-game').value=g.game||'';
   document.getElementById('g-url').value=g.pdf_url||'';
   document.getElementById('g-cover').value=g.cover_url||'';
+  document.getElementById('g-coverpos').value=g.cover_pos||'center';
   document.getElementById('add-msg').style.display='none';
   document.getElementById('guide-modal-title').textContent='✏️ Edit guide';
   document.getElementById('guide-modal').classList.add('open');
@@ -1075,10 +1094,11 @@ async function saveGuide(){
   const game=document.getElementById('g-game').value.trim();
   const url=document.getElementById('g-url').value.trim();
   const cover=document.getElementById('g-cover').value.trim()||null;
+  const coverpos=document.getElementById('g-coverpos').value||'center';
   if(!title||!url){ showMsg('add-msg','Title and PDF link are required.',false); return; }
   let error;
-  if(id){ ({error}=await sb.from('site_guides').update({title,game:game||null,pdf_url:url,cover_url:cover}).eq('id',id)); }
-  else { ({error}=await sb.from('site_guides').insert([{title,game:game||null,pdf_url:url,cover_url:cover}])); }
+  if(id){ ({error}=await sb.from('site_guides').update({title,game:game||null,pdf_url:url,cover_url:cover,cover_pos:coverpos}).eq('id',id)); }
+  else { ({error}=await sb.from('site_guides').insert([{title,game:game||null,pdf_url:url,cover_url:cover,cover_pos:coverpos}])); }
   if(error){ showMsg('add-msg',error.message,false); return; }
   showMsg('add-msg',id?'Guide updated! ✓':'Guide added! ✓',true);
   setTimeout(()=>{ closeGuideForm(); loadGuides(); }, 700);
@@ -1398,12 +1418,14 @@ function editGame(g){
   document.getElementById('ga-syn').value=g.synopsis||'';
   document.getElementById('ga-anec').value=g.anecdote||'';
   document.getElementById('ga-story').value=g.story||'';
+  document.getElementById('ga-simg1').value=g.story_img1||'';
+  document.getElementById('ga-simg2').value=g.story_img2||'';
   document.getElementById('game-msg').style.display='none';
   document.getElementById('game-modal-title').textContent='✏️ Edit game';
   document.getElementById('game-modal').classList.add('open');
 }
 function clearGameForm(){
-  ['ga-id','ga-name','ga-platform','ga-year','ga-rel','ga-storyorder','ga-img','ga-syn','ga-anec','ga-story'].forEach(id=>document.getElementById(id).value='');
+  ['ga-id','ga-name','ga-platform','ga-year','ga-rel','ga-storyorder','ga-img','ga-syn','ga-anec','ga-story','ga-simg1','ga-simg2'].forEach(id=>document.getElementById(id).value='');
 }
 async function saveGame(){
   const id=document.getElementById('ga-id').value;
@@ -1417,7 +1439,9 @@ async function saveGame(){
     image_url:document.getElementById('ga-img').value.trim()||null,
     synopsis:document.getElementById('ga-syn').value.trim()||null,
     anecdote:document.getElementById('ga-anec').value.trim()||null,
-    story:document.getElementById('ga-story').value.trim()||null
+    story:document.getElementById('ga-story').value.trim()||null,
+    story_img1:document.getElementById('ga-simg1').value.trim()||null,
+    story_img2:document.getElementById('ga-simg2').value.trim()||null
   };
   if(!row.name){ showMsg('game-msg','Name is required.',false); return; }
   let error;
