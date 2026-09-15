@@ -286,8 +286,10 @@ function openRegion(reg){
 function cardHtml(c){
   const meta=[c.platform,c.region,c.year].filter(Boolean).join(' · ');
   const cover=c.image_url?`<img src="${esc(c.image_url)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ph" style="display:none">${catIcon[c.category]||'📦'}</span>`:`<span class="ph">${catIcon[c.category]||'📦'}</span>`;
+  const editionBadge = (c.edition && c.edition.trim() && c.edition.toLowerCase()!=='standard')
+    ? `<span style="position:absolute;top:6px;right:6px;background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;font-size:.55rem;font-weight:800;padding:2px 7px;border-radius:5px;letter-spacing:.02em">${esc(c.edition)}</span>` : '';
   return `<div class="card" onclick="openLb(${ALL.indexOf(c)})">
-    <div class="card-cover">${cover}${c.category?`<span class="card-cat">${catIcon[c.category]||''} ${esc(c.category)}</span>`:''}</div>
+    <div class="card-cover">${cover}${editionBadge}${c.category?`<span class="card-cat">${catIcon[c.category]||''} ${esc(c.category)}</span>`:''}</div>
     <div class="card-body"><div class="card-name">${esc(c.name)}</div>${meta?`<div class="card-meta">${esc(meta)}</div>`:''}</div>
   </div>`;
 }
@@ -316,7 +318,7 @@ function openLb(i){
     box.innerHTML=`<span style="font-size:3rem;opacity:.3">${catIcon[c.category]||'📦'}</span>`;
   }
   document.getElementById('lb-name').textContent=c.name||'';
-  document.getElementById('lb-meta').textContent=[c.category,c.platform,c.region,c.year].filter(Boolean).join(' · ');
+  document.getElementById('lb-meta').textContent=[c.category,c.edition,c.platform,c.region,c.year].filter(Boolean).join(' · ');
   const r=RATING[(c.name||'').trim().toLowerCase()];
   const ratingHtml = (r&&r.median!=null)
     ? `<div style="margin:12px 0;padding:12px 14px;background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.3);border-radius:10px;text-align:center">
