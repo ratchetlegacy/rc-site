@@ -170,7 +170,15 @@ async function loadRating(){
   try{
     const {data}=await sb.from('market_rating').select('*');
     RATING={};
-    (data||[]).forEach(r=>{ if(r.name_key) RATING[r.name_key]={median:r.median_price,count:r.sample_count}; });
+    (data||[]).forEach(r=>{
+      if(r.catalog_id==null) return;
+      const k=String(r.catalog_id);
+      if(!RATING[k]) RATING[k]={};
+      RATING[k][r.cond]={
+        median: r.median_price!=null?parseFloat(r.median_price):null,
+        count:  r.user_count||0
+      };
+    });
   }catch(e){ RATING={}; }
 }
 let activeCat='';
@@ -288,9 +296,13 @@ function cardHtml(c){
   const cover=c.image_url?`<img src="${esc(c.image_url)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ph" style="display:none">${catIcon[c.category]||'📦'}</span>`:`<span class="ph">${catIcon[c.category]||'📦'}</span>`;
   const editionBadge = (c.edition && c.edition.trim() && c.edition.toLowerCase()!=='standard')
     ? `<span style="position:absolute;top:6px;right:6px;background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;font-size:.55rem;font-weight:800;padding:2px 7px;border-radius:5px;letter-spacing:.02em">${esc(c.edition)}</span>` : '';
+  const rc=RATING[String(c.id)]||{};
+  const rv=(rc.occasion&&rc.occasion.median!=null)?rc.occasion:((rc.neuf&&rc.neuf.median!=null)?rc.neuf:null);
+  const ratingChip = rv
+    ? `<div style="margin-top:6px;font-size:.68rem;font-weight:700;color:var(--green)">💰 ${parseFloat(rv.median).toFixed(2).replace(/\.00$/,'')} €</div>` : '';
   return `<div class="card" onclick="openLb(${ALL.indexOf(c)})">
     <div class="card-cover">${cover}${editionBadge}${c.category?`<span class="card-cat">${catIcon[c.category]||''} ${esc(c.category)}</span>`:''}</div>
-    <div class="card-body"><div class="card-name">${esc(c.name)}</div>${meta?`<div class="card-meta">${esc(meta)}</div>`:''}</div>
+    <div class="card-body"><div class="card-name">${esc(c.name)}</div>${meta?`<div class="card-meta">${esc(meta)}</div>`:''}${ratingChip}</div>
   </div>`;
 }
 
@@ -319,12 +331,18 @@ function openLb(i){
   }
   document.getElementById('lb-name').textContent=c.name||'';
   document.getElementById('lb-meta').textContent=[c.category,c.edition,c.platform,c.region,c.year].filter(Boolean).join(' · ');
-  const r=RATING[(c.name||'').trim().toLowerCase()];
-  const ratingHtml = (r&&r.median!=null)
+  const rr=RATING[String(c.id)]||{};
+  const rLine=(lbl,r)=> (r&&r.median!=null)
+    ? `<div style="flex:1">
+        <div style="font-size:.58rem;color:var(--text-dim);letter-spacing:.08em">${lbl}</div>
+        <div style="font-family:Orbitron,sans-serif;font-weight:700;font-size:1.15rem;color:var(--green)">${parseFloat(r.median).toFixed(2).replace(/\.00$/,'')} €</div>
+        <div style="font-size:.56rem;color:var(--text-dim)">${r.count?`based on ${r.count} collector${r.count>1?'s':''}`:'estimate only'}</div>
+      </div>` : '';
+  const rNew=rLine('NEW / SEALED',rr.neuf), rUsed=rLine('PRE-OWNED',rr.occasion);
+  const ratingHtml = (rNew||rUsed)
     ? `<div style="margin:12px 0;padding:12px 14px;background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.3);border-radius:10px;text-align:center">
-        <div style="font-size:.66rem;color:var(--text-dim);letter-spacing:.04em">💰 COMMUNITY VALUE (median)</div>
-        <div style="font-family:Orbitron,sans-serif;font-weight:700;font-size:1.3rem;color:var(--green)">${parseFloat(r.median).toFixed(2).replace(/\.00$/,'')} €</div>
-        <div style="font-size:.62rem;color:var(--text-dim)">based on ${r.count} collector${r.count>1?'s':''}</div>
+        <div style="font-size:.6rem;color:var(--text-dim);letter-spacing:.1em;margin-bottom:6px">💰 MARKET RATING (median)</div>
+        <div style="display:flex;gap:10px">${rNew}${rUsed}</div>
       </div>` : '';
   const dbox=document.getElementById('lb-desc');
   dbox.innerHTML = ratingHtml + (c.description?esc(c.description):'');
