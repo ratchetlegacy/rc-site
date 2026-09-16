@@ -454,6 +454,18 @@ body.menu-only .card{display:none}
       <div id="obj-crumb" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px"></div>
       <div id="objs-list" style="max-height:560px;overflow-y:auto"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
       <div style="font-size:.72rem;color:var(--text-dim);margin-top:8px">💡 Category → platform → region. Search goes through the whole catalog. Use ▲▼ on a card to reorder within its category.</div>
+      <hr style="border:none;border-top:1px solid var(--line);margin:18px 0"/>
+      <h2 style="font-size:1rem">🧹 Cleanup</h2>
+      <div class="msg" id="clean-msg"></div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:10px">Merge values that differ only by spelling (Comics / comics), or objects entered twice.</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+        <button type="button" class="btn btn-ghost" style="padding:6px 12px;font-size:.75rem" onclick="cleanScan('platform')">Platforms</button>
+        <button type="button" class="btn btn-ghost" style="padding:6px 12px;font-size:.75rem" onclick="cleanScan('edition')">Editions</button>
+        <button type="button" class="btn btn-ghost" style="padding:6px 12px;font-size:.75rem" onclick="cleanScan('category')">Categories</button>
+        <button type="button" class="btn btn-ghost" style="padding:6px 12px;font-size:.75rem" onclick="cleanScan('region')">Regions</button>
+        <button type="button" class="btn btn-ghost" style="padding:6px 12px;font-size:.75rem" onclick="cleanDupes()">⧉ Duplicate objects</button>
+      </div>
+      <div id="clean-out" style="max-height:380px;overflow-y:auto"></div>
     </div>
 
     <!-- OBJECT FORM MODAL -->
@@ -1397,6 +1409,102 @@ function renderObjs(){
       </div>
     </div>`;
   };
+// ── Nettoyage : fusion de valeurs et de doublons ──
+let CLEAN_GROUPS={};
+function cleanKey(v){ return (v==null?'':String(v)).trim().toLowerCase(); }
+
+// 1) valeurs qui ne different que par l'orthographe (Comics / comics)
+let CLEAN_LIST=[];
+function cleanScan(col){
+  const out=document.getElementById('clean-out');
+  const groups={};
+  ALL_OBJS.forEach(o=>{
+    const raw=o[col]; if(raw==null||String(raw).trim()==='') return;
+    const k=cleanKey(raw);
+    if(!groups[k]) groups[k]={variants:{}, ids:[]};
+    groups[k].variants[raw]=(groups[k].variants[raw]||0)+1;
+    groups[k].ids.push(o.id);
+  });
+  CLEAN_GROUPS={col:col};
+  CLEAN_LIST=Object.keys(groups)
+    .filter(k=>Object.keys(groups[k].variants).length>1)
+    .sort()
+    .map(k=>groups[k]);
+  if(!CLEAN_LIST.length){
+    out.innerHTML='<div style="color:var(--green);font-size:.82rem">\u2713 Nothing to merge in "'+esc(col)+'".</div>';
+    return;
+  }
+  out.innerHTML=CLEAN_LIST.map((g,i)=>{
+    const vs=g.variants;
+    const best=Object.keys(vs).sort((a,b)=>vs[b]-vs[a])[0];
+    const opts=Object.keys(vs).map(v=>'<option value="'+esc(v)+'"'+(v===best?' selected':'')+'>'+esc(v)+' ('+vs[v]+')</option>').join('');
+    return '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px">'
+      + '<div style="font-size:.8rem;margin-bottom:6px">'+Object.keys(vs).map(v=>'<code>'+esc(v)+'</code>').join(' + ')+'</div>'
+      + '<div style="display:flex;gap:8px;align-items:center">'
+      +   '<select id="cl-'+i+'" style="flex:1;margin:0">'+opts+'</select>'
+      +   '<button type="button" class="btn btn-primary" style="padding:7px 14px;font-size:.75rem" onclick="cleanMerge('+i+')">Merge</button>'
+      + '</div></div>';
+  }).join('');
+}
+async function cleanMerge(i){
+  const col=CLEAN_GROUPS.col, g=CLEAN_LIST[i];
+  if(!g) return;
+  const keep=document.getElementById('cl-'+i).value;
+  if(!confirm('Set "'+keep+'" on '+g.ids.length+' object(s)?')) return;
+  const patch={}; patch[col]=keep;
+  const {error}=await sb.from('catalog').update(patch).in('id', g.ids);
+  if(error){ showMsg('clean-msg',error.message,false); return; }
+  showMsg('clean-msg',g.ids.length+' object(s) updated \u2713',true);
+  await loadObjs();
+  cleanScan(col);
+}
+
+// 2) objets saisis deux fois (meme nom + plateforme + edition + region)
+let CLEAN_DUPES=[];
+function cleanDupes(){
+  const out=document.getElementById('clean-out');
+  const map={};
+  ALL_OBJS.forEach(o=>{
+    const k=[cleanKey(o.name),cleanKey(o.platform),cleanKey(o.edition),cleanKey(o.region)].join('|');
+    (map[k]=map[k]||[]).push(o);
+  });
+  CLEAN_DUPES=Object.keys(map).filter(k=>map[k].length>1).map(k=>map[k]);
+  if(!CLEAN_DUPES.length){
+    out.innerHTML='<div style="color:var(--green);font-size:.82rem">✓ No duplicate object.</div>';
+    return;
+  }
+  out.innerHTML='<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:8px">'+CLEAN_DUPES.length+' duplicate group(s). The kept object keeps its photo and its rating; collectors\' items are moved onto it.</div>'
+    + CLEAN_DUPES.map((grp,gi)=>{
+      const opts=grp.map((o,i)=>'<option value="'+i+'">'+esc([o.name,o.edition,o.platform,o.region].filter(Boolean).join(' · '))+(o.image_url?' 🖼️':'')+'</option>').join('');
+      return '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px">'
+        + '<div style="font-size:.82rem;font-weight:700;margin-bottom:2px">'+esc(grp[0].name||'')+'</div>'
+        + '<div style="font-size:.72rem;color:var(--text-dim);margin-bottom:8px">'+grp.length+' identical entries · '+esc([grp[0].edition,grp[0].platform,grp[0].region].filter(Boolean).join(' · '))+'</div>'
+        + '<div style="display:flex;gap:8px;align-items:center">'
+        +   '<select id="dup-'+gi+'" style="flex:1;margin:0">'+opts+'</select>'
+        +   '<button type="button" class="btn btn-danger" style="padding:7px 14px;font-size:.75rem" onclick="dupMerge('+gi+')">Merge</button>'
+        + '</div></div>';
+    }).join('');
+}
+async function dupMerge(gi){
+  const grp=CLEAN_DUPES[gi]; if(!grp) return;
+  const keepIdx=parseInt(document.getElementById('dup-'+gi).value,10)||0;
+  const keep=grp[keepIdx];
+  const drops=grp.filter((o,i)=>i!==keepIdx);
+  if(!confirm('Delete '+drops.length+' duplicate(s) and keep "'+(keep.name||'')+'"?')) return;
+  const {data,error}=await sb.rpc('merge_catalog_entries',{
+    keep_id:String(keep.id),
+    drop_ids:drops.map(o=>String(o.id))
+  });
+  if(error){
+    showMsg('clean-msg', error.message.indexOf('merge_catalog_entries')>=0
+      ? 'Run merge_catalog.sql in Supabase first.' : error.message, false);
+    return;
+  }
+  showMsg('clean-msg',(data||drops.length)+' duplicate(s) removed ✓',true);
+  await loadObjs();
+  cleanDupes();
+}
+
 // Move an object up/down within its category (swaps sort_order)
 async function moveObj(id, dir){
   const obj=ALL_OBJS.find(o=>String(o.id)===String(id));
