@@ -275,6 +275,20 @@
         feedImg.src=S.about_insta_feed;
         feedLink.style.display='block';
       }
+      // Deux visuels supplementaires, geres depuis l'admin
+      [1,2].forEach(function(n){
+        const link=document.getElementById('about-extra-'+n);
+        const img=document.getElementById('about-extra-'+n+'-img');
+        const cap=document.getElementById('about-extra-'+n+'-cap');
+        const src=S['about_extra_'+n+'_img'];
+        if(!src || !link || !img) return;
+        img.src=src;
+        const href=S['about_extra_'+n+'_url'];
+        if(href){ link.href=href; } else { link.removeAttribute('href'); link.style.cursor='default'; }
+        const label=S['about_extra_'+n+'_cap'];
+        if(cap) cap.textContent=label||'';
+        link.style.display='block';
+      });
     }catch(e){ /* silent */ }
   }
   function setCardBg(card, url){
