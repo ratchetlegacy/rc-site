@@ -514,6 +514,16 @@ body.menu-only .card{display:none}
           <div style="flex:1"><input type="number" step="0.01" id="o-price-used" placeholder="Pre-owned"/></div>
         </div>
         <div style="font-size:.72rem;color:var(--text-dim);margin:-4px 0 10px">Your estimate is the rating as long as no collector has entered a purchase price. After that it counts as one vote in the median.</div>
+        <label>💶 Recorded sales</label>
+        <div style="font-size:.72rem;color:var(--text-dim);margin:-4px 0 8px">Real completed sales (eBay, Vinted, LBC). Each one counts as a vote in the rating and feeds the trend curve.</div>
+        <div id="o-sales" style="font-size:.78rem;color:var(--text-dim);margin-bottom:8px">Save the object first, then reopen it to add sales.</div>
+        <div id="o-sales-add" style="display:none;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+          <input type="date" id="sale-date" style="flex:1 1 140px;margin:0"/>
+          <input type="number" step="0.01" id="sale-price" placeholder="Price €" style="flex:1 1 90px;margin:0"/>
+          <select id="sale-cond" style="flex:1 1 120px;margin:0"><option value="occasion">Pre-owned</option><option value="neuf">New / sealed</option></select>
+          <input type="text" id="sale-source" placeholder="eBay" style="flex:1 1 100px;margin:0"/>
+          <button type="button" class="btn btn-ghost" style="flex:0 0 auto;padding:8px 14px;font-size:.75rem" onclick="addSale()">+ Add</button>
+        </div>
         <label>Description</label>
         <input type="text" id="o-desc" placeholder="Short description"/>
         <button class="btn btn-primary" onclick="saveObj()" style="width:100%;margin-top:6px">💾 Save object</button>
@@ -1415,6 +1425,57 @@ function renderObjs(){
       </div>
     </div>`;
   };
+// ── Ventes relevees (eBay & co) ──
+let CUR_SALES=[];
+async function loadSales(objId){
+  const box=document.getElementById('o-sales');
+  const add=document.getElementById('o-sales-add');
+  if(!objId){
+    box.textContent='Save the object first, then reopen it to add sales.';
+    add.style.display='none'; CUR_SALES=[]; return;
+  }
+  add.style.display='flex';
+  box.textContent='Loading…';
+  try{
+    const {data,error}=await sb.from('catalog_sales').select('*').eq('catalog_id',objId).order('sold_on',{ascending:false});
+    if(error) throw error;
+    CUR_SALES=data||[];
+    if(!CUR_SALES.length){ box.innerHTML='<span style="color:var(--text-dim)">No sale recorded yet.</span>'; return; }
+    box.innerHTML=CUR_SALES.map(v=>
+      '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line)">'
+      + '<span style="font-weight:700;color:var(--green);min-width:64px">'+esc(String(v.price))+' \u20ac</span>'
+      + '<span style="color:var(--text-mid);font-size:.74rem">'+esc(v.sold_on)+'</span>'
+      + '<span style="font-size:.7rem;color:var(--text-dim)">'+esc(v.condition)+(v.source?' \u00b7 '+esc(v.source):'')+'</span>'
+      + '<button type="button" class="btn btn-danger" style="margin-left:auto;padding:3px 9px;font-size:.68rem" onclick="delSale(\''+esc(v.id)+'\')">Del</button>'
+      + '</div>').join('');
+  }catch(e){
+    box.innerHTML='<span style="color:var(--red)">'+esc(e.message)+'</span>';
+    if(String(e.message).indexOf('catalog_sales')>=0) box.innerHTML+='<div style="font-size:.72rem">Run cote_v2.sql in Supabase first.</div>';
+  }
+}
+async function addSale(){
+  const id=document.getElementById('o-id').value;
+  if(!id){ showMsg('obj-msg','Save the object first.',false); return; }
+  const price=parseFloat(document.getElementById('sale-price').value);
+  const sold=document.getElementById('sale-date').value;
+  if(!price||!sold){ showMsg('obj-msg','A date and a price are required.',false); return; }
+  const {error}=await sb.from('catalog_sales').insert([{
+    catalog_id:id, price:price, sold_on:sold,
+    condition:document.getElementById('sale-cond').value,
+    source:document.getElementById('sale-source').value.trim()||'eBay'
+  }]);
+  if(error){ showMsg('obj-msg',error.message,false); return; }
+  document.getElementById('sale-price').value='';
+  showMsg('obj-msg','Sale recorded \u2713',true);
+  loadSales(id);
+}
+async function delSale(id){
+  if(!confirm('Delete this sale?')) return;
+  const {error}=await sb.from('catalog_sales').delete().eq('id',id);
+  if(error){ showMsg('obj-msg',error.message,false); return; }
+  loadSales(document.getElementById('o-id').value);
+}
+
 // ── Upload photo vers Cloudinary (+ detourage local optionnel) ──
 const CLD_CLOUD='dmfq8hkvu', CLD_UPLOAD_PRESET='rc-jaquettes';
 let _bgRemovalLib=null;
@@ -1615,6 +1676,7 @@ function dupObjById(id){
   if(!o){ showToast2('Object not found'); return; }
   editObj(o);
   document.getElementById('o-id').value='';
+  loadSales(null);
   document.getElementById('obj-modal-title').textContent='\u29c9 Duplicate object';
   const m=document.getElementById('obj-msg');
   if(m){ m.textContent='Copy of "'+(o.name||'')+'" \u2014 change what differs (edition, region, platform...) then save. The original is untouched.'; m.className='msg ok'; m.style.display='block'; }
@@ -1631,6 +1693,7 @@ function editObj(o){
   document.getElementById('o-region').value=o.region||'';
   document.getElementById('o-price-new').value=(o.price_new!=null?o.price_new:'');
   document.getElementById('o-price-used').value=(o.price_used!=null?o.price_used:'');
+  loadSales(o.id);
   document.getElementById('o-imageback').value=o.image_back||'';
   document.getElementById('o-desc').value=o.description||'';
   document.getElementById('obj-modal-title').textContent='✏️ Edit object';
@@ -1640,6 +1703,7 @@ function editObj(o){
 }
 function clearObjForm(){
   ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition','o-region','o-price-new','o-price-used'].forEach(id=>document.getElementById(id).value='');
+  loadSales(null);
   const m=document.getElementById('obj-msg'); if(m) m.style.display='none';
 }
 async function saveObj(){
