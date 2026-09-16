@@ -254,6 +254,15 @@ body.menu-only .card{display:none}
       <input type="text" id="hi-about" placeholder="https://..."/>
       <label>About — Instagram feed capture</label>
       <input type="text" id="hi-instafeed" placeholder="https://... (screenshot of your Insta feed)"/>
+      <div style="font-size:.75rem;color:var(--text-dim);margin:12px 0 6px">Two extra visuals shown next to the Instagram capture. Leave the image empty to hide a slot.</div>
+      <label>About — extra visual 1</label>
+      <input type="text" id="hi-x1-img" placeholder="Image URL"/>
+      <input type="text" id="hi-x1-url" placeholder="Link when clicked (optional)"/>
+      <input type="text" id="hi-x1-cap" placeholder="Caption (optional)"/>
+      <label>About — extra visual 2</label>
+      <input type="text" id="hi-x2-img" placeholder="Image URL"/>
+      <input type="text" id="hi-x2-url" placeholder="Link when clicked (optional)"/>
+      <input type="text" id="hi-x2-cap" placeholder="Caption (optional)"/>
       <button class="btn btn-primary" style="width:100%" onclick="saveHomeImages()">💾 Save homepage images</button>
     </div>
 
@@ -1140,6 +1149,11 @@ async function loadHomeImages(){
     document.getElementById('hi-lore').value=S.home_img_lore||'';
     document.getElementById('hi-about').value=S.home_img_about||'';
     document.getElementById('hi-instafeed').value=S.about_insta_feed||'';
+    [1,2].forEach(function(n){
+      document.getElementById('hi-x'+n+'-img').value=S['about_extra_'+n+'_img']||'';
+      document.getElementById('hi-x'+n+'-url').value=S['about_extra_'+n+'_url']||'';
+      document.getElementById('hi-x'+n+'-cap').value=S['about_extra_'+n+'_cap']||'';
+    });
   }catch(e){}
 }
 async function saveHomeImages(){
@@ -1148,7 +1162,13 @@ async function saveHomeImages(){
     {key:'home_img_characters',value:document.getElementById('hi-characters').value.trim()},
     {key:'home_img_lore',value:document.getElementById('hi-lore').value.trim()},
     {key:'home_img_about',value:document.getElementById('hi-about').value.trim()},
-    {key:'about_insta_feed',value:document.getElementById('hi-instafeed').value.trim()}
+    {key:'about_insta_feed',value:document.getElementById('hi-instafeed').value.trim()},
+    {key:'about_extra_1_img',value:document.getElementById('hi-x1-img').value.trim()},
+    {key:'about_extra_1_url',value:document.getElementById('hi-x1-url').value.trim()},
+    {key:'about_extra_1_cap',value:document.getElementById('hi-x1-cap').value.trim()},
+    {key:'about_extra_2_img',value:document.getElementById('hi-x2-img').value.trim()},
+    {key:'about_extra_2_url',value:document.getElementById('hi-x2-url').value.trim()},
+    {key:'about_extra_2_cap',value:document.getElementById('hi-x2-cap').value.trim()}
   ];
   const {error}=await sb.from('site_settings').upsert(rows);
   if(error){ showMsg('home-msg',error.message,false); return; }
