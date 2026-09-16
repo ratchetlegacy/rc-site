@@ -522,6 +522,10 @@ body.menu-only .card{display:none}
           <input type="number" step="0.01" id="sale-price" placeholder="Price €" style="flex:1 1 90px;margin:0"/>
           <select id="sale-cond" style="flex:1 1 120px;margin:0"><option value="occasion">Pre-owned</option><option value="neuf">New / sealed</option></select>
           <input type="text" id="sale-source" placeholder="eBay" style="flex:1 1 100px;margin:0"/>
+          <input type="text" id="sale-note" placeholder="Condition (complete, no manual, damaged box, bundle of 3...)" style="flex:1 1 100%;margin:0"/>
+          <label style="flex:1 1 100%;display:flex;align-items:center;gap:8px;font-size:.74rem;color:var(--text-mid);cursor:pointer;margin:0">
+            <input type="checkbox" id="sale-excl" style="width:auto;margin:0"/> Keep out of the rating (bundle, broken copy, friend price…)
+          </label>
           <button type="button" class="btn btn-ghost" style="flex:0 0 auto;padding:8px 14px;font-size:.75rem" onclick="addSale()">+ Add</button>
         </div>
         <label>Description</label>
@@ -1442,11 +1446,13 @@ async function loadSales(objId){
     CUR_SALES=data||[];
     if(!CUR_SALES.length){ box.innerHTML='<span style="color:var(--text-dim)">No sale recorded yet.</span>'; return; }
     box.innerHTML=CUR_SALES.map(v=>
-      '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line)">'
-      + '<span style="font-weight:700;color:var(--green);min-width:64px">'+esc(String(v.price))+' \u20ac</span>'
+      '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);'+(v.excluded?'opacity:.5':'')+'">'
+      + '<span style="font-weight:700;color:'+(v.excluded?'var(--text-dim)':'var(--green)')+';min-width:64px'+(v.excluded?';text-decoration:line-through':'')+'">'+esc(String(v.price))+' \u20ac</span>'
       + '<span style="color:var(--text-mid);font-size:.74rem">'+esc(v.sold_on)+'</span>'
-      + '<span style="font-size:.7rem;color:var(--text-dim)">'+esc(v.condition)+(v.source?' \u00b7 '+esc(v.source):'')+'</span>'
-      + '<button type="button" class="btn btn-danger" style="margin-left:auto;padding:3px 9px;font-size:.68rem" onclick="delSale(\''+esc(v.id)+'\')">Del</button>'
+      + '<span style="font-size:.7rem;color:var(--text-dim);flex:1">'+esc(v.condition)+(v.source?' \u00b7 '+esc(v.source):'')
+      +   (v.condition_note?'<br/><span style="font-style:italic">'+esc(v.condition_note)+'</span>':'')+'</span>'
+      + '<button type="button" class="btn btn-ghost" style="padding:3px 9px;font-size:.68rem" title="'+(v.excluded?'Put back in the rating':'Keep out of the rating')+'" onclick="toggleSale(\''+esc(v.id)+'\','+(v.excluded?'false':'true')+')">'+(v.excluded?'\u21ba':'\u2298')+'</button>'
+      + '<button type="button" class="btn btn-danger" style="padding:3px 9px;font-size:.68rem" onclick="delSale(\''+esc(v.id)+'\')">Del</button>'
       + '</div>').join('');
   }catch(e){
     box.innerHTML='<span style="color:var(--red)">'+esc(e.message)+'</span>';
@@ -1462,12 +1468,21 @@ async function addSale(){
   const {error}=await sb.from('catalog_sales').insert([{
     catalog_id:id, price:price, sold_on:sold,
     condition:document.getElementById('sale-cond').value,
-    source:document.getElementById('sale-source').value.trim()||'eBay'
+    source:document.getElementById('sale-source').value.trim()||'eBay',
+    condition_note:document.getElementById('sale-note').value.trim()||null,
+    excluded:document.getElementById('sale-excl').checked
   }]);
   if(error){ showMsg('obj-msg',error.message,false); return; }
   document.getElementById('sale-price').value='';
+  document.getElementById('sale-note').value='';
+  document.getElementById('sale-excl').checked=false;
   showMsg('obj-msg','Sale recorded \u2713',true);
   loadSales(id);
+}
+async function toggleSale(id, excl){
+  const {error}=await sb.from('catalog_sales').update({excluded:excl}).eq('id',id);
+  if(error){ showMsg('obj-msg',error.message,false); return; }
+  loadSales(document.getElementById('o-id').value);
 }
 async function delSale(id){
   if(!confirm('Delete this sale?')) return;
