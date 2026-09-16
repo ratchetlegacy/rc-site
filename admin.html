@@ -494,8 +494,14 @@ body.menu-only .card{display:none}
         </datalist>
         <label>Photo URL</label>
         <input type="text" id="o-image" placeholder="https://res.cloudinary.com/..."/>
+        <button type="button" class="btn btn-ghost" style="width:100%;padding:8px;font-size:.78rem;margin-bottom:6px" onclick="uploadObjPhoto('o-image')">📷 Upload a photo</button>
         <label>Back photo URL (verso)</label>
         <input type="text" id="o-imageback" placeholder="https://... (shown when you flip)"/>
+        <button type="button" class="btn btn-ghost" style="width:100%;padding:8px;font-size:.78rem;margin-bottom:6px" onclick="uploadObjPhoto('o-imageback')">📷 Upload the back photo</button>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer">
+          <input type="checkbox" id="o-cutout" style="width:auto;margin:0"/> ✂️ Remove the background on upload
+        </label>
+        <div style="font-size:.72rem;color:var(--text-dim);margin:-4px 0 12px">Done in your browser, nothing is sent to a third party. First use downloads the model (a few tens of MB). Not recommended on box art scans.</div>
         <label>Region</label>
         <input type="text" id="o-region" placeholder="FR (PAL), USA (NTSC-U), JAP (NTSC-J)..." list="region-list"/>
         <datalist id="region-list">
@@ -1409,6 +1415,49 @@ function renderObjs(){
       </div>
     </div>`;
   };
+// ── Upload photo vers Cloudinary (+ detourage local optionnel) ──
+const CLD_CLOUD='dmfq8hkvu', CLD_UPLOAD_PRESET='rc-jaquettes';
+let _bgRemovalLib=null;
+async function loadBgRemoval(){
+  if(_bgRemovalLib) return _bgRemovalLib;
+  _bgRemovalLib = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm');
+  return _bgRemovalLib;
+}
+async function cutoutFile(file){
+  try{
+    showMsg('obj-msg','\u2702\ufe0f Removing the background\u2026 first time can take a while.',true);
+    const lib=await loadBgRemoval();
+    const fn=lib.removeBackground || (lib.default && lib.default.removeBackground) || lib.default;
+    const blob=await fn(file,{output:{format:'image/png'}});
+    if(!blob||!blob.size) throw new Error('empty result');
+    return new File([blob], (file.name||'photo').replace(/\.[^.]+$/,'')+'-cutout.png', {type:'image/png'});
+  }catch(e){
+    showMsg('obj-msg','Background removal failed, uploading the original photo.',false);
+    return file;
+  }
+}
+function uploadObjPhoto(targetId){
+  const input=document.createElement('input');
+  input.type='file'; input.accept='image/*'; input.setAttribute('capture','environment');
+  input.onchange=async()=>{
+    let file=input.files&&input.files[0]; if(!file) return;
+    const cut=document.getElementById('o-cutout');
+    if(cut&&cut.checked) file=await cutoutFile(file);
+    showMsg('obj-msg','Uploading\u2026 \ud83d\udce4',true);
+    try{
+      const form=new FormData();
+      form.append('file',file);
+      form.append('upload_preset',CLD_UPLOAD_PRESET);
+      const res=await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/image/upload',{method:'POST',body:form});
+      const data=await res.json();
+      if(!data.secure_url){ showMsg('obj-msg','Upload failed'+(data.error?': '+data.error.message:''),false); return; }
+      document.getElementById(targetId).value=data.secure_url;
+      showMsg('obj-msg','Photo uploaded \u2713',true);
+    }catch(e){ showMsg('obj-msg',e.message,false); }
+  };
+  input.click();
+}
+
 // ── Nettoyage : fusion de valeurs et de doublons ──
 let CLEAN_GROUPS={};
 function cleanKey(v){ return (v==null?'':String(v)).trim().toLowerCase(); }
