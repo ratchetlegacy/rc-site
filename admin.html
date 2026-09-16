@@ -1392,6 +1392,7 @@ function renderObjs(){
       </div>
       <div class="ac-actions">
         <button type="button" class="btn btn-ghost" style="flex:1;padding:6px;font-size:.72rem" onclick="editObjById('${esc(o.id)}')">Edit</button>
+        <button type="button" class="btn btn-ghost" style="padding:6px 10px;font-size:.72rem" title="Duplicate" onclick="dupObjById('${esc(o.id)}')">⧉</button>
         <button type="button" class="btn btn-danger" style="padding:6px 10px" onclick="delObj('${esc(o.id)}')">Del</button>
       </div>
     </div>`;
@@ -1450,6 +1451,18 @@ function editObjById(id){
   const o=ALL_OBJS.find(x=>String(x.id)===String(id));
   if(o) editObj(o);
 }
+// Duplicate : ouvre la fiche pre-remplie mais SANS id,
+// donc "Save object" cree un nouvel objet au lieu d'ecraser l'original.
+function dupObjById(id){
+  const o=ALL_OBJS.find(x=>String(x.id)===String(id));
+  if(!o){ showToast2('Object not found'); return; }
+  editObj(o);
+  document.getElementById('o-id').value='';
+  document.getElementById('obj-modal-title').textContent='\u29c9 Duplicate object';
+  const m=document.getElementById('obj-msg');
+  if(m){ m.textContent='Copy of "'+(o.name||'')+'" \u2014 change what differs (edition, region, platform...) then save. The original is untouched.'; m.className='msg ok'; m.style.display='block'; }
+  const n=document.getElementById('o-name'); n.focus(); n.select();
+}
 function editObj(o){
   document.getElementById('o-id').value=o.id;
   document.getElementById('o-name').value=o.name||'';
@@ -1464,6 +1477,7 @@ function editObj(o){
   document.getElementById('o-imageback').value=o.image_back||'';
   document.getElementById('o-desc').value=o.description||'';
   document.getElementById('obj-modal-title').textContent='✏️ Edit object';
+  const _m=document.getElementById('obj-msg'); if(_m) _m.style.display='none';
   document.getElementById('obj-modal').style.display='flex';
   document.body.style.overflow='hidden';
 }
