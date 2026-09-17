@@ -289,6 +289,9 @@ body.menu-only .card{display:none}
       <h2>🗃️ Vault category images</h2>
       <div class="msg" id="vaultimg-msg"></div>
       <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Cover image of each category card in the Megacorp Vault. Leave empty and the Vault falls back to a photo picked from the category.</div>
+      <label>Placeholder — objects with no photo yet</label>
+      <input type="text" id="vi-await" placeholder="https://... (shown on every object without a picture)"/>
+      <div style="font-size:.72rem;color:var(--text-dim);margin:-4px 0 14px">Leave empty to keep the category icon.</div>
       <div id="vaultimg-fields"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
       <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="saveVaultImages()">💾 Save Vault images</button>
     </div>
@@ -463,6 +466,12 @@ body.menu-only .card{display:none}
       <div id="obj-crumb" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px"></div>
       <div id="objs-list" style="max-height:560px;overflow-y:auto"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
       <div style="font-size:.72rem;color:var(--text-dim);margin-top:8px">💡 Category → platform → region. Search goes through the whole catalog. Use ▲▼ on a card to reorder within its category.</div>
+      <hr style="border:none;border-top:1px solid var(--line);margin:18px 0"/>
+      <h2 style="font-size:1rem">⏳ Sales reported by collectors</h2>
+      <div class="msg" id="pend-msg"></div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:10px">Prices shared when someone removes a sold item from their collection. They count for nothing until you approve them.</div>
+      <div id="pending-sales"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+
       <hr style="border:none;border-top:1px solid var(--line);margin:18px 0"/>
       <h2 style="font-size:1rem">🧹 Cleanup</h2>
       <div class="msg" id="clean-msg"></div>
@@ -732,6 +741,7 @@ async function loadVaultImages(){
       sb.from('site_settings').select('key,value')
     ]);
     const S={}; (set||[]).forEach(r=>{ S[r.key]=r.value; });
+    document.getElementById('vi-await').value=S.awaiting_img||'';
     const counts={}, fallback={};
     (cat||[]).forEach(o=>{ const k=o.category||'Misc'; counts[k]=(counts[k]||0)+1; if(!fallback[k]&&o.image_url) fallback[k]=o.image_url; });
     VAULT_CATS=Object.keys(counts).sort();
@@ -756,7 +766,7 @@ async function loadVaultImages(){
 }
 async function saveVaultImages(){
   const rows=VAULT_CATS.map((c,i)=>({key:'vault_img_'+c, value:(document.getElementById('vi-'+i).value||'').trim()}));
-  if(!rows.length) return;
+  rows.push({key:'awaiting_img', value:(document.getElementById('vi-await').value||'').trim()});
   const {error}=await sb.from('site_settings').upsert(rows);
   if(error){ showMsg('vaultimg-msg',error.message,false); return; }
   showMsg('vaultimg-msg','Vault images saved! ✓',true);
@@ -1343,6 +1353,7 @@ async function loadObjs(){
     if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">Load error: '+esc(error.message)+'</div>'; return; }
     ALL_OBJS=data||[];
     renderObjs();
+    loadPendingSales();
   }catch(e){
     box.innerHTML='<div style="color:var(--red);font-size:.85rem">JS error: '+esc(e.message)+'</div>';
   }
@@ -1449,6 +1460,38 @@ function renderObjs(){
       </div>
     </div>`;
   };
+// ── Ventes remontees par les collectionneurs (a valider) ──
+async function loadPendingSales(){
+  const box=document.getElementById('pending-sales'); if(!box) return;
+  try{
+    const {data,error}=await sb.from('catalog_sales').select('*').eq('status','pending').order('created_at',{ascending:false});
+    if(error) throw error;
+    if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">Nothing waiting. \u2713</div>'; return; }
+    const ids=[...new Set(data.map(v=>String(v.catalog_id)))];
+    const names={};
+    ALL_OBJS.forEach(o=>{ if(ids.indexOf(String(o.id))>=0) names[String(o.id)]=[o.name,o.edition,o.platform,o.region].filter(Boolean).join(' \u00b7 '); });
+    box.innerHTML=data.map(v=>
+      '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px">'
+      + '<div style="font-size:.82rem;font-weight:700;margin-bottom:2px">'+esc(names[String(v.catalog_id)]||'(object not in the catalog)')+'</div>'
+      + '<div style="font-size:.78rem;color:var(--text-mid);margin-bottom:8px">'
+      +   '<b style="color:var(--green)">'+esc(String(v.price))+' \u20ac</b> \u00b7 '+esc(v.sold_on)+' \u00b7 '+esc(v.condition)
+      + '</div>'
+      + '<div style="display:flex;gap:6px">'
+      +   '<button type="button" class="btn btn-primary" style="flex:1;padding:6px;font-size:.74rem" onclick="reviewSale(\''+esc(v.id)+'\',\'approved\')">\u2713 Approve</button>'
+      +   '<button type="button" class="btn btn-ghost" style="flex:1;padding:6px;font-size:.74rem" onclick="reviewSale(\''+esc(v.id)+'\',\'rejected\')">\u2715 Reject</button>'
+      + '</div></div>').join('');
+  }catch(e){
+    box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(e.message)+'</div>'
+      + (String(e.message).indexOf('status')>=0?'<div style="font-size:.72rem;color:var(--text-dim)">Run cote_v6.sql in Supabase first.</div>':'');
+  }
+}
+async function reviewSale(id, status){
+  const {error}=await sb.from('catalog_sales').update({status:status}).eq('id',id);
+  if(error){ showMsg('pend-msg',error.message,false); return; }
+  showMsg('pend-msg', status==='approved'?'Sale approved \u2713':'Sale rejected', true);
+  loadPendingSales();
+}
+
 // ── Ventes relevees (eBay & co) ──
 let CUR_SALES=[];
 async function loadSales(objId){
@@ -1469,6 +1512,8 @@ async function loadSales(objId){
       '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);'+(v.excluded?'opacity:.5':'')+'">'
       + '<span style="font-weight:700;color:'+(v.excluded?'var(--text-dim)':'var(--green)')+';min-width:64px'+(v.excluded?';text-decoration:line-through':'')+'">'+esc(String(v.price))+' \u20ac</span>'
       + '<span style="color:var(--text-mid);font-size:.74rem">'+esc(v.sold_on)+'</span>'
+      + (v.status==='pending'?'<span style="font-size:.64rem;color:var(--gold)">\u23f3 pending</span>':'')
+      + (v.status==='rejected'?'<span style="font-size:.64rem;color:var(--red)">\u2715 rejected</span>':'')
       + '<span style="font-size:.7rem;color:var(--text-dim);flex:1">'+esc(v.condition)+(v.source?' \u00b7 '+esc(v.source):'')
       +   (v.condition_note?'<br/><span style="font-style:italic">'+esc(v.condition_note)+'</span>':'')+'</span>'
       + '<button type="button" class="btn btn-ghost" style="padding:3px 9px;font-size:.68rem" title="'+(v.excluded?'Put back in the rating':'Keep out of the rating')+'" onclick="toggleSale(\''+esc(v.id)+'\','+(v.excluded?'false':'true')+')">'+(v.excluded?'\u21ba':'\u2298')+'</button>'
