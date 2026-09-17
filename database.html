@@ -72,7 +72,11 @@ a{color:inherit;text-decoration:none}
 .card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:.18s;cursor:pointer}
 .card:hover{transform:translateY(-4px);border-color:var(--purple);box-shadow:0 12px 28px -10px rgba(123,79,212,.5)}
 .card-cover{width:100%;aspect-ratio:3/4;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
-.card-cover img{width:100%;height:100%;object-fit:contain}
+.card-cover img{width:100%;height:100%;object-fit:contain;transition:transform .35s ease}
+.card:hover .card-cover img{transform:scale(1.12)}
+.card-cover .await{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--bg3);color:var(--text-dim)}
+.card-cover .await img{width:100%;height:100%;object-fit:cover;opacity:.55}
+.card-cover .await .await-lbl{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:.6rem;letter-spacing:.06em;color:var(--text-dim)}
 .card-cover .ph{font-size:2.2rem;opacity:.25}
 .card-cat{position:absolute;bottom:6px;left:6px;font-size:.55rem;font-weight:700;background:rgba(0,0,0,.7);color:#fff;padding:2px 7px;border-radius:4px}
 .card-body{padding:10px 11px}
@@ -90,7 +94,8 @@ a{color:inherit;text-decoration:none}
 .lb-inner::-webkit-scrollbar{width:8px}
 .lb-inner::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:8px}
 .lb-img{width:100%;max-height:52vh;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:18px 18px 0 0}
-.lb-img img{width:100%;height:auto;max-height:52vh;object-fit:contain;display:block}
+.lb-img img{width:100%;height:auto;max-height:52vh;object-fit:contain;display:block;transition:transform .35s ease;cursor:zoom-in}
+.lb-img:hover img{transform:scale(1.6)}
 .lb-info{padding:20px}
 .lb-info h3{font-family:'Orbitron',sans-serif;font-size:1.1rem;margin-bottom:8px}
 .lb-info .m{color:var(--purple-light);font-size:.8rem;font-weight:600;margin-bottom:4px}
@@ -169,11 +174,23 @@ const CAT_ORDER=['Game','Console/Pack','Figure','Plush','Goodie','Clothing','Pri
 let ALL=[];
 let RATING={};
 let VAULTIMG={};   // vault_img_<category> choisi dans l'admin
+let AWAIT_IMG='';  // visuel affiche quand un objet n'a pas encore de photo
+// Bloc "photo a venir" : l'image choisie en admin, sinon l'icone de categorie.
+function awaitingHtml(c){
+  const icon=(typeof catIcon!=='undefined' && catIcon[c.category])||'📦';
+  if(AWAIT_IMG){
+    return `<span class="await"><img src="${esc(AWAIT_IMG)}" alt="" loading="lazy"/><span class="await-lbl">Photo coming soon</span></span>`;
+  }
+  return `<span style="font-size:2.2rem;opacity:.25">${icon}</span><span class="await-lbl" style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:.6rem;color:var(--text-dim)">Photo coming soon</span>`;
+}
 async function loadVaultImages(){
   try{
     const {data}=await sb.from('site_settings').select('key,value');
     VAULTIMG={};
-    (data||[]).forEach(r=>{ if(r.key&&r.key.indexOf('vault_img_')===0 && r.value) VAULTIMG[r.key.slice(10)]=r.value; });
+    (data||[]).forEach(r=>{
+      if(r.key&&r.key.indexOf('vault_img_')===0 && r.value) VAULTIMG[r.key.slice(10)]=r.value;
+      if(r.key==='awaiting_img') AWAIT_IMG=r.value||'';
+    });
   }catch(e){ VAULTIMG={}; }
 }
 async function loadRating(){
@@ -304,7 +321,9 @@ function openRegion(reg){
 
 function cardHtml(c){
   const meta=[c.platform,c.region,c.year].filter(Boolean).join(' · ');
-  const cover=c.image_url?`<img src="${esc(c.image_url)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ph" style="display:none">${catIcon[c.category]||'📦'}</span>`:`<span class="ph">${catIcon[c.category]||'📦'}</span>`;
+  const cover=c.image_url
+    ? `<img src="${esc(c.image_url)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ph" style="display:none">${awaitingHtml(c)}</span>`
+    : `<span class="ph">${awaitingHtml(c)}</span>`;
   const editionBadge = (c.edition && c.edition.trim() && c.edition.toLowerCase()!=='standard')
     ? `<span style="position:absolute;top:6px;right:6px;background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;font-size:.55rem;font-weight:800;padding:2px 7px;border-radius:5px;letter-spacing:.02em">${esc(c.edition)}</span>` : '';
   const rc=RATING[String(c.id)]||{};
