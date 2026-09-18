@@ -303,25 +303,30 @@
 
 /* ── Bouton retour : revenir a la page precedente ──────────────────
    Les liens .back-home pointaient tous vers index.html. On rend la main
-   a l'historique quand on vient d'une autre page du site, et on garde
-   index.html comme repli (arrivee directe, lien externe, onglet neuf). */
+   a l'historique, avec deux filets : on n'intercepte que s'il y a bien
+   un historique, et si history.back() ne mene nulle part (page rouverte
+   dans un onglet neuf, referrer vide), on bascule sur l'accueil. */
 (function(){
   function wireBack(){
     document.querySelectorAll('.back-home').forEach(function(a){
       if(a.dataset.backWired) return;
       a.dataset.backWired='1';
-      var ref=document.referrer||'';
-      var sameSite=ref && ref.indexOf(location.origin)===0 && ref!==location.href;
-      if(sameSite){
-        a.textContent='\u2190 Back';
-        a.addEventListener('click',function(e){ e.preventDefault(); history.back(); });
-      }
+      var home=a.getAttribute('href')||'index.html';
+      if(history.length>1) a.textContent='\u2190 Back';
+      a.addEventListener('click',function(e){
+        if(history.length<=1) return;           // pas d'historique : le lien fait son travail
+        e.preventDefault();
+        var before=location.href;
+        history.back();
+        setTimeout(function(){                  // rien n'a bouge -> accueil
+          if(location.href===before) location.href=home;
+        },350);
+      });
     });
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wireBack);
   else wireBack();
 })();
-
 
 /* ── Signaler une erreur (pages redactionnelles) ───────────────────
    Wiki, Story, Guides et News tapent dans des tables differentes du
@@ -372,4 +377,28 @@
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addButton);
   else addButton();
+})();
+
+
+/* ── Lien "Open the tracker" ───────────────────────────────────────
+   Le site et l'application vivent dans le meme depot : la racine sert
+   l'accueil, l'application est app.html. Le bouton pointait sur la
+   racine, donc sur l'accueil lui-meme. On corrige toutes les pages ici
+   plutot que d'editer chaque fichier.
+   Si tu deplaces l'application, change TRACKER_URL ci-dessous. */
+(function(){
+  var TRACKER_URL='https://ratchetlegacy.github.io/rc-tracker/app.html';
+  function fixTracker(){
+    document.querySelectorAll('a').forEach(function(a){
+      var href=a.getAttribute('href')||'';
+      var txt=(a.textContent||'').toLowerCase();
+      var isRoot=/^https?:\/\/ratchetlegacy\.github\.io\/rc-tracker\/?$/.test(href);
+      if(isRoot && (a.classList.contains('nav-cta') || txt.indexOf('tracker')>=0)){
+        a.setAttribute('href',TRACKER_URL);
+        a.setAttribute('target','_blank');
+      }
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fixTracker);
+  else fixTracker();
 })();
