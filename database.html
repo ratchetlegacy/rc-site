@@ -260,6 +260,27 @@ async function load(){
 // ===== Cascade nav: Category > Platform > Region > Items =====
 let navCat='', navPlat='', navReg='';
 
+// La zone se lit dans la parenthese de la region : "NL (PAL)" -> "PAL".
+// Rien n'est modifie en base, c'est du regroupement d'affichage.
+function zoneOf(c){
+  const r=(c && c.region) ? String(c.region) : '';
+  const m=r.match(/\(([^)]+)\)/);
+  if(m) return m[1].trim().toUpperCase();
+  return r.trim() ? r.trim() : '—';
+}
+function langList(c){
+  return String((c&&c.languages)||'').split(/[,;/]/).map(x=>x.trim().toUpperCase()).filter(Boolean);
+}
+function langChips(c, max){
+  const L=langList(c); if(!L.length) return '';
+  const shown=L.slice(0,max||3);
+  const rest=L.length-shown.length;
+  return '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">'
+    + shown.map(l=>'<span style="font-size:.6rem;font-weight:700;background:rgba(123,79,212,.18);color:var(--purple-light);border-radius:5px;padding:1px 6px">'+esc(l)+'</span>').join('')
+    + (rest>0?'<span style="font-size:.6rem;color:var(--text-dim);padding:1px 4px">+'+rest+'</span>':'')
+    + '</div>';
+}
+
 function renderMenuCards(items, onClick){
   const grid=document.getElementById('grid');
   grid.className='cat-menu';
@@ -272,6 +293,7 @@ function renderMenuCards(items, onClick){
       <span class="cm-ic">${it.icon||'📦'}</span>
       <h3>${esc(it.label)}</h3>
       <div class="cm-count">${it.count} item${it.count>1?'s':''}</div>
+      ${it.sub?`<div style="font-size:.66rem;color:var(--text-dim);margin-top:2px">${esc(it.sub)}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -316,22 +338,26 @@ function openCategory(cat){
 function openPlatform(plat){
   navPlat=plat; navReg='';
   const inSel=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===plat);
-  const counts={};
-  inSel.forEach(c=>{ const k=c.region||'—'; counts[k]=(counts[k]||0)+1; });
-  const regs=Object.keys(counts).sort();
+  const counts={}, countries={};
+  inSel.forEach(c=>{
+    const k=zoneOf(c); counts[k]=(counts[k]||0)+1;
+    const r=(c.region||'').replace(/\s*\([^)]*\)/,'').trim();
+    if(r){ (countries[k]=countries[k]||{})[r]=true; }
+  });
+  const zones=Object.keys(counts).sort();
   crumb();
-  // If there's only one region, go straight to items
-  if(regs.length<=1){ openRegion(regs[0]||'—'); return; }
-  renderMenuCards(regs.map(r=>({
-    key:r, label:r==='—'?'(no version)':r, icon:'🌍', count:counts[r],
-    sampleImg:(inSel.find(o=>(o.region||'—')===r && o.image_url)||{}).image_url
+  if(zones.length<=1){ openRegion(zones[0]||'—'); return; }
+  renderMenuCards(zones.map(z=>({
+    key:z, label:z==='—'?'(no version)':z, icon:'🌍', count:counts[z],
+    sub:Object.keys(countries[z]||{}).sort().slice(0,4).join(' · '),
+    sampleImg:(inSel.find(o=>zoneOf(o)===z && o.image_url)||{}).image_url
   })), k=>`openRegion('${k.replace(/'/g,"\\'")}')`);
 }
 
 // LEVEL 3: the items
 function openRegion(reg){
   navReg=reg;
-  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && (c.region||'—')===reg);
+  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && zoneOf(c)===reg);
   crumb();
   document.querySelector('.controls').style.display='flex';
   const grid=document.getElementById('grid'); grid.className='grid';
@@ -353,7 +379,7 @@ function cardHtml(c){
     ? `<div style="margin-top:6px;font-size:.68rem;font-weight:700;color:var(--green)">💰 ${parseFloat(rv.median).toFixed(2).replace(/\.00$/,'')} €</div>` : '';
   return `<div class="card" onclick="openLb(${ALL.indexOf(c)})">
     <div class="card-cover">${cover}${editionBadge}${c.category?`<span class="card-cat">${catIcon[c.category]||''} ${esc(c.category)}</span>`:''}</div>
-    <div class="card-body"><div class="card-name">${esc(c.name)}</div>${meta?`<div class="card-meta">${esc(meta)}</div>`:''}${ratingChip}</div>
+    <div class="card-body"><div class="card-name">${esc(c.name)}</div>${meta?`<div class="card-meta">${esc(meta)}</div>`:''}${langChips(c,3)}${ratingChip}</div>
   </div>`;
 }
 
@@ -361,7 +387,7 @@ function cardHtml(c){
 function applyFilters(){
   if(!navReg){ return; }
   const q=(document.getElementById('search').value||'').toLowerCase().trim();
-  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && (c.region||'—')===navReg
+  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && zoneOf(c)===navReg
     && (!q || (c.name||'').toLowerCase().includes(q)));
   const grid=document.getElementById('grid');
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:40px">No item matches.</div>'; return; }
@@ -466,6 +492,10 @@ function openLb(i){
   }
   document.getElementById('lb-name').textContent=c.name||'';
   document.getElementById('lb-meta').textContent=[c.category,c.edition,c.platform,c.region,c.year].filter(Boolean).join(' · ');
+  const L=langList(c);
+  const extraRows =
+    (L.length?`<div style="margin-top:8px;font-size:.78rem"><span style="color:var(--text-dim)">Languages</span> ${L.map(l=>`<span style="display:inline-block;font-size:.68rem;font-weight:700;background:rgba(123,79,212,.18);color:var(--purple-light);border-radius:5px;padding:2px 7px;margin:0 4px 4px 0">${esc(l)}</span>`).join('')}</div>`:'')
+  + (c.reference?`<div style="margin-top:4px;font-size:.78rem"><span style="color:var(--text-dim)">Reference</span> <code style="font-size:.74rem">${esc(c.reference)}</code></div>`:'');
   const rr=RATING[String(c.id)]||{};
   const rLine=(lbl,r)=> (r&&r.median!=null)
     ? `<div style="flex:1">
@@ -480,7 +510,7 @@ function openLb(i){
         <div style="display:flex;gap:10px">${rNew}${rUsed}</div>
       </div>` : '';
   const dbox=document.getElementById('lb-desc');
-  dbox.innerHTML = ratingHtml + '<div id="lb-trend"></div>' + (c.description?esc(c.description):'');
+  dbox.innerHTML = extraRows + ratingHtml + '<div id="lb-trend"></div>' + (c.description?esc(c.description):'');
   loadTrendInto('lb-trend', c.id, sb);
   document.getElementById('lb').classList.add('open');
   document.body.style.overflow='hidden';
