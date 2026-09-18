@@ -534,6 +534,11 @@ body.menu-only .card{display:none}
           <option value="FR (PAL)"></option><option value="USA (NTSC-U)"></option><option value="JAP (NTSC-J)"></option>
           <option value="DE (PAL)"></option><option value="PT (PAL)"></option>
         </datalist>
+        <label>Languages on the box</label>
+        <div id="o-langs" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px"></div>
+        <div style="font-size:.72rem;color:var(--text-dim);margin-bottom:12px">Click to add or remove. Leave empty if you haven't checked the box.</div>
+        <label>Reference (printed on the box)</label>
+        <input type="text" id="o-reference" placeholder="CFI-1016A, SCPH-77004, PSP-2004..."/>
         <label>💰 Rating estimate (€)</label>
         <div style="display:flex;gap:10px">
           <div style="flex:1"><input type="number" step="0.01" id="o-price-new" placeholder="New / sealed"/></div>
@@ -1352,7 +1357,13 @@ let objNavCat='', objNavPlat='', objNavReg='';
 const OBJ_ICON={'Game':'🎮','Console/Pack':'📦','Figure':'🎯','Plush':'🧸','Goodie':'🎁','Clothing':'👕','Print':'🖼️','Book':'📖','Guide':'📗','Media':'🎬','Misc':'📌'};
 function objQ(s){ return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 function objPlatOf(o){ return (o.platform && o.platform!=='-') ? o.platform : '—'; }
-function objRegOf(o){ return o.region || '—'; }
+// Zone = ce qu'il y a entre parentheses dans la region ("NL (PAL)" -> "PAL").
+function objRegOf(o){
+  const r=String(o.region||'');
+  const m=r.match(/\(([^)]+)\)/);
+  if(m) return m[1].trim().toUpperCase();
+  return r.trim() || '—';
+}
 
 async function loadObjs(){
   const box=document.getElementById('objs-list');
@@ -1418,7 +1429,7 @@ function objLevelRegs(){
   inSel.forEach(o=>{ const k=objRegOf(o); counts[k]=(counts[k]||0)+1; if(!imgs[k]&&o.image_url) imgs[k]=o.image_url; });
   const keys=Object.keys(counts).sort();
   if(keys.length<=1){ objNavReg=keys[0]||'—'; objCrumb(); return objLevelItems(); }
-  const list=keys.map(k=>({key:k,label:k==='—'?'(no region)':k,icon:'🌍',count:counts[k],img:imgs[k]}));
+  const list=keys.map(k=>({key:k,label:k==='—'?'(no zone)':k,icon:'🌍',count:counts[k],img:imgs[k]}));
   document.getElementById('objs-list').innerHTML=objMenuCards(list, k=>"objOpenReg('"+objQ(k)+"')");
 }
 function objLevelItems(){
@@ -1470,6 +1481,28 @@ function renderObjs(){
       </div>
     </div>`;
   };
+// ── Langues sur la boite ──
+const LANG_CHOICES=['FR','EN','DE','ES','IT','NL','PT','JP','RU','SE','PL','AR'];
+let CUR_LANGS=[];
+function renderLangs(){
+  const box=document.getElementById('o-langs'); if(!box) return;
+  box.innerHTML=LANG_CHOICES.map(l=>{
+    const on=CUR_LANGS.indexOf(l)>=0;
+    return '<button type="button" onclick="toggleLang(\''+l+'\')" style="font-size:.76rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;border-radius:6px;padding:4px 10px;'
+      + (on?'background:rgba(123,79,212,.2);border:1px solid var(--purple);color:var(--purple-light)'
+          :'background:transparent;border:1px solid var(--line);color:var(--text-dim)')+'">'+l+'</button>';
+  }).join('');
+}
+function toggleLang(l){
+  const i=CUR_LANGS.indexOf(l);
+  if(i>=0) CUR_LANGS.splice(i,1); else CUR_LANGS.push(l);
+  renderLangs();
+}
+function setLangs(v){
+  CUR_LANGS=String(v||'').split(/[,;/]/).map(x=>x.trim().toUpperCase()).filter(Boolean);
+  renderLangs();
+}
+
 // ── Liste des jeux pour rattacher un objet du catalogue ──
 let GAME_OPTS=[];
 async function loadGameOptions(){
@@ -1854,6 +1887,8 @@ function editObj(o){
   document.getElementById('o-edition').value=o.edition||'';
   document.getElementById('o-region').value=o.region||'';
   const gs=document.getElementById('o-game'); if(gs) gs.value=o.game_id!=null?String(o.game_id):'';
+  document.getElementById('o-reference').value=o.reference||'';
+  setLangs(o.languages);
   document.getElementById('o-price-new').value=(o.price_new!=null?o.price_new:'');
   document.getElementById('o-price-used').value=(o.price_used!=null?o.price_used:'');
   loadSales(o.id);
@@ -1865,7 +1900,8 @@ function editObj(o){
   document.body.style.overflow='hidden';
 }
 function clearObjForm(){
-  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition','o-region','o-price-new','o-price-used','o-game'].forEach(id=>document.getElementById(id).value='');
+  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition','o-region','o-price-new','o-price-used','o-game','o-reference'].forEach(id=>document.getElementById(id).value='');
+  setLangs('');
   loadSales(null);
   const m=document.getElementById('obj-msg'); if(m) m.style.display='none';
 }
@@ -1881,6 +1917,8 @@ async function saveObj(){
     edition:document.getElementById('o-edition').value.trim()||null,
     region:document.getElementById('o-region').value.trim()||null,
     game_id:document.getElementById('o-game').value||null,
+    languages:CUR_LANGS.length?CUR_LANGS.join(', '):null,
+    reference:document.getElementById('o-reference').value.trim()||null,
     price_new:document.getElementById('o-price-new').value!==''?parseFloat(document.getElementById('o-price-new').value):null,
     price_used:document.getElementById('o-price-used').value!==''?parseFloat(document.getElementById('o-price-used').value):null,
     image_back:document.getElementById('o-imageback').value.trim()||null,
