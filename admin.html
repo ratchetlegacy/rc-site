@@ -526,6 +526,8 @@ body.menu-only .card{display:none}
           <input type="checkbox" id="o-cutout" style="width:auto;margin:0"/> ✂️ Remove the background on upload
         </label>
         <div style="font-size:.72rem;color:var(--text-dim);margin:-4px 0 12px">Done in your browser, nothing is sent to a third party. First use downloads the model (a few tens of MB). Not recommended on box art scans.</div>
+        <label>Game (links the object to a wiki game, for progress stats)</label>
+        <select id="o-game"><option value="">— none —</option></select>
         <label>Region</label>
         <input type="text" id="o-region" placeholder="FR (PAL), USA (NTSC-U), JAP (NTSC-J)..." list="region-list"/>
         <datalist id="region-list">
@@ -1359,6 +1361,7 @@ async function loadObjs(){
     if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">Load error: '+esc(error.message)+'</div>'; return; }
     ALL_OBJS=data||[];
     renderObjs();
+    loadGameOptions();
     loadPendingSales();
     loadFixes();
   }catch(e){
@@ -1467,6 +1470,18 @@ function renderObjs(){
       </div>
     </div>`;
   };
+// ── Liste des jeux pour rattacher un objet du catalogue ──
+let GAME_OPTS=[];
+async function loadGameOptions(){
+  const sel=document.getElementById('o-game'); if(!sel) return;
+  try{
+    const {data}=await sb.from('site_games').select('id,name').order('release_order');
+    GAME_OPTS=data||[];
+    sel.innerHTML='<option value="">\u2014 none \u2014</option>'
+      + GAME_OPTS.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.name)+'</option>').join('');
+  }catch(e){}
+}
+
 // ── Corrections proposees par les visiteurs ──
 let FIXES=[];
 async function loadFixes(){
@@ -1838,6 +1853,7 @@ function editObj(o){
   document.getElementById('o-image').value=o.image_url||'';
   document.getElementById('o-edition').value=o.edition||'';
   document.getElementById('o-region').value=o.region||'';
+  const gs=document.getElementById('o-game'); if(gs) gs.value=o.game_id!=null?String(o.game_id):'';
   document.getElementById('o-price-new').value=(o.price_new!=null?o.price_new:'');
   document.getElementById('o-price-used').value=(o.price_used!=null?o.price_used:'');
   loadSales(o.id);
@@ -1849,7 +1865,7 @@ function editObj(o){
   document.body.style.overflow='hidden';
 }
 function clearObjForm(){
-  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition','o-region','o-price-new','o-price-used'].forEach(id=>document.getElementById(id).value='');
+  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition','o-region','o-price-new','o-price-used','o-game'].forEach(id=>document.getElementById(id).value='');
   loadSales(null);
   const m=document.getElementById('obj-msg'); if(m) m.style.display='none';
 }
@@ -1864,6 +1880,7 @@ async function saveObj(){
     image_url:document.getElementById('o-image').value.trim()||null,
     edition:document.getElementById('o-edition').value.trim()||null,
     region:document.getElementById('o-region').value.trim()||null,
+    game_id:document.getElementById('o-game').value||null,
     price_new:document.getElementById('o-price-new').value!==''?parseFloat(document.getElementById('o-price-new').value):null,
     price_used:document.getElementById('o-price-used').value!==''?parseFloat(document.getElementById('o-price-used').value):null,
     image_back:document.getElementById('o-imageback').value.trim()||null,
