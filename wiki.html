@@ -326,10 +326,44 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeChar(); });
 loadChars();
 
 // ── Games (with release / story order toggle) ──
-let GAMES=[], gameOrder='release';
+let GAMES=[], gameOrder='release', COMPLETION={};
+// Stats de progression declarees par les collectionneurs dans le tracker.
+async function loadCompletion(){
+  try{
+    const {data}=await sb.from('game_completion').select('*');
+    COMPLETION={};
+    (data||[]).forEach(r=>{ if(r.game_id!=null) COMPLETION[String(r.game_id)]=r; });
+  }catch(e){ COMPLETION={}; }
+}
+function completionHtml(g){
+  const c=COMPLETION[String(g.id)];
+  if(!c || !c.declared) return '';
+  const pct=(n,d)=> d>0 ? Math.round((n/d)*100) : 0;
+  const donePct=pct(c.completed, c.declared);
+  const trophyPct=pct(c.platinum, c.trophy_eligible);
+  const bar=(label,val,pctv,total,color)=>
+    `<div style="flex:1;min-width:130px">
+       <div style="display:flex;justify-content:space-between;font-size:.66rem;color:var(--text-dim);margin-bottom:4px">
+         <span>${label}</span><span style="color:${color};font-weight:700">${pctv}%</span>
+       </div>
+       <div style="height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden">
+         <div style="width:${pctv}%;height:100%;background:${color}"></div>
+       </div>
+       <div style="font-size:.6rem;color:var(--text-dim);margin-top:3px">${val} of ${total} collectors</div>
+     </div>`;
+  return `<div style="margin-top:14px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px">
+    <div style="font-size:.6rem;color:var(--text-dim);letter-spacing:.1em;margin-bottom:10px">📊 COLLECTOR PROGRESS</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      ${bar('🏁 Finished at 100%', c.completed, donePct, c.declared, '#3DD68C')}
+      ${c.trophy_eligible>0 ? bar('🏆 All trophies', c.platinum, trophyPct, c.trophy_eligible, '#FFC85A') : ''}
+    </div>
+    <div style="font-size:.58rem;color:var(--text-dim);margin-top:8px">Declared by ${c.declared} of the ${c.owners} collectors who own it.</div>
+  </div>`;
+}
 async function loadGames(){
   const box=document.getElementById('games-list');
   try{
+    await loadCompletion();
     const {data,error}=await sb.from('site_games').select('*');
     if(error) throw error;
     GAMES=data||[];
@@ -359,6 +393,7 @@ function renderGames(){
         ${g.synopsis?`<p>${esc(g.synopsis)}</p>`:''}
         ${g.anecdote?`<div class="game-anec"><span>💡</span><span><b>Did you know?</b> ${esc(g.anecdote)}</span></div>`:''}
         ${g.story&&g.story.trim()?`<a href="story.html" style="display:inline-block;margin-top:10px;color:var(--purple-light);font-weight:600;font-size:.85rem">📖 Read the full story →</a>`:''}
+        ${completionHtml(g)}
       </div></div>
     </div></div>`;
   }).join('')+'</div>';
