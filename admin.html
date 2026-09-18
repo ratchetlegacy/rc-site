@@ -1,375 +1,1991 @@
-/* Ratchet Legacy — shared site enhancements
-   Logo injection · scroll fade-in · subtle logo glow */
-(function(){
-  const LOGO='https://ratchetlegacy.github.io/rc-tracker/Ratchet%20Legacy.jpg';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin — Ratchet Legacy</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0A0B14;--bg2:#10121F;--bg3:#181B2E;
+  --purple:#7B4FD4;--purple-light:#9B6FF4;--orange:#FF6B1A;
+  --gold:#FFC85A;--green:#3DD68C;--red:#FF4D6A;
+  --text:#EEF0F8;--text-dim:#8B92AD;--text-mid:#B8BED4;--line:rgba(255,255,255,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:24px}
+a{color:var(--purple-light)}
+.wrap{max-width:640px;margin:0 auto}
+h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.6rem;margin-bottom:6px}
+.sub{color:var(--text-dim);margin-bottom:24px;font-size:.9rem}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px}
+.card h2{font-size:1.05rem;font-weight:700;margin-bottom:14px}
+label{display:block;font-size:.78rem;color:var(--text-dim);font-weight:600;margin-bottom:5px;letter-spacing:.02em}
+input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-family:Inter,sans-serif;font-size:.9rem;outline:none;margin-bottom:14px}
+input:focus{border-color:var(--purple)}
+.btn{border:none;border-radius:10px;padding:12px 20px;font-weight:700;font-size:.9rem;cursor:pointer;font-family:Inter,sans-serif}
+.btn-primary{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;width:100%}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line)}
+.btn-danger{background:rgba(255,77,106,.15);color:var(--red);border:1px solid rgba(255,77,106,.3);padding:6px 12px;font-size:.78rem}
+.msg{padding:11px 14px;border-radius:10px;font-size:.85rem;margin-bottom:14px;display:none}
+.msg.ok{background:rgba(61,214,140,.12);color:var(--green);display:block}
+.msg.err{background:rgba(255,77,106,.12);color:var(--red);display:block}
+.guide-row{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
+.admin-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.admin-card{position:relative;background:var(--bg);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.admin-card .ac-move{position:absolute;top:6px;left:6px;z-index:5;display:flex;flex-direction:column;gap:3px}
+.admin-card .ac-move button{background:rgba(0,0,0,.75);border:1px solid rgba(255,255,255,.2);color:#fff;width:28px;height:24px;border-radius:5px;font-size:.72rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1}
+.admin-card .ac-move button:hover{background:var(--purple);border-color:var(--purple)}
+.admin-card .ac-move button:active{transform:scale(.9)}
+.admin-card .ac-move button:hover{background:var(--purple)}
+.admin-card .ac-cover{width:100%;aspect-ratio:3/4;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.admin-card .ac-ph{font-size:1.8rem;opacity:.3}
+.admin-card .ac-body{padding:8px 9px;flex:1}
+.admin-card .ac-name{font-size:.76rem;font-weight:700;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.admin-card .ac-meta{font-size:.64rem;color:var(--text-dim);margin-top:2px}
+.admin-card .ac-actions{display:flex;gap:5px;padding:0 8px 8px}
+.guide-row .gi{font-size:1.3rem}
+.guide-row .gt{flex:1}
+.guide-row .gt b{font-size:.9rem}
+.guide-row .gt span{display:block;font-size:.72rem;color:var(--text-dim)}
+.hidden{display:none}
+.admin-menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:22px}
+.admin-menu-card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 10px;text-align:center;cursor:pointer;transition:.16s}
+.admin-menu-card:hover{border-color:var(--purple);transform:translateY(-3px)}
+.admin-menu-card.active{background:linear-gradient(160deg,rgba(123,79,212,.2),var(--bg2));border-color:var(--purple)}
+.admin-menu-card .amc-ic{font-size:1.6rem;display:block;margin-bottom:6px}
+.admin-menu-card .amc-lbl{font-size:.74rem;font-weight:600;color:var(--text)}
+.admin-back-menu{display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 16px;color:var(--text);font-weight:600;font-size:.85rem;cursor:pointer;margin-bottom:16px}
+body.section-view .card:not(.sec-visible){display:none}
+body.menu-only .card{display:none}
+/* collapsed cards inside a section: show only the header row */
+.card.collapsed > *:not(:first-child){display:none}
+.card.collapsed{cursor:pointer}
+.card.sec-visible h2::after{content:' ▾';color:var(--text-dim);font-size:.8rem}
+.card.collapsed.sec-visible h2::after{content:' ▸'}
+.fmodal{display:none;position:fixed;inset:0;z-index:400;background:rgba(5,6,12,.9);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px}
+.fmodal.open{display:flex}
+.fmodal-box{max-width:460px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;max-height:90vh;overflow-y:auto}
+.fmodal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.fmodal-head h2{font-size:1.1rem;margin:0}
+.fmodal-head button{background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:8px;font-size:1rem;cursor:pointer}
+.note{font-size:.78rem;color:var(--text-dim);margin-top:-6px;margin-bottom:14px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>🔧 Admin</h1><div class="sub">Manage your site content</div></div>
+    <a href="index.html" class="btn btn-ghost" style="text-decoration:none">← Site</a>
+  </div>
 
-  // ---- Inject styles ----
-  const css=`
-  .nav-logo .mark{overflow:hidden;padding:0!important}
-  .nav-logo .mark img{width:100%;height:100%;object-fit:cover;border-radius:9px}
-  .rl-glow{animation:rlGlow 3.4s ease-in-out infinite}
-  @keyframes rlGlow{
-    0%,100%{box-shadow:0 4px 16px -4px rgba(123,79,212,.5)}
-    50%{box-shadow:0 6px 26px -2px rgba(255,107,26,.7),0 0 0 1px rgba(255,200,90,.25)}
-  }
-  /* scroll reveal */
-  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.3,1),transform .7s cubic-bezier(.2,.7,.3,1)}
-  .reveal.in{opacity:1;transform:none}
-  @media(prefers-reduced-motion:reduce){.reveal{opacity:1!important;transform:none!important}}
-  /* strengthen hover on interactive cards & buttons */
-  .uni-card,.listing,.char,.guide-card,.cvcat-card,.card,.stat-cell{transition:transform .2s cubic-bezier(.2,.7,.3,1),box-shadow .2s,border-color .2s}
-  .btn{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s,background .18s!important}
-  .btn:hover{transform:translateY(-2px)}
-  .nav-cta:hover{box-shadow:0 8px 24px -6px rgba(255,107,26,.6)}
-  .nav-insta-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);font-size:1.05rem;text-decoration:none;flex-shrink:0;transition:transform .15s}
-  .nav-insta-btn:hover{transform:translateY(-2px) scale(1.05)}
-  /* Keep ALL page names visible in the header — horizontal scroll on small screens, never hidden */
-  .nav-burger{display:none!important}
-  .nav-links{display:flex!important}
-  @media(max-width:900px){
-    .nav{padding:12px 14px;gap:8px}
-    .nav-logo{font-size:.82rem;gap:8px}
-    .nav-logo .mark{width:32px;height:32px}
-    .nav-links{overflow-x:auto;flex-wrap:nowrap;gap:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-    .nav-links::-webkit-scrollbar{display:none}
-    .nav-links a{padding:7px 10px;font-size:.8rem;white-space:nowrap;flex-shrink:0}
-  }
-  /* ── Mobile refinements (phones) ── */
-  @media(max-width:600px){
-    .page-hero,.hero{padding-left:16px;padding-right:16px}
-    .page-hero h1,.hero h1{font-size:1.9rem!important;line-height:1.15}
-    .page-hero p,.hero p{font-size:.92rem}
-    .wrap,.layout{padding-left:16px!important;padding-right:16px!important}
-    /* grids collapse to 2 or 1 columns */
-    .chars{grid-template-columns:1fr 1fr!important;gap:12px!important}
-    .uni-grid,.uni-cards{grid-template-columns:1fr!important}
-    .cat-menu,.admin-cards{grid-template-columns:1fr 1fr!important;gap:12px!important}
-    .grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))!important}
-    .guides,.news-grid,.listings{grid-template-columns:1fr!important}
-    .wiki-hub{grid-template-columns:1fr 1fr!important;gap:12px!important}
-    .vault-stats{gap:18px!important}
-    .vs-item b{font-size:1.3rem!important}
-    /* modals full-width-ish */
-    .cd-inner,.pmodal-box,.fmodal-box,.lb-inner{max-width:94vw!important}
-    .cd-top{grid-template-columns:1fr!important}
-    .chapter{grid-template-columns:1fr!important}
-    /* buttons easier to tap */
-    .btn{padding:12px 18px}
-    /* tables/rows wrap */
-    .guide-row{flex-wrap:wrap}
-    /* about section stacks */
-    .about{flex-direction:column!important;text-align:center}
-    .about-avatar{margin:0 auto}
-    /* map taller on phones so it's usable */
-    .map-stage{aspect-ratio:1/1!important;max-height:none!important}
-    .gal-tabs{gap:6px}
-    .gal-tab{padding:8px 14px;font-size:.72rem}
-    /* story side nav becomes horizontal scroll */
-    .story-nav{position:static!important;flex-direction:row!important;overflow-x:auto;max-height:none!important;padding-bottom:8px}
-    /* picker (arcade) stacks */
-    .picker{grid-template-columns:1fr!important}
-  }
-  @media(max-width:400px){
-    .chars,.cat-menu,.admin-cards,.wiki-hub{grid-template-columns:1fr!important}
-  }
-  /* ── Mobile hamburger menu ── */
-  .rl-burger{display:none;background:none;border:none;color:var(--text,#EEF0F8);font-size:1.5rem;cursor:pointer;padding:4px 8px;flex-shrink:0}
-  @media(max-width:820px){
-    .nav-links{display:none!important}
-    .rl-burger{display:block}
-    .nav-insta-btn,.nav-cta{display:none!important}
-    .nav-burger{display:none!important}
-  }
-  .rl-mobile-menu{position:fixed;inset:0;z-index:2000;background:rgba(10,11,20,.98);backdrop-filter:blur(10px);display:none;flex-direction:column;padding:80px 24px 24px;overflow-y:auto}
-  .rl-mobile-menu.open{display:flex}
-  .rl-mobile-menu a{padding:16px 8px;font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:600;color:var(--text,#EEF0F8);border-bottom:1px solid rgba(255,255,255,.08);text-decoration:none}
-  .rl-mobile-menu a:active{color:var(--purple-light,#9B6FF4)}
-  .rl-mobile-close{position:absolute;top:20px;right:22px;background:rgba(255,255,255,.1);border:none;color:#fff;width:42px;height:42px;border-radius:12px;font-size:1.3rem;cursor:pointer}
-  .rl-mobile-menu .rl-mm-cta{background:linear-gradient(135deg,var(--purple,#7B4FD4),var(--orange,#FF6B1A));color:#fff;border-radius:12px;text-align:center;margin-top:18px;border:none}
-  .rl-mobile-menu .rl-mm-insta{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border-radius:12px;text-align:center;margin-top:10px;border:none}
-  `;
-  const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
+  <!-- LOGIN -->
+  <div class="card" id="login-card">
+    <h2>🔐 Sign in</h2>
+    <div class="msg" id="login-msg"></div>
+    <label>Email</label>
+    <input type="email" id="email" placeholder="ratchetlegacy@gmail.com"/>
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••"/>
+    <button class="btn btn-primary" onclick="signIn()">Sign in</button>
+  </div>
 
-  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded',fn); }
+  <!-- MANAGERS -->
+  <div id="admin-area" class="hidden">
+    <div class="admin-menu" id="admin-menu"></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📚 Wiki entries</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openWikiForm()">+ Add</button>
+      </div>
+      <select id="we-filter" onchange="renderWikiEntries()" style="margin-bottom:12px">
+        <option value="weapon">🔫 Weapons</option>
+        <option value="creature">👽 Creatures</option>
+        <option value="planet">🪐 Planets</option>
+        <option value="vehicle">🚀 Vehicles</option>
+      </select>
+      <div id="we-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
 
-  ready(function(){
-    // ---- Replace nav-logo emoji with the logo image + glow ----
-    document.querySelectorAll('.nav-logo .mark').forEach(m=>{
-      m.classList.add('rl-glow');
-      m.innerHTML='<img src="'+LOGO+'" alt="Ratchet Legacy" onerror="this.parentNode.textContent=\'🔧\'"/>';
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📍 Planet locations</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openLocForm()">+ Add</button>
+      </div>
+      <select id="loc-planet-filter" onchange="renderLocs()" style="margin-bottom:12px"><option value="">All planets</option></select>
+      <div id="loc-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <!-- LOCATION FORM MODAL -->
+    <div class="fmodal" id="loc-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="loc-modal-title">📍 Add location</h2><button onclick="closeLocForm()">✕</button></div>
+        <div class="msg" id="loc-msg"></div>
+        <input type="hidden" id="loc-id"/>
+        <label>Planet *</label>
+        <select id="loc-planet" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-family:Inter,sans-serif;font-size:.9rem;outline:none;margin-bottom:14px"></select>
+        <label>Name *</label>
+        <input type="text" id="loc-name" placeholder="Kyzil Plateau, Gadgetron HQ..."/>
+        <label>Type</label>
+        <input type="text" id="loc-type" placeholder="City, Base, Factory, Arena..."/>
+        <label>Description</label>
+        <textarea id="loc-desc" placeholder="What happens here..." style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px;color:var(--text);font-family:Inter,sans-serif;font-size:.88rem;outline:none;min-height:80px;resize:vertical;margin-bottom:14px"></textarea>
+        <label>Photo URL</label>
+        <input type="text" id="loc-img" placeholder="https://..."/>
+        <label>Order</label>
+        <input type="number" id="loc-order" placeholder="1"/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveLoc()">💾 Save location</button>
+      </div>
+    </div>
+
+    <!-- WIKI ENTRY FORM MODAL -->
+    <div class="fmodal" id="we-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="we-modal-title">📚 Add entry</h2><button onclick="closeWikiForm()">✕</button></div>
+        <div class="msg" id="we-msg"></div>
+        <input type="hidden" id="we-id"/>
+        <label>Type</label>
+        <select id="we-type" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-family:Inter,sans-serif;font-size:.9rem;outline:none;margin-bottom:14px">
+          <option value="weapon">🔫 Weapon / Gadget</option>
+          <option value="creature">👽 Creature / Species</option>
+          <option value="planet">🪐 Planet / Location</option>
+          <option value="vehicle">🚀 Vehicle / Ship</option>
+        </select>
+        <label>Name *</label>
+        <input type="text" id="we-name" placeholder="Combustor, Veldin..."/>
+        <label>Subtitle</label>
+        <input type="text" id="we-subtitle" placeholder="Blaster, Solana Galaxy..."/>
+        <label>Description</label>
+        <textarea id="we-desc" placeholder="Full description" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px;color:var(--text);font-family:Inter,sans-serif;font-size:.88rem;outline:none;min-height:80px;resize:vertical;margin-bottom:14px"></textarea>
+        <label>Image URL</label>
+        <input type="text" id="we-img" placeholder="https://..."/>
+        <!-- Extra details (mainly for planets, optional for others) -->
+        <div style="border-top:1px solid var(--line);margin:8px 0 10px;padding-top:12px;font-size:.72rem;color:var(--text-dim);font-weight:700;letter-spacing:.05em">EXTRA DETAILS (optional)</div>
+        <label>Galaxy</label>
+        <input type="text" id="we-galaxy" placeholder="Polaris, Solana..."/>
+        <label>Dimension</label>
+        <input type="text" id="we-dimension" placeholder="Rivet's Dimension..."/>
+        <label>Main location</label>
+        <input type="text" id="we-mainloc" placeholder="Outpost L51..."/>
+        <label>Inhabitants</label>
+        <input type="text" id="we-inhabitants" placeholder="Morts · Grunthors..."/>
+        <label>First appearance</label>
+        <input type="text" id="we-first" placeholder="Tools of Destruction (2007)"/>
+        <label>Notable locations</label>
+        <input type="text" id="we-notloc" placeholder="Gelatonium Factory · Rivet's Hideout"/>
+        <label>Notable events</label>
+        <input type="text" id="we-notev" placeholder="Rivet's home · Seekerpede attack"/>
+        <label>Order</label>
+        <input type="number" id="we-order" placeholder="1"/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveWikiEntry()">💾 Save entry</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📖 Lore &amp; History</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openLoreForm()">+ Add</button>
+      </div>
+      <div id="lore-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <!-- LORE FORM MODAL -->
+    <div class="fmodal" id="lore-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="lore-modal-title">📖 Add event</h2><button onclick="closeLoreForm()">✕</button></div>
+        <div class="msg" id="lore-msg"></div>
+        <input type="hidden" id="l-id"/>
+        <label>Year / period label</label>
+        <input type="text" id="l-year" placeholder="2002, Future saga..."/>
+        <label>Title *</label>
+        <input type="text" id="l-title" placeholder="The birth of a legend"/>
+        <label>Icon (emoji)</label>
+        <input type="text" id="l-icon" placeholder="🚀"/>
+        <label>Description</label>
+        <textarea id="l-desc" placeholder="What happened..." style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px;color:var(--text);font-family:Inter,sans-serif;font-size:.88rem;outline:none;min-height:90px;resize:vertical;margin-bottom:14px"></textarea>
+        <label>Order</label>
+        <input type="number" id="l-order" placeholder="1"/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveLore()">💾 Save event</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📰 News</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openNewsForm()">+ Add</button>
+      </div>
+      <div id="news-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <!-- NEWS FORM MODAL -->
+    <div class="fmodal" id="news-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="news-modal-title">📰 Add news</h2><button onclick="closeNewsForm()">✕</button></div>
+        <div class="msg" id="news-msg"></div>
+        <input type="hidden" id="n-id"/>
+        <label>Title *</label>
+        <input type="text" id="n-title" placeholder="Article title"/>
+        <label>Your short summary</label>
+        <input type="text" id="n-summary" placeholder="A few words (your own, not the article)"/>
+        <label>Source</label>
+        <input type="text" id="n-source" placeholder="IGN, Gameblog..."/>
+        <label>Article link *</label>
+        <input type="text" id="n-url" placeholder="https://..."/>
+        <label>Image URL</label>
+        <input type="text" id="n-image" placeholder="https://... (your own or leave empty)"/>
+        <label>Date label</label>
+        <input type="text" id="n-date" placeholder="Sept 2026"/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveNews()">💾 Save news</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🏠 Homepage images</h2>
+      <div class="msg" id="home-msg"></div>
+      <label>Games card image URL</label>
+      <input type="text" id="hi-games" placeholder="https://..."/>
+      <label>Characters card image URL</label>
+      <input type="text" id="hi-characters" placeholder="https://..."/>
+      <label>Lore card image URL</label>
+      <input type="text" id="hi-lore" placeholder="https://..."/>
+      <label>About image URL</label>
+      <input type="text" id="hi-about" placeholder="https://..."/>
+      <label>About — Instagram feed capture</label>
+      <input type="text" id="hi-instafeed" placeholder="https://... (screenshot of your Insta feed)"/>
+      <div style="font-size:.75rem;color:var(--text-dim);margin:12px 0 6px">Two extra visuals shown next to the Instagram capture. Leave the image empty to hide a slot.</div>
+      <label>About — extra visual 1</label>
+      <input type="text" id="hi-x1-img" placeholder="Image URL"/>
+      <input type="text" id="hi-x1-url" placeholder="Link when clicked (optional)"/>
+      <input type="text" id="hi-x1-cap" placeholder="Caption (optional)"/>
+      <label>About — extra visual 2</label>
+      <input type="text" id="hi-x2-img" placeholder="Image URL"/>
+      <input type="text" id="hi-x2-url" placeholder="Link when clicked (optional)"/>
+      <input type="text" id="hi-x2-cap" placeholder="Caption (optional)"/>
+      <button class="btn btn-primary" style="width:100%" onclick="saveHomeImages()">💾 Save homepage images</button>
+    </div>
+
+    <div class="card">
+      <h2>🎴 Wiki hub images</h2>
+      <div class="msg" id="wikihub-msg"></div>
+      <label>Games card</label>
+      <input type="text" id="wi-games" placeholder="https://..."/>
+      <label>Characters card</label>
+      <input type="text" id="wi-characters" placeholder="https://..."/>
+      <label>Weapons card</label>
+      <input type="text" id="wi-weapons" placeholder="https://..."/>
+      <label>Creatures card</label>
+      <input type="text" id="wi-creatures" placeholder="https://..."/>
+      <label>Planets card</label>
+      <input type="text" id="wi-planets" placeholder="https://..."/>
+      <label>Vehicles card</label>
+      <input type="text" id="wi-vehicles" placeholder="https://..."/>
+      <label>Lore card</label>
+      <input type="text" id="wi-lore" placeholder="https://..."/>
+      <button class="btn btn-primary" style="width:100%" onclick="saveWikiHubImages()">💾 Save wiki hub images</button>
+    </div>
+    <div class="card">
+      <h2>🗃️ Vault category images</h2>
+      <div class="msg" id="vaultimg-msg"></div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Cover image of each category card in the Megacorp Vault. Leave empty and the Vault falls back to a photo picked from the category.</div>
+      <label>Placeholder — objects with no photo yet</label>
+      <input type="text" id="vi-await" placeholder="https://... (shown on every object without a picture)"/>
+      <div style="font-size:.72rem;color:var(--text-dim);margin:-4px 0 14px">Leave empty to keep the category icon.</div>
+      <div id="vaultimg-fields"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="saveVaultImages()">💾 Save Vault images</button>
+    </div>
+    <div class="card">
+      <h2>🖼️ Page banners (hero)</h2>
+      <div class="msg" id="hero-msg"></div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Background image for the top banner of each page.</div>
+      <label>Home</label><input type="text" id="he-index" placeholder="https://..."/>
+      <label>Wiki</label><input type="text" id="he-wiki" placeholder="https://..."/>
+      <label>Story</label><input type="text" id="he-story" placeholder="https://..."/>
+      <label>Map</label><input type="text" id="he-map" placeholder="https://..."/>
+      <label>Megacorp Vault</label><input type="text" id="he-database" placeholder="https://..."/>
+      <label>Guides</label><input type="text" id="he-guides" placeholder="https://..."/>
+      <label>News</label><input type="text" id="he-news" placeholder="https://..."/>
+      <label>Trades</label><input type="text" id="he-trades" placeholder="https://..."/>
+      <label>Arcade</label><input type="text" id="he-arcade" placeholder="https://..."/>
+      <button class="btn btn-primary" style="width:100%" onclick="saveHeroImages()">💾 Save page banners</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📱 App screenshots (home carousel)</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openScrForm()">+ Add</button>
+      </div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Add as many tracker screenshots as you want for the carousel. Leave empty to keep the default mockup.</div>
+      <div id="scr-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <!-- SCREENSHOT FORM MODAL -->
+    <div class="fmodal" id="scr-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="scr-modal-title">📱 Add screenshot</h2><button onclick="closeScrForm()">✕</button></div>
+        <div class="msg" id="scr-msg"></div>
+        <input type="hidden" id="scr-id"/>
+        <label>Image URL *</label>
+        <input type="text" id="scr-img" placeholder="https://... (tracker screenshot)"/>
+        <label>Label (optional)</label>
+        <input type="text" id="scr-label" placeholder="Home, Collection, Stats..."/>
+        <label>Order</label>
+        <input type="number" id="scr-order" placeholder="1"/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveScr()">💾 Save</button>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">🃏 Arcade Memory images</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openMemImgForm()">+ Add</button>
+      </div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Add up to 16 photos for the Memory game. The game uses your photos first, then emojis.</div>
+      <div id="memimg-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+    <div class="fmodal" id="memimg-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="memimg-modal-title">🃏 Add memory image</h2><button onclick="closeMemImgForm()">✕</button></div>
+        <div class="msg" id="memimg-msg"></div>
+        <input type="hidden" id="mi-id"/>
+        <label>Image URL *</label>
+        <input type="text" id="mi-img" placeholder="https://..."/>
+        <label>Label (optional)</label>
+        <input type="text" id="mi-label" placeholder="Ratchet, Clank..."/>
+        <label>Order</label>
+        <input type="number" id="mi-order" placeholder="1"/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveMemImg()">💾 Save</button>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📗 Guides</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openGuideForm()">+ Add</button>
+      </div>
+      <div id="guides-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <!-- GUIDE FORM MODAL -->
+    <div class="fmodal" id="guide-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="guide-modal-title">📗 Add guide</h2><button onclick="closeGuideForm()">✕</button></div>
+        <div class="msg" id="add-msg"></div>
+        <input type="hidden" id="g-id"/>
+        <label>Title *</label>
+        <input type="text" id="g-title" placeholder="e.g. Rift Apart Collection Guide"/>
+        <label>Game</label>
+        <input type="text" id="g-game" placeholder="e.g. Rift Apart"/>
+        <label>PDF link *</label>
+        <input type="text" id="g-url" placeholder="https://... (Cloudinary, Drive, direct PDF)"/>
+        <label>Cover image URL</label>
+        <input type="text" id="g-cover" placeholder="https://... (game box art or your own photo)"/>
+        <label>Cover framing (position)</label>
+        <select id="g-coverpos" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-family:Inter,sans-serif;font-size:.9rem;outline:none;margin-bottom:14px">
+          <option value="center">Center</option>
+          <option value="top">Top</option>
+          <option value="bottom">Bottom</option>
+          <option value="center 25%">Upper</option>
+          <option value="center 75%">Lower</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
+        <div class="note">Upload your PDF and paste the link here.</div>
+        <button class="btn btn-primary" style="width:100%" onclick="saveGuide()">💾 Save guide</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">👥 Characters</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openCharForm()">+ Add</button>
+      </div>
+      <div id="chars-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <!-- CHARACTER FORM MODAL -->
+    <div class="fmodal" id="char-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="char-modal-title">🦊 Add character</h2><button onclick="closeCharForm()">✕</button></div>
+        <div class="msg" id="char-msg"></div>
+        <input type="hidden" id="c-id"/>
+        <label>Section</label>
+        <select id="c-category" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-family:Inter,sans-serif;font-size:.9rem;outline:none;margin-bottom:14px">
+          <option value="Hero">🦸 Hero</option>
+          <option value="Ally">🤝 Ally</option>
+          <option value="Villain">😈 Villain</option>
+          <option value="Robot">🤖 Robot</option>
+          <option value="Creature">🐾 Creature</option>
+          <option value="Other">✨ Other</option>
+        </select>
+        <label>Name *</label>
+        <input type="text" id="c-name" placeholder="e.g. Ratchet"/>
+        <label>Role</label>
+        <input type="text" id="c-role" placeholder="e.g. HERO · LOMBAX"/>
+        <label>Description</label>
+        <input type="text" id="c-desc" placeholder="Short description"/>
+        <label>Photo URL (leave empty for emoji)</label>
+        <input type="text" id="c-img" placeholder="https://... your figure photo"/>
+        <label>Photo framing (position)</label>
+        <select id="c-imgpos" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-family:Inter,sans-serif;font-size:.9rem;outline:none;margin-bottom:6px">
+          <option value="center">Center</option>
+          <option value="top">Top (show head)</option>
+          <option value="center 25%">Upper</option>
+          <option value="center 75%">Lower</option>
+          <option value="bottom">Bottom</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
+        <div class="note">Adjusts which part of the photo shows in the round frame.</div>
+        <label>Emoji (fallback if no photo)</label>
+        <input type="text" id="c-emoji" placeholder="🦊"/>
+        <label>Species</label>
+        <input type="text" id="c-species" placeholder="Lombax, Robot..."/>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1"><label>Height</label><input type="text" id="c-height" placeholder="e.g. 4'2&quot;"/></div>
+          <div style="flex:1"><label>Age</label><input type="text" id="c-age" placeholder="e.g. 16"/></div>
+        </div>
+        <label>Homeworld</label>
+        <input type="text" id="c-homeworld" placeholder="Veldin..."/>
+        <label>First appearance</label>
+        <input type="text" id="c-first" placeholder="Ratchet & Clank (2002)"/>
+        <label>Weapons / Gadgets</label>
+        <input type="text" id="c-weapons" placeholder="OmniWrench, Blaster..."/>
+        <label>Famous quote</label>
+        <input type="text" id="c-quote" placeholder="A memorable line"/>
+        <label>Voice actor</label>
+        <input type="text" id="c-voice" placeholder="Actor name"/>
+        <button class="btn btn-primary" style="width:100%;margin-top:6px" onclick="saveChar()">💾 Save character</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">🗃️ Catalog objects</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openObjForm()">+ Add</button>
+      </div>
+      <input type="text" id="obj-search" placeholder="🔍 Search the whole catalog..." oninput="renderObjs()" style="margin-bottom:10px"/>
+      <div id="obj-crumb" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px"></div>
+      <div id="objs-list" style="max-height:560px;overflow-y:auto"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+      <div style="font-size:.72rem;color:var(--text-dim);margin-top:8px">💡 Category → platform → region. Search goes through the whole catalog. Use ▲▼ on a card to reorder within its category.</div>
+      <hr style="border:none;border-top:1px solid var(--line);margin:18px 0"/>
+      <h2 style="font-size:1rem">✏️ Fixes suggested by visitors</h2>
+      <div class="msg" id="fix-adm-msg"></div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:10px">Corrections and photos sent from the Vault. Approving applies the changes to the object right away.</div>
+      <div id="fix-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+
+      <hr style="border:none;border-top:1px solid var(--line);margin:18px 0"/>
+      <h2 style="font-size:1rem">⏳ Sales reported by collectors</h2>
+      <div class="msg" id="pend-msg"></div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:10px">Prices shared when someone removes a sold item from their collection. They count for nothing until you approve them.</div>
+      <div id="pending-sales"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+
+      <hr style="border:none;border-top:1px solid var(--line);margin:18px 0"/>
+      <h2 style="font-size:1rem">🧹 Cleanup</h2>
+      <div class="msg" id="clean-msg"></div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:10px">Merge values that differ only by spelling (Comics / comics), or objects entered twice.</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+        <button type="button" class="btn btn-ghost" style="padding:6px 12px;font-size:.75rem" onclick="cleanScan('platform')">Platforms</button>
+        <button type="button" class="btn btn-ghost" style="padding:6px 12px;font-size:.75rem" onclick="cleanScan('edition')">Editions</button>
+        <button type="button" class="btn btn-ghost" style="padding:6px 12px;font-size:.75rem" onclick="cleanScan('category')">Categories</button>
+        <button type="button" class="btn btn-ghost" style="padding:6px 12px;font-size:.75rem" onclick="cleanScan('region')">Regions</button>
+        <button type="button" class="btn btn-ghost" style="padding:6px 12px;font-size:.75rem" onclick="cleanDupes()">⧉ Duplicate objects</button>
+      </div>
+      <div id="clean-out" style="max-height:380px;overflow-y:auto"></div>
+    </div>
+
+    <!-- OBJECT FORM MODAL -->
+    <div id="obj-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(5,6,12,.9);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px">
+      <div style="max-width:440px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;max-height:90vh;overflow-y:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <h2 id="obj-modal-title" style="font-size:1.1rem;margin:0">📦 Add object</h2>
+          <button onclick="closeObjForm()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:8px;font-size:1rem;cursor:pointer">✕</button>
+        </div>
+        <div class="msg" id="obj-msg"></div>
+        <input type="hidden" id="o-id"/>
+        <label>Name *</label>
+        <input type="text" id="o-name" placeholder="e.g. Ratchet & Clank 2"/>
+        <label>Category</label>
+        <input type="text" id="o-category" placeholder="Game, Figure, Plush, Guide..."/>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1"><label>Platform</label><input type="text" id="o-platform" placeholder="Playstation 2..."/></div>
+          <div style="width:100px"><label>Year</label><input type="number" id="o-year" placeholder="2004"/></div>
+        </div>
+        <label>Edition</label>
+        <input type="text" id="o-edition" placeholder="Standard, Platinum, Essentials, Collector, Coffret, Disc only..." list="edition-list"/>
+        <datalist id="edition-list">
+          <option value="Standard"></option><option value="Platinum"></option><option value="Essentials"></option>
+          <option value="Collector"></option><option value="Coffret"></option><option value="Greatest Hits"></option>
+          <option value="Disc only"></option><option value="Boxset"></option>
+        </datalist>
+        <label>Photo URL</label>
+        <input type="text" id="o-image" placeholder="https://res.cloudinary.com/..."/>
+        <button type="button" class="btn btn-ghost" style="width:100%;padding:8px;font-size:.78rem;margin-bottom:6px" onclick="uploadObjPhoto('o-image')">📷 Upload a photo</button>
+        <label>Back photo URL (verso)</label>
+        <input type="text" id="o-imageback" placeholder="https://... (shown when you flip)"/>
+        <button type="button" class="btn btn-ghost" style="width:100%;padding:8px;font-size:.78rem;margin-bottom:6px" onclick="uploadObjPhoto('o-imageback')">📷 Upload the back photo</button>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer">
+          <input type="checkbox" id="o-cutout" style="width:auto;margin:0"/> ✂️ Remove the background on upload
+        </label>
+        <div style="font-size:.72rem;color:var(--text-dim);margin:-4px 0 12px">Done in your browser, nothing is sent to a third party. First use downloads the model (a few tens of MB). Not recommended on box art scans.</div>
+        <label>Region</label>
+        <input type="text" id="o-region" placeholder="FR (PAL), USA (NTSC-U), JAP (NTSC-J)..." list="region-list"/>
+        <datalist id="region-list">
+          <option value="FR (PAL)"></option><option value="USA (NTSC-U)"></option><option value="JAP (NTSC-J)"></option>
+          <option value="DE (PAL)"></option><option value="PT (PAL)"></option>
+        </datalist>
+        <label>💰 Rating estimate (€)</label>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1"><input type="number" step="0.01" id="o-price-new" placeholder="New / sealed"/></div>
+          <div style="flex:1"><input type="number" step="0.01" id="o-price-used" placeholder="Pre-owned"/></div>
+        </div>
+        <div style="font-size:.72rem;color:var(--text-dim);margin:-4px 0 10px">Your estimate is the rating as long as no collector has entered a purchase price. After that it counts as one vote in the median.</div>
+        <label>💶 Recorded sales</label>
+        <div style="font-size:.72rem;color:var(--text-dim);margin:-4px 0 8px">Real completed sales (eBay, Vinted, LBC). Each one counts as a vote in the rating and feeds the trend curve.</div>
+        <div id="o-sales" style="font-size:.78rem;color:var(--text-dim);margin-bottom:8px">Save the object first, then reopen it to add sales.</div>
+        <div id="o-sales-add" style="display:none;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+          <input type="date" id="sale-date" style="flex:1 1 140px;margin:0"/>
+          <input type="number" step="0.01" id="sale-price" placeholder="Price €" style="flex:1 1 90px;margin:0"/>
+          <select id="sale-cond" style="flex:1 1 120px;margin:0"><option value="occasion">Pre-owned</option><option value="neuf">New / sealed</option></select>
+          <input type="text" id="sale-source" placeholder="eBay" style="flex:1 1 100px;margin:0"/>
+          <input type="text" id="sale-note" placeholder="Condition (complete, no manual, damaged box, bundle of 3...)" style="flex:1 1 100%;margin:0"/>
+          <label style="flex:1 1 100%;display:flex;align-items:center;gap:8px;font-size:.74rem;color:var(--text-mid);cursor:pointer;margin:0">
+            <input type="checkbox" id="sale-excl" style="width:auto;margin:0"/> Keep out of the rating (bundle, broken copy, friend price…)
+          </label>
+          <button type="button" class="btn btn-ghost" style="flex:0 0 auto;padding:8px 14px;font-size:.75rem" onclick="addSale()">+ Add</button>
+        </div>
+        <label>Description</label>
+        <input type="text" id="o-desc" placeholder="Short description"/>
+        <button class="btn btn-primary" onclick="saveObj()" style="width:100%;margin-top:6px">💾 Save object</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🤝 Trade listings to review</h2>
+      <div id="trades-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">🕹️ Games</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="openGameForm()">+ Add</button>
+      </div>
+      <div id="games-admin-list"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    </div>
+
+    <!-- GAME FORM MODAL -->
+    <div class="fmodal" id="game-modal">
+      <div class="fmodal-box">
+        <div class="fmodal-head"><h2 id="game-modal-title">🎮 Add game</h2><button onclick="closeGameForm()">✕</button></div>
+        <div class="msg" id="game-msg"></div>
+        <input type="hidden" id="ga-id"/>
+        <label>Name *</label>
+        <input type="text" id="ga-name" placeholder="e.g. Rift Apart"/>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1"><label>Platform</label><input type="text" id="ga-platform" placeholder="PlayStation 5"/></div>
+          <div style="width:90px"><label>Year</label><input type="number" id="ga-year" placeholder="2021"/></div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1"><label>Release order</label><input type="number" id="ga-rel" placeholder="13"/></div>
+          <div style="flex:1"><label>Story order</label><input type="number" id="ga-storyorder" placeholder="12"/></div>
+        </div>
+        <label>Photo URL</label>
+        <input type="text" id="ga-img" placeholder="https://res.cloudinary.com/..."/>
+        <label>Synopsis</label>
+        <input type="text" id="ga-syn" placeholder="Story summary"/>
+        <label>Anecdote (Did you know?)</label>
+        <input type="text" id="ga-anec" placeholder="A fun fact"/>
+        <label>Full story (for the Story page)</label>
+        <textarea id="ga-story" placeholder="The detailed narrative. Use blank lines between paragraphs." style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px;color:var(--text);font-family:Inter,sans-serif;font-size:.88rem;outline:none;min-height:120px;resize:vertical;margin-bottom:14px"></textarea>
+        <label>Story image 1 (appears in the text)</label>
+        <input type="text" id="ga-simg1" placeholder="https://..."/>
+        <label>Story image 2 (appears in the text)</label>
+        <input type="text" id="ga-simg2" placeholder="https://..."/>
+        <button class="btn btn-primary" style="width:100%" onclick="saveGame()">💾 Save game</button>
+      </div>
+    </div>
+
+    <button class="btn btn-ghost" style="width:100%" onclick="signOut()">Sign out</button>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function showMsg(id,txt,ok){const m=document.getElementById(id);m.textContent=txt;m.className='msg '+(ok?'ok':'err');}
+
+async function checkSession(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){ showAdmin(); }
+}
+async function signIn(){
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error){ showMsg('login-msg',error.message,false); return; }
+  showAdmin();
+}
+async function signOut(){ await sb.auth.signOut(); location.reload(); }
+// ── App screenshots (table-based, add freely) ──
+let _SCR=[];
+async function loadAppShots(){
+  const box=document.getElementById('scr-list');
+  const {data,error}=await sb.from('app_screenshots').select('*').order('sort_order');
+  if(error){ if(box) box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  _SCR=data||[];
+  if(!box) return;
+  if(!_SCR.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No screenshot yet.</div>'; return; }
+  box.innerHTML=_SCR.map(s=>
+    `<div class="guide-row">
+      <span class="gi">🖼️</span>
+      <div class="gt"><b>${esc(s.label||'Screenshot')}</b><span>order ${s.sort_order||0}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editScrById('${esc(s.id)}')">Edit</button>
+      <button class="btn btn-danger" onclick="delScr('${esc(s.id)}')">Del</button>
+    </div>`
+  ).join('');
+}
+function openScrForm(){
+  ['scr-id','scr-img','scr-label','scr-order'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('scr-msg').style.display='none';
+  document.getElementById('scr-modal-title').textContent='📱 Add screenshot';
+  document.getElementById('scr-modal').classList.add('open');
+}
+function closeScrForm(){ document.getElementById('scr-modal').classList.remove('open'); }
+function editScrById(id){
+  const s=_SCR.find(x=>String(x.id)===String(id)); if(!s) return;
+  document.getElementById('scr-id').value=s.id;
+  document.getElementById('scr-img').value=s.image_url||'';
+  document.getElementById('scr-label').value=s.label||'';
+  document.getElementById('scr-order').value=s.sort_order||'';
+  document.getElementById('scr-msg').style.display='none';
+  document.getElementById('scr-modal-title').textContent='✏️ Edit screenshot';
+  document.getElementById('scr-modal').classList.add('open');
+}
+async function saveScr(){
+  const id=document.getElementById('scr-id').value;
+  const row={
+    image_url:document.getElementById('scr-img').value.trim(),
+    label:document.getElementById('scr-label').value.trim()||null,
+    sort_order:parseInt(document.getElementById('scr-order').value)||0
+  };
+  if(!row.image_url){ showMsg('scr-msg','Image URL is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('app_screenshots').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('app_screenshots').insert([row])); }
+  if(error){ showMsg('scr-msg','Error: '+error.message,false); return; }
+  showMsg('scr-msg',id?'Saved! ✓':'Added! ✓',true);
+  setTimeout(()=>{ closeScrForm(); loadAppShots(); }, 700);
+}
+async function delScr(id){
+  if(!confirm('Delete this screenshot?')) return;
+  const {error}=await sb.from('app_screenshots').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadAppShots();
+}
+// ── Arcade Memory images ──
+let _MEMIMG=[];
+async function loadMemImages(){
+  const {data,error}=await sb.from('arcade_memory_images').select('*').order('sort_order');
+  if(error){ const b=document.getElementById('memimg-list'); if(b) b.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  _MEMIMG=data||[];
+  const box=document.getElementById('memimg-list'); if(!box) return;
+  if(!_MEMIMG.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No image yet.</div>'; return; }
+  box.innerHTML=_MEMIMG.map(m=>
+    `<div class="guide-row">
+      <span class="gi">${m.image_url?'🖼️':'🃏'}</span>
+      <div class="gt"><b>${esc(m.label||'Image')}</b><span>order ${m.sort_order||0}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editMemImgById('${esc(m.id)}')">Edit</button>
+      <button class="btn btn-danger" onclick="delMemImg('${esc(m.id)}')">Del</button>
+    </div>`
+  ).join('');
+}
+function openMemImgForm(){
+  ['mi-id','mi-img','mi-label','mi-order'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('memimg-msg').style.display='none';
+  document.getElementById('memimg-modal-title').textContent='🃏 Add memory image';
+  document.getElementById('memimg-modal').classList.add('open');
+}
+function closeMemImgForm(){ document.getElementById('memimg-modal').classList.remove('open'); }
+function editMemImgById(id){
+  const m=_MEMIMG.find(x=>String(x.id)===String(id)); if(!m) return;
+  document.getElementById('mi-id').value=m.id;
+  document.getElementById('mi-img').value=m.image_url||'';
+  document.getElementById('mi-label').value=m.label||'';
+  document.getElementById('mi-order').value=m.sort_order||'';
+  document.getElementById('memimg-msg').style.display='none';
+  document.getElementById('memimg-modal-title').textContent='✏️ Edit memory image';
+  document.getElementById('memimg-modal').classList.add('open');
+}
+async function saveMemImg(){
+  const id=document.getElementById('mi-id').value;
+  const row={
+    image_url:document.getElementById('mi-img').value.trim(),
+    label:document.getElementById('mi-label').value.trim()||null,
+    sort_order:parseInt(document.getElementById('mi-order').value)||0
+  };
+  if(!row.image_url){ showMsg('memimg-msg','Image URL is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('arcade_memory_images').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('arcade_memory_images').insert([row])); }
+  if(error){ showMsg('memimg-msg','Error: '+error.message,false); return; }
+  showMsg('memimg-msg',id?'Image updated! ✓':'Image added! ✓',true);
+  setTimeout(()=>{ closeMemImgForm(); loadMemImages(); }, 700);
+}
+async function delMemImg(id){
+  if(!confirm('Delete this image?')) return;
+  const {error}=await sb.from('arcade_memory_images').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadMemImages();
+}
+// ── Vault category images ──
+let VAULT_CATS=[];
+async function loadVaultImages(){
+  const box=document.getElementById('vaultimg-fields'); if(!box) return;
+  try{
+    const [{data:cat},{data:set}]=await Promise.all([
+      sb.from('catalog').select('category,image_url'),
+      sb.from('site_settings').select('key,value')
+    ]);
+    const S={}; (set||[]).forEach(r=>{ S[r.key]=r.value; });
+    document.getElementById('vi-await').value=S.awaiting_img||'';
+    const counts={}, fallback={};
+    (cat||[]).forEach(o=>{ const k=o.category||'Misc'; counts[k]=(counts[k]||0)+1; if(!fallback[k]&&o.image_url) fallback[k]=o.image_url; });
+    VAULT_CATS=Object.keys(counts).sort();
+    if(!VAULT_CATS.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No category in the catalog yet.</div>'; return; }
+    box.innerHTML=VAULT_CATS.map((c,i)=>{
+      const cur=S['vault_img_'+c]||'';
+      const thumb=cur||fallback[c]||'';
+      return '<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px">'
+        + '<div style="width:52px;height:52px;flex-shrink:0;border-radius:8px;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center">'
+        +   (thumb?'<img id="vi-thumb-'+i+'" src="'+esc(thumb)+'" style="width:100%;height:100%;object-fit:cover"'
+              +' onerror="this.style.display=\'none\'"/>':'<span style="opacity:.4">📦</span>')
+        + '</div>'
+        + '<div style="flex:1">'
+        +   '<label style="margin-top:0">'+esc(c)+' <span style="color:var(--text-dim);font-weight:400">· '+counts[c]+' items'+(cur?'':' · auto')+'</span></label>'
+        +   '<input type="text" id="vi-'+i+'" value="'+esc(cur)+'" placeholder="https://res.cloudinary.com/... (leave empty = automatic)"'
+        +     ' oninput="const t=document.getElementById(\'vi-thumb-'+i+'\'); if(t&&this.value.trim()){t.src=this.value.trim();t.style.display=\'\';}"/>'
+        + '</div></div>';
+    }).join('');
+  }catch(e){
+    box.innerHTML='<div style="color:var(--red);font-size:.85rem">Load error: '+esc(e.message)+'</div>';
+  }
+}
+async function saveVaultImages(){
+  const rows=VAULT_CATS.map((c,i)=>({key:'vault_img_'+c, value:(document.getElementById('vi-'+i).value||'').trim()}));
+  rows.push({key:'awaiting_img', value:(document.getElementById('vi-await').value||'').trim()});
+  const {error}=await sb.from('site_settings').upsert(rows);
+  if(error){ showMsg('vaultimg-msg',error.message,false); return; }
+  showMsg('vaultimg-msg','Vault images saved! ✓',true);
+  loadVaultImages();
+}
+// ── Page hero banners ──
+const HERO_PAGES=['index','wiki','story','map','database','guides','news','trades','arcade'];
+async function loadHeroImages(){
+  try{
+    const {data}=await sb.from('site_settings').select('key,value');
+    const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
+    HERO_PAGES.forEach(p=>{ const el=document.getElementById('he-'+p); if(el) el.value=S['hero_img_'+p]||''; });
+  }catch(e){}
+}
+async function saveHeroImages(){
+  const rows=HERO_PAGES.map(p=>({key:'hero_img_'+p, value:document.getElementById('he-'+p).value.trim()}));
+  const {error}=await sb.from('site_settings').upsert(rows);
+  if(error){ showMsg('hero-msg',error.message,false); return; }
+  showMsg('hero-msg','Page banners saved! ✓',true);
+}
+// ── Wiki hub images ──
+async function loadWikiHubImages(){
+  try{
+    const {data}=await sb.from('site_settings').select('key,value');
+    const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
+    ['games','characters','weapons','creatures','planets','vehicles','lore'].forEach(k=>{
+      const el=document.getElementById('wi-'+k); if(el) el.value=S['wiki_img_'+k]||'';
     });
-
-    // ---- Hero: add the logo above the eyebrow (only on the homepage hero) ----
-    const heroInner=document.querySelector('.hero-inner');
-    if(heroInner && !heroInner.querySelector('.rl-hero-logo')){
-      const wrap=document.createElement('div');
-      wrap.className='rl-hero-logo';
-      wrap.style.cssText='width:96px;height:96px;border-radius:22px;overflow:hidden;margin:0 auto 24px;box-shadow:0 10px 40px -8px rgba(123,79,212,.6);border:1px solid rgba(255,255,255,.1)';
-      wrap.classList.add('rl-glow');
-      wrap.innerHTML='<img src="'+LOGO+'" alt="Ratchet Legacy" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.display=\'none\'"/>';
-      heroInner.insertBefore(wrap, heroInner.firstChild);
-    }
-
-    // ---- Footer: add the logo above the foot-logo text ----
-    document.querySelectorAll('.foot-logo').forEach(fl=>{
-      if(fl.querySelector('.rl-foot-logo')) return;
-      const img=document.createElement('div');
-      img.className='rl-foot-logo';
-      img.style.cssText='width:52px;height:52px;border-radius:12px;overflow:hidden;margin:0 auto 12px;opacity:.9';
-      img.innerHTML='<img src="'+LOGO+'" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.display=\'none\'"/>';
-      fl.parentNode.insertBefore(img, fl);
-    });
-
-    // ---- Scroll reveal: mark sensible blocks, then observe ----
-    const targets=document.querySelectorAll(
-      'section, .uni-card, .app-show, .stats-band, .trade-box, .about, '+
-      '.game, .lore-card, .how-step, .listing, .guide-card, .chapter, .sec-head'
-    );
-    targets.forEach(t=>{ if(!t.closest('.hero')) t.classList.add('reveal'); });
-
-    if('IntersectionObserver' in window){
-      const io=new IntersectionObserver((entries)=>{
-        entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-      },{threshold:0.08, rootMargin:'0px 0px -40px 0px'});
-      targets.forEach(t=>io.observe(t));
-      // safety: reveal anything still hidden after 2.5s
-      setTimeout(()=>document.querySelectorAll('.reveal:not(.in)').forEach(el=>{
-        if(el.getBoundingClientRect().top < window.innerHeight) el.classList.add('in');
-      }),2500);
-    } else {
-      targets.forEach(t=>t.classList.add('in'));
-    }
-
-    // ---- Homepage: fill universe cards with real images from the database ----
-    injectUniverseImages();
-    injectHeroImage();
-    buildMobileMenu();
-    injectAppCarousel();
-    updateCatalogCount();
-  });
-
-  async function updateCatalogCount(){
-    const els=document.querySelectorAll('.rl-count');
-    if(!els.length || !window.supabase) return;
-    try{
-      const sb=window.supabase.createClient(
-        'https://ihucxnmqnhevfvlamgwc.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU'
-      );
-      const {count}=await sb.from('catalog').select('*',{count:'exact',head:true});
-      if(count!=null){ els.forEach(e=>{ e.textContent=count; }); }
-    }catch(e){}
-  }
-
-  async function injectAppCarousel(){
-    const screen=document.getElementById('app-carousel-screen');
-    if(!screen || !window.supabase) return;
-    try{
-      const sb=window.supabase.createClient(
-        'https://ihucxnmqnhevfvlamgwc.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU'
-      );
-      // Try the dedicated table first (unlimited), fall back to old settings keys
-      let shots=[];
-      const {data:tbl}=await sb.from('app_screenshots').select('image_url').order('sort_order');
-      if(tbl && tbl.length){ shots=tbl.map(r=>r.image_url).filter(u=>u&&u.trim()); }
-      else {
-        const {data}=await sb.from('site_settings').select('key,value').in('key',['app_shot_1','app_shot_2','app_shot_3','app_shot_4','app_shot_5']);
-        if(data){ const S={}; data.forEach(r=>{ S[r.key]=r.value; }); shots=['app_shot_1','app_shot_2','app_shot_3','app_shot_4','app_shot_5'].map(k=>S[k]).filter(u=>u&&u.trim()); }
-      }
-      if(!shots.length) return; // keep the mockup if no screenshots
-      // replace phone content with a carousel
-      const st=document.createElement('style');
-      st.textContent='#app-carousel-screen{padding:0!important;overflow:hidden;position:relative;background:#05060c}'
-        +'.ac-track{display:flex;transition:transform .5s cubic-bezier(.3,.7,.3,1);height:100%}'
-        +'.ac-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#05060c}'
-        +'.ac-slide img{width:100%;height:100%;object-fit:contain;display:block}'
-        +'.ac-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;gap:6px;justify-content:center;z-index:2}'
-        +'.ac-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.4)}'
-        +'.ac-dot.on{background:#fff;width:18px;border-radius:100px}';
-      document.head.appendChild(st);
-      screen.innerHTML='<div class="ac-track" id="ac-track">'
-        + shots.map(u=>'<div class="ac-slide"><img src="'+u+'" alt=""/></div>').join('')
-        + '</div><div class="ac-dots" id="ac-dots">'
-        + shots.map((_,i)=>'<div class="ac-dot'+(i===0?' on':'')+'"></div>').join('')
-        + '</div>';
-      let idx=0;
-      setInterval(()=>{
-        idx=(idx+1)%shots.length;
-        document.getElementById('ac-track').style.transform='translateX(-'+(idx*100)+'%)';
-        document.querySelectorAll('#ac-dots .ac-dot').forEach((d,i)=>d.classList.toggle('on',i===idx));
-      }, 2800);
-    }catch(e){}
-  }
-
-  function buildMobileMenu(){
-    const nav=document.querySelector('.nav');
-    const links=document.querySelector('.nav-links');
-    if(!nav || !links || document.querySelector('.rl-burger')) return;
-    // burger button
-    const burger=document.createElement('button');
-    burger.className='rl-burger'; burger.setAttribute('aria-label','Menu'); burger.innerHTML='☰';
-    nav.appendChild(burger);
-    // overlay menu
-    const menu=document.createElement('div');
-    menu.className='rl-mobile-menu';
-    let html='<button class="rl-mobile-close" aria-label="Close">✕</button>';
-    links.querySelectorAll('a').forEach(a=>{
-      const cls = a.classList.contains('nav-cta') ? 'rl-mm-cta' : (a.classList.contains('nav-insta-btn') ? 'rl-mm-insta' : '');
-      let label=a.textContent.trim();
-      if(a.classList.contains('nav-insta-btn')) label='📸 Instagram';
-      html+='<a href="'+a.getAttribute('href')+'"'+(a.target?' target="'+a.target+'"':'')+(cls?' class="'+cls+'"':'')+'>'+label+'</a>';
-    });
-    menu.innerHTML=html;
-    document.body.appendChild(menu);
-    burger.addEventListener('click',()=>{ menu.classList.add('open'); document.body.style.overflow='hidden'; });
-    menu.querySelector('.rl-mobile-close').addEventListener('click',()=>{ menu.classList.remove('open'); document.body.style.overflow=''; });
-    menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{ menu.classList.remove('open'); document.body.style.overflow=''; }));
-  }
-
-  async function injectHeroImage(){
-    const hero=document.querySelector('.page-hero, .hero');
-    if(!hero || !window.supabase) return;
-    // page key from filename (index, wiki, story, news, guides, trades, database, map, arcade)
-    let page=(location.pathname.split('/').pop()||'index.html').replace('.html','');
-    if(!page) page='index';
-    try{
-      const sb=window.supabase.createClient(
-        'https://ihucxnmqnhevfvlamgwc.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU'
-      );
-      const {data}=await sb.from('site_settings').select('value').eq('key','hero_img_'+page).maybeSingle();
-      const url=data&&data.value;
-      if(url){
-        hero.style.backgroundImage='linear-gradient(to bottom,rgba(10,11,20,.72),rgba(10,11,20,.92)),url('+url+')';
-        hero.style.backgroundSize='cover';
-        hero.style.backgroundPosition='center';
-      }
-    }catch(e){}
-  }
-
-  async function injectUniverseImages(){
-    if(!window.supabase) return;
-    try{
-      const sb=window.supabase.createClient(
-        'https://ihucxnmqnhevfvlamgwc.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU'
-      );
-      const {data}=await sb.from('site_settings').select('key,value');
-      if(!data) return;
-      const S={}; data.forEach(r=>{ S[r.key]=r.value; });
-      const cards=document.querySelectorAll('.uni-card');
-      if(S.home_img_games && cards[0]) setCardBg(cards[0], S.home_img_games);
-      if(S.home_img_characters && cards[1]) setCardBg(cards[1], S.home_img_characters);
-      if(S.home_img_lore && cards[2]) setCardBg(cards[2], S.home_img_lore);
-      // About image
-      const aboutLogo=document.getElementById('about-logo');
-      if(S.home_img_about && aboutLogo){
-        aboutLogo.textContent='';
-        aboutLogo.innerHTML='<img src="'+S.home_img_about+'" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.textContent=\'🦊\'"/>';
-      }
-      // Instagram feed capture in About
-      const feedLink=document.getElementById('about-insta-feed');
-      const feedImg=document.getElementById('about-insta-img');
-      if(S.about_insta_feed && feedLink && feedImg){
-        feedImg.src=S.about_insta_feed;
-        feedLink.style.display='block';
-      }
-      // Deux visuels supplementaires, geres depuis l'admin
-      [1,2].forEach(function(n){
-        const link=document.getElementById('about-extra-'+n);
-        const img=document.getElementById('about-extra-'+n+'-img');
-        const cap=document.getElementById('about-extra-'+n+'-cap');
-        const src=S['about_extra_'+n+'_img'];
-        if(!src || !link || !img) return;
-        img.src=src;
-        const href=S['about_extra_'+n+'_url'];
-        if(href){ link.href=href; } else { link.removeAttribute('href'); link.style.cursor='default'; }
-        const label=S['about_extra_'+n+'_cap'];
-        if(cap) cap.textContent=label||'';
-        link.style.display='block';
-      });
-    }catch(e){ /* silent */ }
-  }
-  function setCardBg(card, url){
-    const shade=card.querySelector('.shade');
-    card.style.backgroundImage='linear-gradient(to top,rgba(10,11,20,.95) 10%,rgba(10,11,20,.4) 60%,rgba(10,11,20,.2)),url('+url+')';
-    card.style.backgroundSize='cover';
-    card.style.backgroundPosition='center';
-    const ic=card.querySelector('.ic'); if(ic) ic.style.opacity='.5';
-  }
-})();
-
-
-/* ── Bouton retour : revenir a la page precedente ──────────────────
-   Les liens .back-home pointaient tous vers index.html. On rend la main
-   a l'historique quand on vient d'une autre page du site, et on garde
-   index.html comme repli (arrivee directe, lien externe, onglet neuf). */
-(function(){
-  function wireBack(){
-    document.querySelectorAll('.back-home').forEach(function(a){
-      if(a.dataset.backWired) return;
-      a.dataset.backWired='1';
-      var ref=document.referrer||'';
-      var sameSite=ref && ref.indexOf(location.origin)===0 && ref!==location.href;
-      if(sameSite){
-        a.textContent='\u2190 Back';
-        a.addEventListener('click',function(e){ e.preventDefault(); history.back(); });
-      }
-    });
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wireBack);
-  else wireBack();
-})();
-
-
-/* ── Signaler une erreur (pages redactionnelles) ───────────────────
-   Wiki, Story, Guides et News tapent dans des tables differentes du
-   catalogue : pas de formulaire structure ici, juste un contact.
-   Fenetre avec le lien mail pre-rempli ET l'adresse copiable, parce
-   qu'un mailto: ne mene nulle part sans client mail configure. */
-(function(){
-  var MAIL='ratchetlegacy@gmail.com';
-  var PAGES={'wiki.html':'Wiki','story.html':'Story','guides.html':'Guides','news.html':'News'};
-  var page=(location.pathname.split('/').pop()||'index.html');
-  var label=PAGES[page];
-  if(!label) return;
-
-  function subject(){ return encodeURIComponent('[Ratchet Legacy] Correction - '+label); }
-  function body(){ return encodeURIComponent('Page : '+location.href+'\n\nWhat should be corrected:\n'); }
-
-  function openBox(){
-    var ov=document.createElement('div');
-    ov.style.cssText='position:fixed;inset:0;z-index:900;background:rgba(5,6,12,.88);display:flex;align-items:center;justify-content:center;padding:20px';
-    ov.innerHTML='<div style="max-width:380px;width:100%;background:#10121F;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:24px;font-family:Inter,sans-serif;color:#EEF0F8">'
-      + '<div style="font-size:1.6rem;text-align:center;margin-bottom:8px">\u270f\ufe0f</div>'
-      + '<h3 style="font-family:Orbitron,sans-serif;font-size:1rem;text-align:center;margin:0 0 8px">Spotted a mistake?</h3>'
-      + '<p style="font-size:.82rem;color:#B8BED4;text-align:center;line-height:1.6;margin:0 0 16px">This page is written by hand \u2014 tell us what\u2019s wrong and it gets fixed.</p>'
-      + '<a href="mailto:'+MAIL+'?subject='+subject()+'&body='+body()+'" style="display:block;text-align:center;background:linear-gradient(135deg,#7B4FD4,#FF6B1A);color:#fff;border-radius:10px;padding:12px;font-weight:700;text-decoration:none;margin-bottom:8px">\u2709\ufe0f Open my mail app</a>'
-      + '<button id="rl-copy-mail" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#B8BED4;border-radius:10px;padding:11px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;margin-bottom:12px">\ud83d\udccb Copy '+MAIL+'</button>'
-      + '<button id="rl-close-mail" style="width:100%;background:none;border:none;color:#8B92AD;padding:6px;font-size:.8rem;cursor:pointer;font-family:Inter,sans-serif">Close</button>'
-      + '</div>';
-    ov.addEventListener('click',function(e){ if(e.target===ov) document.body.removeChild(ov); });
-    document.body.appendChild(ov);
-    ov.querySelector('#rl-close-mail').onclick=function(){ document.body.removeChild(ov); };
-    ov.querySelector('#rl-copy-mail').onclick=function(){
-      var btn=this;
-      (navigator.clipboard ? navigator.clipboard.writeText(MAIL) : Promise.reject())
-        .then(function(){ btn.textContent='\u2713 Copied'; })
-        .catch(function(){ btn.textContent=MAIL; });
+  }catch(e){}
+}
+async function saveWikiHubImages(){
+  const rows=['games','characters','weapons','creatures','planets','vehicles','lore'].map(k=>
+    ({key:'wiki_img_'+k, value:document.getElementById('wi-'+k).value.trim()}));
+  const {error}=await sb.from('site_settings').upsert(rows);
+  if(error){ showMsg('wikihub-msg',error.message,false); return; }
+  showMsg('wikihub-msg','Wiki hub images saved! ✓',true);
+}
+// ── Wiki entries ──
+let _WE=[];
+async function loadWikiAdmin(){
+  const {data,error}=await sb.from('site_wiki_entries').select('*').order('type').order('sort_order').order('name');
+  if(error){ document.getElementById('we-list').innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  _WE=data||[];
+  renderWikiEntries();
+}
+function renderWikiEntries(){
+  const t=document.getElementById('we-filter').value;
+  const list=_WE.filter(e=>e.type===t);
+  const box=document.getElementById('we-list');
+  if(!list.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No entry yet.</div>'; return; }
+  box.innerHTML=list.map(e=>
+    `<div class="guide-row">
+      <span class="gi">${e.image_url?'🖼️':'📦'}</span>
+      <div class="gt"><b>${esc(e.name)}</b><span>${esc(e.subtitle||'—')}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editWikiById('${esc(e.id)}')">Edit</button>
+      <button class="btn btn-danger" onclick="delWiki('${esc(e.id)}')">Del</button>
+    </div>`
+  ).join('');
+}
+function openWikiForm(){
+  ['we-id','we-name','we-subtitle','we-desc','we-img','we-order','we-galaxy','we-dimension','we-mainloc','we-inhabitants','we-first','we-notloc','we-notev'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('we-type').value=document.getElementById('we-filter').value;
+  document.getElementById('we-msg').style.display='none';
+  document.getElementById('we-modal-title').textContent='📚 Add entry';
+  document.getElementById('we-modal').classList.add('open');
+}
+function closeWikiForm(){ document.getElementById('we-modal').classList.remove('open'); }
+function editWikiById(id){
+  const e=_WE.find(x=>String(x.id)===String(id)); if(!e) return;
+  document.getElementById('we-id').value=e.id;
+  document.getElementById('we-type').value=e.type||'weapon';
+  document.getElementById('we-name').value=e.name||'';
+  document.getElementById('we-subtitle').value=e.subtitle||'';
+  document.getElementById('we-desc').value=e.description||'';
+  document.getElementById('we-img').value=e.image_url||'';
+  document.getElementById('we-order').value=e.sort_order||'';
+  document.getElementById('we-galaxy').value=e.galaxy||'';
+  document.getElementById('we-dimension').value=e.dimension||'';
+  document.getElementById('we-mainloc').value=e.main_location||'';
+  document.getElementById('we-inhabitants').value=e.inhabitants||'';
+  document.getElementById('we-first').value=e.first_appearance||'';
+  document.getElementById('we-notloc').value=e.notable_locations||'';
+  document.getElementById('we-notev').value=e.notable_events||'';
+  document.getElementById('we-msg').style.display='none';
+  document.getElementById('we-modal-title').textContent='✏️ Edit entry';
+  document.getElementById('we-modal').classList.add('open');
+}
+async function saveWikiEntry(){
+  try{
+    const id=document.getElementById('we-id').value;
+    const row={
+      type:document.getElementById('we-type').value,
+      name:document.getElementById('we-name').value.trim(),
+      subtitle:document.getElementById('we-subtitle').value.trim()||null,
+      description:document.getElementById('we-desc').value.trim()||null,
+      image_url:document.getElementById('we-img').value.trim()||null,
+      sort_order:parseInt(document.getElementById('we-order').value)||0,
+      galaxy:document.getElementById('we-galaxy').value.trim()||null,
+      dimension:document.getElementById('we-dimension').value.trim()||null,
+      main_location:document.getElementById('we-mainloc').value.trim()||null,
+      inhabitants:document.getElementById('we-inhabitants').value.trim()||null,
+      first_appearance:document.getElementById('we-first').value.trim()||null,
+      notable_locations:document.getElementById('we-notloc').value.trim()||null,
+      notable_events:document.getElementById('we-notev').value.trim()||null
     };
+    if(!row.name){ showMsg('we-msg','Name is required.',false); return; }
+    let error;
+    if(id){ ({error}=await sb.from('site_wiki_entries').update(row).eq('id',id)); }
+    else { ({error}=await sb.from('site_wiki_entries').insert([row])); }
+    if(error){ showMsg('we-msg','Error: '+error.message,false); return; }
+    showMsg('we-msg',id?'Entry updated! ✓':'Entry added! ✓',true);
+    document.getElementById('we-filter').value=row.type;
+    setTimeout(()=>{ closeWikiForm(); loadWikiAdmin(); }, 900);
+  }catch(e){
+    alert('Save failed: '+e.message);
   }
+}
+async function delWiki(id){
+  if(!confirm('Delete this entry?')) return;
+  const {error}=await sb.from('site_wiki_entries').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadWikiAdmin();
+}
+// ── Planet locations ──
+let _LOCS=[], _PLANETS=[];
+async function loadLocations(){
+  const [locsRes, planetsRes]=await Promise.all([
+    sb.from('site_locations').select('*').order('sort_order').order('name'),
+    sb.from('site_wiki_entries').select('id,name').eq('type','planet').order('name')
+  ]);
+  _LOCS=locsRes.data||[];
+  _PLANETS=planetsRes.data||[];
+  // fill planet dropdowns
+  const opts='<option value="">— select planet —</option>'+_PLANETS.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  const formSel=document.getElementById('loc-planet'); if(formSel) formSel.innerHTML=opts;
+  const filterSel=document.getElementById('loc-planet-filter');
+  if(filterSel){ const cur=filterSel.value; filterSel.innerHTML='<option value="">All planets</option>'+_PLANETS.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join(''); filterSel.value=cur; }
+  renderLocs();
+}
+function planetName(id){ const p=_PLANETS.find(x=>String(x.id)===String(id)); return p?p.name:'—'; }
+function renderLocs(){
+  const f=document.getElementById('loc-planet-filter').value;
+  const list=_LOCS.filter(l=>!f||String(l.planet_id)===String(f));
+  const box=document.getElementById('loc-list');
+  if(!list.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No location yet.</div>'; return; }
+  box.innerHTML=list.map(l=>
+    `<div class="guide-row">
+      <span class="gi">${l.image_url?'🖼️':'📍'}</span>
+      <div class="gt"><b>${esc(l.name)}</b><span>${esc(l.loc_type||'')} · ${esc(planetName(l.planet_id))}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editLocById('${esc(l.id)}')">Edit</button>
+      <button class="btn btn-danger" onclick="delLoc('${esc(l.id)}')">Del</button>
+    </div>`
+  ).join('');
+}
+function openLocForm(){
+  ['loc-id','loc-name','loc-type','loc-desc','loc-img','loc-order'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('loc-planet').value=document.getElementById('loc-planet-filter').value||'';
+  document.getElementById('loc-msg').style.display='none';
+  document.getElementById('loc-modal-title').textContent='📍 Add location';
+  document.getElementById('loc-modal').classList.add('open');
+}
+function closeLocForm(){ document.getElementById('loc-modal').classList.remove('open'); }
+function editLocById(id){
+  const l=_LOCS.find(x=>String(x.id)===String(id)); if(!l) return;
+  document.getElementById('loc-id').value=l.id;
+  document.getElementById('loc-planet').value=l.planet_id||'';
+  document.getElementById('loc-name').value=l.name||'';
+  document.getElementById('loc-type').value=l.loc_type||'';
+  document.getElementById('loc-desc').value=l.description||'';
+  document.getElementById('loc-img').value=l.image_url||'';
+  document.getElementById('loc-order').value=l.sort_order||'';
+  document.getElementById('loc-msg').style.display='none';
+  document.getElementById('loc-modal-title').textContent='✏️ Edit location';
+  document.getElementById('loc-modal').classList.add('open');
+}
+async function saveLoc(){
+  const id=document.getElementById('loc-id').value;
+  const row={
+    planet_id:document.getElementById('loc-planet').value||null,
+    name:document.getElementById('loc-name').value.trim(),
+    loc_type:document.getElementById('loc-type').value.trim()||null,
+    description:document.getElementById('loc-desc').value.trim()||null,
+    image_url:document.getElementById('loc-img').value.trim()||null,
+    sort_order:parseInt(document.getElementById('loc-order').value)||0
+  };
+  if(!row.name){ showMsg('loc-msg','Name is required.',false); return; }
+  if(!row.planet_id){ showMsg('loc-msg','Please pick a planet.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('site_locations').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('site_locations').insert([row])); }
+  if(error){ showMsg('loc-msg','Error: '+error.message,false); return; }
+  showMsg('loc-msg',id?'Location updated! ✓':'Location added! ✓',true);
+  setTimeout(()=>{ closeLocForm(); loadLocations(); }, 800);
+}
+async function delLoc(id){
+  if(!confirm('Delete this location?')) return;
+  const {error}=await sb.from('site_locations').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadLocations();
+}
+// ── Lore ──
+async function loadLore(){
+  const box=document.getElementById('lore-list');
+  const {data,error}=await sb.from('site_lore').select('*').order('sort_order');
+  if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No events yet.</div>'; return; }
+  box.innerHTML=data.map(l=>
+    `<div class="guide-row">
+      <span class="gi">${esc(l.icon||'📖')}</span>
+      <div class="gt"><b>${esc(l.title)}</b><span>${esc(l.year_label||'—')} · order ${l.sort_order||0}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editLoreById('${esc(l.id)}')">Edit</button>
+      <button class="btn btn-danger" onclick="delLore('${esc(l.id)}')">Del</button>
+    </div>`
+  ).join('');
+  window._LORE=data;
+}
+function openLoreForm(){
+  ['l-id','l-year','l-title','l-icon','l-desc','l-order'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('lore-msg').style.display='none';
+  document.getElementById('lore-modal-title').textContent='📖 Add event';
+  document.getElementById('lore-modal').classList.add('open');
+}
+function closeLoreForm(){ document.getElementById('lore-modal').classList.remove('open'); }
+function editLoreById(id){
+  const l=(window._LORE||[]).find(x=>String(x.id)===String(id)); if(!l) return;
+  document.getElementById('l-id').value=l.id;
+  document.getElementById('l-year').value=l.year_label||'';
+  document.getElementById('l-title').value=l.title||'';
+  document.getElementById('l-icon').value=l.icon||'';
+  document.getElementById('l-desc').value=l.description||'';
+  document.getElementById('l-order').value=l.sort_order||'';
+  document.getElementById('lore-msg').style.display='none';
+  document.getElementById('lore-modal-title').textContent='✏️ Edit event';
+  document.getElementById('lore-modal').classList.add('open');
+}
+async function saveLore(){
+  const id=document.getElementById('l-id').value;
+  const row={
+    year_label:document.getElementById('l-year').value.trim()||null,
+    title:document.getElementById('l-title').value.trim(),
+    icon:document.getElementById('l-icon').value.trim()||'✨',
+    description:document.getElementById('l-desc').value.trim()||null,
+    sort_order:parseInt(document.getElementById('l-order').value)||0
+  };
+  if(!row.title){ showMsg('lore-msg','Title is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('site_lore').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('site_lore').insert([row])); }
+  if(error){ showMsg('lore-msg',error.message,false); return; }
+  showMsg('lore-msg',id?'Event updated! ✓':'Event added! ✓',true);
+  setTimeout(()=>{ closeLoreForm(); loadLore(); }, 700);
+}
+async function delLore(id){
+  if(!confirm('Delete this event?')) return;
+  const {error}=await sb.from('site_lore').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadLore();
+}
+// ── News ──
+async function loadNews(){
+  const box=document.getElementById('news-list');
+  const {data,error}=await sb.from('site_news').select('*').order('sort_order').order('created_at',{ascending:false});
+  if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No news yet.</div>'; return; }
+  box.innerHTML=data.map(n=>
+    `<div class="guide-row">
+      <span class="gi">${n.image_url?'🖼️':'📰'}</span>
+      <div class="gt"><b>${esc(n.title)}</b><span>${esc(n.source||'—')} · ${esc(n.date_label||'')}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editNewsById('${esc(n.id)}')">Edit</button>
+      <button class="btn btn-danger" onclick="delNews('${esc(n.id)}')">Del</button>
+    </div>`
+  ).join('');
+  window._NEWS=data;
+}
+function openNewsForm(){
+  ['n-id','n-title','n-summary','n-source','n-url','n-image','n-date'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('news-msg').style.display='none';
+  document.getElementById('news-modal-title').textContent='📰 Add news';
+  document.getElementById('news-modal').classList.add('open');
+}
+function closeNewsForm(){ document.getElementById('news-modal').classList.remove('open'); }
+function editNewsById(id){
+  const n=(window._NEWS||[]).find(x=>String(x.id)===String(id)); if(!n) return;
+  document.getElementById('n-id').value=n.id;
+  document.getElementById('n-title').value=n.title||'';
+  document.getElementById('n-summary').value=n.summary||'';
+  document.getElementById('n-source').value=n.source||'';
+  document.getElementById('n-url').value=n.url||'';
+  document.getElementById('n-image').value=n.image_url||'';
+  document.getElementById('n-date').value=n.date_label||'';
+  document.getElementById('news-msg').style.display='none';
+  document.getElementById('news-modal-title').textContent='✏️ Edit news';
+  document.getElementById('news-modal').classList.add('open');
+}
+async function saveNews(){
+  const id=document.getElementById('n-id').value;
+  const row={
+    title:document.getElementById('n-title').value.trim(),
+    summary:document.getElementById('n-summary').value.trim()||null,
+    source:document.getElementById('n-source').value.trim()||null,
+    url:document.getElementById('n-url').value.trim(),
+    image_url:document.getElementById('n-image').value.trim()||null,
+    date_label:document.getElementById('n-date').value.trim()||null
+  };
+  if(!row.title||!row.url){ showMsg('news-msg','Title and link are required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('site_news').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('site_news').insert([row])); }
+  if(error){ showMsg('news-msg',error.message,false); return; }
+  showMsg('news-msg',id?'News updated! ✓':'News added! ✓',true);
+  setTimeout(()=>{ closeNewsForm(); loadNews(); }, 700);
+}
+async function delNews(id){
+  if(!confirm('Delete this news item?')) return;
+  const {error}=await sb.from('site_news').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadNews();
+}
+// ── Admin section menu ──
+const ADMIN_SECTIONS=[
+  {key:'wiki', ic:'📚', lbl:'Wiki', match:['Wiki entries','Planet locations','Lore','Characters']},
+  {key:'games', ic:'🎮', lbl:'Games', match:['Games']},
+  {key:'catalog', ic:'🗃️', lbl:'Catalog', match:['Catalog objects']},
+  {key:'media', ic:'📗', lbl:'Guides & News', match:['Guides','News']},
+  {key:'trades', ic:'🤝', lbl:'Trades', match:['Trade listings']},
+  {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Vault category images','Page banners','Arcade Memory','App screenshots']}
+];
+function buildAdminMenu(){
+  const menu=document.getElementById('admin-menu');
+  if(!menu) return;
+  // tag each card with its section based on its <h2> text
+  document.querySelectorAll('#admin-area .card').forEach(card=>{
+    if(card.id==='login-card') return;
+    const h=card.querySelector('h2'); if(!h) return;
+    const txt=h.textContent;
+    const sec=ADMIN_SECTIONS.find(s=>s.match.some(m=>txt.includes(m)));
+    card.dataset.section = sec?sec.key:'other';
+  });
+  menu.innerHTML=ADMIN_SECTIONS.map(s=>
+    `<div class="admin-menu-card" onclick="showAdminSection('${s.key}')"><span class="amc-ic">${s.ic}</span><span class="amc-lbl">${s.lbl}</span></div>`
+  ).join('');
+  // start with only the menu visible (no section open)
+  document.body.classList.add('menu-only');
+  document.body.classList.remove('section-view');
+}
+function showAdminSection(key){
+  document.body.classList.remove('menu-only');
+  document.body.classList.add('section-view');
+  document.querySelectorAll('#admin-area .card').forEach(c=>{
+    const inSec = c.dataset.section===key;
+    c.classList.toggle('sec-visible', inSec);
+    if(inSec){ c.classList.add('collapsed'); setupCardToggle(c); }
+  });
+  document.querySelectorAll('.admin-menu-card').forEach((el,i)=>{
+    el.classList.toggle('active', ADMIN_SECTIONS[i] && ADMIN_SECTIONS[i].key===key);
+  });
+  if(!document.getElementById('admin-back')){
+    const b=document.createElement('button'); b.id='admin-back'; b.className='admin-back-menu';
+    b.textContent='← All sections'; b.onclick=showAllSections;
+    document.getElementById('admin-menu').insertAdjacentElement('afterend', b);
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function setupCardToggle(card){
+  const h=card.querySelector('h2'); if(!h || h.dataset.toggle) return;
+  h.dataset.toggle='1';
+  h.style.cursor='pointer';
+  // wrap the h2 header row so clicking it expands/collapses
+  const headerRow = h.closest('div[style*="justify-content:space-between"]') || h;
+  (headerRow===h?h:headerRow).addEventListener('click',(e)=>{
+    // don't toggle when clicking the + Add button
+    if(e.target.closest('.btn')) return;
+    card.classList.toggle('collapsed');
+  });
+}
+function showAllSections(){
+  document.body.classList.remove('section-view');
+  document.body.classList.add('menu-only');
+  document.querySelectorAll('.admin-menu-card').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('#admin-area .card').forEach(c=>c.classList.remove('collapsed'));
+  const b=document.getElementById('admin-back'); if(b) b.remove();
+}
+// ── Homepage images ──
+async function loadHomeImages(){
+  try{
+    const {data}=await sb.from('site_settings').select('key,value');
+    const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
+    document.getElementById('hi-games').value=S.home_img_games||'';
+    document.getElementById('hi-characters').value=S.home_img_characters||'';
+    document.getElementById('hi-lore').value=S.home_img_lore||'';
+    document.getElementById('hi-about').value=S.home_img_about||'';
+    document.getElementById('hi-instafeed').value=S.about_insta_feed||'';
+    [1,2].forEach(function(n){
+      document.getElementById('hi-x'+n+'-img').value=S['about_extra_'+n+'_img']||'';
+      document.getElementById('hi-x'+n+'-url').value=S['about_extra_'+n+'_url']||'';
+      document.getElementById('hi-x'+n+'-cap').value=S['about_extra_'+n+'_cap']||'';
+    });
+  }catch(e){}
+}
+async function saveHomeImages(){
+  const rows=[
+    {key:'home_img_games',value:document.getElementById('hi-games').value.trim()},
+    {key:'home_img_characters',value:document.getElementById('hi-characters').value.trim()},
+    {key:'home_img_lore',value:document.getElementById('hi-lore').value.trim()},
+    {key:'home_img_about',value:document.getElementById('hi-about').value.trim()},
+    {key:'about_insta_feed',value:document.getElementById('hi-instafeed').value.trim()},
+    {key:'about_extra_1_img',value:document.getElementById('hi-x1-img').value.trim()},
+    {key:'about_extra_1_url',value:document.getElementById('hi-x1-url').value.trim()},
+    {key:'about_extra_1_cap',value:document.getElementById('hi-x1-cap').value.trim()},
+    {key:'about_extra_2_img',value:document.getElementById('hi-x2-img').value.trim()},
+    {key:'about_extra_2_url',value:document.getElementById('hi-x2-url').value.trim()},
+    {key:'about_extra_2_cap',value:document.getElementById('hi-x2-cap').value.trim()}
+  ];
+  const {error}=await sb.from('site_settings').upsert(rows);
+  if(error){ showMsg('home-msg',error.message,false); return; }
+  showMsg('home-msg','Homepage images saved! ✓',true);
+}
+async function loadGuides(){
+  const box=document.getElementById('guides-list');
+  const {data,error}=await sb.from('site_guides').select('*').order('sort_order').order('created_at');
+  if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No guides yet.</div>'; return; }
+  box.innerHTML=data.map(g=>
+    `<div class="guide-row">
+      <span class="gi">📗</span>
+      <div class="gt"><b>${esc(g.title)}</b><span>${esc(g.game||'—')}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick='editGuide(${JSON.stringify(g).replace(/'/g,"&#39;")})'>Edit</button>
+      <button class="btn btn-danger" onclick="delGuide('${g.id}')">Del</button>
+    </div>`
+  ).join('');
+}
+function openGuideForm(){
+  ['g-id','g-title','g-game','g-url','g-cover','g-coverpos'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('add-msg').style.display='none';
+  document.getElementById('guide-modal-title').textContent='📗 Add guide';
+  document.getElementById('guide-modal').classList.add('open');
+}
+function closeGuideForm(){ document.getElementById('guide-modal').classList.remove('open'); }
+function editGuide(g){
+  document.getElementById('g-id').value=g.id;
+  document.getElementById('g-title').value=g.title||'';
+  document.getElementById('g-game').value=g.game||'';
+  document.getElementById('g-url').value=g.pdf_url||'';
+  document.getElementById('g-cover').value=g.cover_url||'';
+  document.getElementById('g-coverpos').value=g.cover_pos||'center';
+  document.getElementById('add-msg').style.display='none';
+  document.getElementById('guide-modal-title').textContent='✏️ Edit guide';
+  document.getElementById('guide-modal').classList.add('open');
+}
+async function saveGuide(){
+  const id=document.getElementById('g-id').value;
+  const title=document.getElementById('g-title').value.trim();
+  const game=document.getElementById('g-game').value.trim();
+  const url=document.getElementById('g-url').value.trim();
+  const cover=document.getElementById('g-cover').value.trim()||null;
+  const coverpos=document.getElementById('g-coverpos').value||'center';
+  if(!title||!url){ showMsg('add-msg','Title and PDF link are required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('site_guides').update({title,game:game||null,pdf_url:url,cover_url:cover,cover_pos:coverpos}).eq('id',id)); }
+  else { ({error}=await sb.from('site_guides').insert([{title,game:game||null,pdf_url:url,cover_url:cover,cover_pos:coverpos}])); }
+  if(error){ showMsg('add-msg',error.message,false); return; }
+  showMsg('add-msg',id?'Guide updated! ✓':'Guide added! ✓',true);
+  setTimeout(()=>{ closeGuideForm(); loadGuides(); }, 700);
+}
+async function delGuide(id){
+  if(!confirm('Delete this guide?')) return;
+  const {error}=await sb.from('site_guides').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadGuides();
+}
+// ── Characters ──
+function showAdmin(){
+  document.getElementById('login-card').classList.add('hidden');
+  document.getElementById('admin-area').classList.remove('hidden');
+  buildAdminMenu();
+  loadHomeImages();
+  loadWikiHubImages();
+  loadVaultImages();
+  loadHeroImages();
+  loadAppShots();
+  loadMemImages();
+  loadWikiAdmin();
+  loadLocations();
+  loadLore();
+  loadNews();
+  loadGuides();
+  loadChars();
+  loadObjs();
+  loadTrades();
+  loadGamesAdmin();
+}
+async function loadChars(){
+  const box=document.getElementById('chars-list');
+  const {data,error}=await sb.from('site_characters').select('*').order('sort_order').order('name');
+  if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No characters yet.</div>'; return; }
+  box.innerHTML=data.map(c=>
+    `<div class="guide-row">
+      <span class="gi">${c.image_url?'🖼️':(esc(c.emoji||'🦊'))}</span>
+      <div class="gt"><b>${esc(c.name)}</b><span>${esc(c.role||'—')}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick='editChar(${JSON.stringify(c).replace(/'/g,"&#39;")})'>Edit</button>
+      <button class="btn btn-danger" onclick="delChar('${c.id}')">Delete</button>
+    </div>`
+  ).join('');
+}
+function openCharForm(){
+  clearCharForm();
+  document.getElementById('char-msg').style.display='none';
+  document.getElementById('char-modal-title').textContent='🦊 Add character';
+  document.getElementById('char-modal').classList.add('open');
+}
+function closeCharForm(){ document.getElementById('char-modal').classList.remove('open'); }
+function editChar(c){
+  document.getElementById('c-id').value=c.id;
+  document.getElementById('c-name').value=c.name||'';
+  document.getElementById('c-role').value=c.role||'';
+  document.getElementById('c-desc').value=c.description||'';
+  document.getElementById('c-img').value=c.image_url||'';
+  document.getElementById('c-emoji').value=c.emoji||'';
+  document.getElementById('c-category').value=c.category||'Hero';
+  document.getElementById('c-imgpos').value=c.img_pos||'center';
+  document.getElementById('c-species').value=c.species||'';
+  document.getElementById('c-height').value=c.height||'';
+  document.getElementById('c-age').value=c.age||'';
+  document.getElementById('c-homeworld').value=c.homeworld||'';
+  document.getElementById('c-first').value=c.first_appearance||'';
+  document.getElementById('c-weapons').value=c.weapons||'';
+  document.getElementById('c-quote').value=c.quote||'';
+  document.getElementById('c-voice').value=c.voice_actor||'';
+  document.getElementById('char-msg').style.display='none';
+  document.getElementById('char-modal-title').textContent='✏️ Edit character';
+  document.getElementById('char-modal').classList.add('open');
+}
+function clearCharForm(){
+  ['c-id','c-name','c-role','c-desc','c-img','c-emoji','c-species','c-height','c-age','c-homeworld','c-first','c-weapons','c-quote','c-voice'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-category').value='Hero';
+  document.getElementById('c-imgpos').value='center';
+}
+async function saveChar(){
+  const id=document.getElementById('c-id').value;
+  const row={
+    name:document.getElementById('c-name').value.trim(),
+    role:document.getElementById('c-role').value.trim()||null,
+    description:document.getElementById('c-desc').value.trim()||null,
+    image_url:document.getElementById('c-img').value.trim()||null,
+    emoji:document.getElementById('c-emoji').value.trim()||'🦊',
+    species:document.getElementById('c-species').value.trim()||null,
+    height:document.getElementById('c-height').value.trim()||null,
+    age:document.getElementById('c-age').value.trim()||null,
+    homeworld:document.getElementById('c-homeworld').value.trim()||null,
+    first_appearance:document.getElementById('c-first').value.trim()||null,
+    weapons:document.getElementById('c-weapons').value.trim()||null,
+    quote:document.getElementById('c-quote').value.trim()||null,
+    voice_actor:document.getElementById('c-voice').value.trim()||null,
+    category:document.getElementById('c-category').value||'Hero',
+    img_pos:document.getElementById('c-imgpos').value||'center'
+  };
+  if(!row.name){ showMsg('char-msg','Name is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('site_characters').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('site_characters').insert([row])); }
+  if(error){ showMsg('char-msg',error.message,false); return; }
+  showMsg('char-msg',id?'Character updated! ✓':'Character added! ✓',true);
+  setTimeout(()=>{ closeCharForm(); loadChars(); }, 700);
+}
+async function delChar(id){
+  if(!confirm('Delete this character?')) return;
+  const {error}=await sb.from('site_characters').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadChars();
+}
+// ── Catalog objects (table: catalog, same as the app) ──
+let ALL_OBJS=[];
+let objNavCat='', objNavPlat='', objNavReg='';
+const OBJ_ICON={'Game':'🎮','Console/Pack':'📦','Figure':'🎯','Plush':'🧸','Goodie':'🎁','Clothing':'👕','Print':'🖼️','Book':'📖','Guide':'📗','Media':'🎬','Misc':'📌'};
+function objQ(s){ return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function objPlatOf(o){ return (o.platform && o.platform!=='-') ? o.platform : '—'; }
+function objRegOf(o){ return o.region || '—'; }
 
-  function addButton(){
-    if(document.getElementById('rl-report-btn')) return;
-    var foot=document.querySelector('footer');
-    if(!foot) return;
-    var wrap=document.createElement('div');
-    wrap.style.cssText='text-align:center;padding:0 24px 30px';
-    wrap.innerHTML='<button id="rl-report-btn" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#8B92AD;border-radius:100px;padding:9px 20px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">\u270f\ufe0f Spotted a mistake on this page?</button>';
-    foot.parentNode.insertBefore(wrap,foot);
-    document.getElementById('rl-report-btn').onclick=openBox;
+async function loadObjs(){
+  const box=document.getElementById('objs-list');
+  try{
+    const {data,error}=await sb.from('catalog').select('*').order('category').order('sort_order').order('name');
+    if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">Load error: '+esc(error.message)+'</div>'; return; }
+    ALL_OBJS=data||[];
+    renderObjs();
+    loadPendingSales();
+    loadFixes();
+  }catch(e){
+    box.innerHTML='<div style="color:var(--red);font-size:.85rem">JS error: '+esc(e.message)+'</div>';
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addButton);
-  else addButton();
-})();
+}
+
+// ---- navigation : categorie > plateforme > region > objets ----
+function objShowCats(){ objNavCat=''; objNavPlat=''; objNavReg=''; renderObjs(); }
+function objOpenCat(c){ objNavCat=c; objNavPlat=''; objNavReg=''; renderObjs(); }
+function objOpenPlat(p){ objNavPlat=p; objNavReg=''; renderObjs(); }
+function objOpenReg(r){ objNavReg=r; renderObjs(); }
+
+function objCrumb(){
+  const box=document.getElementById('obj-crumb'); if(!box) return;
+  const btn=(lbl,fn)=>'<button type="button" class="btn btn-ghost" style="padding:5px 11px;font-size:.75rem" onclick="'+fn+'">'+lbl+'</button>';
+  const parts=[btn('🗂️ Categories','objShowCats()')];
+  if(objNavCat) parts.push(btn((OBJ_ICON[objNavCat]||'📦')+' '+esc(objNavCat), "objOpenCat('"+objQ(objNavCat)+"')"));
+  if(objNavPlat) parts.push(btn(esc(objNavPlat), "objOpenPlat('"+objQ(objNavPlat)+"')"));
+  if(objNavReg) parts.push('<span style="font-size:.75rem;color:var(--text-dim);padding:5px 2px">'+esc(objNavReg)+'</span>');
+  box.innerHTML=parts.join('<span style="color:var(--text-dim)">›</span>');
+}
+
+function objMenuCards(list, onClick){
+  return '<div class="admin-cards" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">'+list.map(it=>{
+    const bg=it.img?'background-image:linear-gradient(to top,rgba(10,11,20,.92),rgba(10,11,20,.3)),url('+esc(it.img)+');background-size:cover;background-position:center':'';
+    return '<div class="admin-card" style="cursor:pointer;min-height:118px;display:flex;align-items:flex-end;'+bg+'" onclick="'+onClick(it.key)+'">'
+      + '<div style="padding:12px">'
+      +   '<div style="font-size:1.5rem;margin-bottom:4px">'+(it.icon||'📦')+'</div>'
+      +   '<div style="font-weight:700;font-size:.85rem;color:#fff">'+esc(it.label)+'</div>'
+      +   '<div style="font-size:.68rem;color:rgba(255,255,255,.75);margin-top:2px">'+it.count+' item'+(it.count>1?'s':'')+'</div>'
+      + '</div></div>';
+  }).join('')+'</div>';
+}
+
+function objLevelCats(){
+  const counts={}, imgs={};
+  ALL_OBJS.forEach(o=>{ const k=o.category||'Misc'; counts[k]=(counts[k]||0)+1; if(!imgs[k]&&o.image_url) imgs[k]=o.image_url; });
+  const list=Object.keys(counts).sort().map(k=>({key:k,label:k,icon:OBJ_ICON[k]||'📦',count:counts[k],img:imgs[k]}));
+  document.getElementById('objs-list').innerHTML=objMenuCards(list, k=>"objOpenCat('"+objQ(k)+"')");
+}
+function objLevelPlats(){
+  const inCat=ALL_OBJS.filter(o=>(o.category||'Misc')===objNavCat);
+  const counts={}, imgs={};
+  inCat.forEach(o=>{ const k=objPlatOf(o); counts[k]=(counts[k]||0)+1; if(!imgs[k]&&o.image_url) imgs[k]=o.image_url; });
+  const keys=Object.keys(counts).sort();
+  if(keys.length<=1){ objNavPlat=keys[0]||'—'; objCrumb(); return objLevelRegs(); }
+  const list=keys.map(k=>({key:k,label:k==='—'?'(no platform)':k,icon:'🕹️',count:counts[k],img:imgs[k]}));
+  document.getElementById('objs-list').innerHTML=objMenuCards(list, k=>"objOpenPlat('"+objQ(k)+"')");
+}
+function objLevelRegs(){
+  const inSel=ALL_OBJS.filter(o=>(o.category||'Misc')===objNavCat && objPlatOf(o)===objNavPlat);
+  const counts={}, imgs={};
+  inSel.forEach(o=>{ const k=objRegOf(o); counts[k]=(counts[k]||0)+1; if(!imgs[k]&&o.image_url) imgs[k]=o.image_url; });
+  const keys=Object.keys(counts).sort();
+  if(keys.length<=1){ objNavReg=keys[0]||'—'; objCrumb(); return objLevelItems(); }
+  const list=keys.map(k=>({key:k,label:k==='—'?'(no region)':k,icon:'🌍',count:counts[k],img:imgs[k]}));
+  document.getElementById('objs-list').innerHTML=objMenuCards(list, k=>"objOpenReg('"+objQ(k)+"')");
+}
+function objLevelItems(){
+  const list=ALL_OBJS.filter(o=>(o.category||'Misc')===objNavCat && objPlatOf(o)===objNavPlat && objRegOf(o)===objNavReg);
+  const box=document.getElementById('objs-list');
+  box.innerHTML = list.length
+    ? '<div class="admin-cards">'+list.map(objCardHtml).join('')+'</div>'
+    : '<div style="color:var(--text-dim);font-size:.85rem">No object here.</div>';
+}
+
+function renderObjs(){
+  const q=(document.getElementById('obj-search').value||'').toLowerCase().trim();
+  const box=document.getElementById('objs-list');
+  const crumb=document.getElementById('obj-crumb');
+  if(q){
+    if(crumb) crumb.innerHTML='<span style="font-size:.75rem;color:var(--text-dim)">🔍 Searching the whole catalog — clear the field to go back to browsing</span>';
+    const list=ALL_OBJS.filter(o=>(o.name||'').toLowerCase().includes(q));
+    box.innerHTML = list.length
+      ? '<div class="admin-cards">'+list.slice(0,300).map(objCardHtml).join('')+'</div>'
+        + (list.length>300?'<div style="color:var(--text-dim);font-size:.75rem;text-align:center;padding:8px">Showing the first 300 of '+list.length+'.</div>':'')
+      : '<div style="color:var(--text-dim);font-size:.85rem">No object.</div>';
+    return;
+  }
+  objCrumb();
+  if(!objNavCat)  return objLevelCats();
+  if(!objNavPlat) return objLevelPlats();
+  if(!objNavReg)  return objLevelRegs();
+  return objLevelItems();
+}
+
+  const objCardHtml=(o)=>{
+    const cover=o.image_url
+      ? `<img src="${esc(o.image_url)}" style="width:100%;height:100%;object-fit:contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ac-ph" style="display:none">📦</span>`
+      : `<span class="ac-ph">📦</span>`;
+    return `<div class="admin-card" data-id="${esc(o.id)}">
+      <div class="ac-move">
+        <button type="button" onclick="event.stopPropagation();moveObj('${esc(o.id)}',-1)" title="Move up">▲</button>
+        <button type="button" onclick="event.stopPropagation();moveObj('${esc(o.id)}',1)" title="Move down">▼</button>
+      </div>
+      <div class="ac-cover">${cover}</div>
+      <div class="ac-body">
+        <div class="ac-name">${esc(o.name)}</div>
+        <div class="ac-meta">${esc([o.platform,o.edition,o.year].filter(Boolean).join(' · ')||o.category||'')}</div>
+      </div>
+      <div class="ac-actions">
+        <button type="button" class="btn btn-ghost" style="flex:1;padding:6px;font-size:.72rem" onclick="editObjById('${esc(o.id)}')">Edit</button>
+        <button type="button" class="btn btn-ghost" style="padding:6px 10px;font-size:.72rem" title="Duplicate" onclick="dupObjById('${esc(o.id)}')">⧉</button>
+        <button type="button" class="btn btn-danger" style="padding:6px 10px" onclick="delObj('${esc(o.id)}')">Del</button>
+      </div>
+    </div>`;
+  };
+// ── Corrections proposees par les visiteurs ──
+let FIXES=[];
+async function loadFixes(){
+  const box=document.getElementById('fix-list'); if(!box) return;
+  try{
+    const {data,error}=await sb.from('catalog_suggestions').select('*')
+      .eq('status','pending').eq('kind','edit').order('created_at',{ascending:false});
+    if(error) throw error;
+    FIXES=data||[];
+    if(!FIXES.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">Nothing waiting. \u2713</div>'; return; }
+    box.innerHTML=FIXES.map((f,i)=>{
+      const obj=ALL_OBJS.find(o=>String(o.id)===String(f.catalog_id));
+      const prop=f.proposed||{};
+      const rows=Object.keys(prop).filter(k=>k!=='image_url').map(k=>
+        '<div style="display:flex;gap:8px;font-size:.76rem;padding:3px 0">'
+        + '<span style="width:70px;color:var(--text-dim);flex-shrink:0">'+esc(k)+'</span>'
+        + '<span style="color:var(--text-dim);text-decoration:line-through">'+esc(obj?(obj[k]==null?'':String(obj[k])):'?')+'</span>'
+        + '<span style="color:var(--text-dim)">\u2192</span>'
+        + '<span style="color:var(--green);font-weight:600">'+esc(String(prop[k]))+'</span>'
+        + '</div>').join('');
+      const photo=prop.image_url||f.image_url;
+      return '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px">'
+        + '<div style="font-size:.82rem;font-weight:700;margin-bottom:6px">'+esc(obj?[obj.name,obj.edition,obj.platform,obj.region].filter(Boolean).join(' \u00b7 '):(f.name||'(unknown object)'))+'</div>'
+        + (rows||'<div style="font-size:.74rem;color:var(--text-dim)">No field change</div>')
+        + (photo?'<div style="display:flex;gap:8px;margin-top:8px;align-items:flex-start">'
+            + (obj&&obj.image_url?'<div style="flex:1"><div style="font-size:.62rem;color:var(--text-dim);margin-bottom:3px">current</div><img src="'+esc(obj.image_url)+'" style="width:100%;border-radius:6px"/></div>':'')
+            + '<div style="flex:1"><div style="font-size:.62rem;color:var(--green);margin-bottom:3px">proposed</div><img src="'+esc(photo)+'" style="width:100%;border-radius:6px"/></div>'
+          + '</div>':'')
+        + (f.note?'<div style="font-size:.74rem;color:var(--text-mid);font-style:italic;margin-top:8px">\u201c'+esc(f.note)+'\u201d</div>':'')
+        + (f.suggested_by?'<div style="font-size:.68rem;color:var(--text-dim);margin-top:4px">by '+esc(f.suggested_by)+'</div>':'')
+        + '<div style="display:flex;gap:6px;margin-top:10px">'
+        +   '<button type="button" class="btn btn-primary" style="flex:1;padding:6px;font-size:.74rem" onclick="applyFix('+i+')">\u2713 Apply</button>'
+        +   '<button type="button" class="btn btn-ghost" style="flex:1;padding:6px;font-size:.74rem" onclick="rejectFix(\''+esc(f.id)+'\')">\u2715 Reject</button>'
+        + '</div></div>';
+    }).join('');
+  }catch(e){
+    box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(e.message)+'</div>'
+      + (String(e.message).indexOf('kind')>=0?'<div style="font-size:.72rem;color:var(--text-dim)">Run suggestions_v1.sql in Supabase first.</div>':'');
+  }
+}
+async function applyFix(i){
+  const f=FIXES[i]; if(!f) return;
+  const patch=Object.assign({}, f.proposed||{});
+  if(f.image_url && !patch.image_url) patch.image_url=f.image_url;
+  if(patch.year!==undefined) patch.year = patch.year===''?null:parseInt(patch.year,10)||null;
+  Object.keys(patch).forEach(k=>{ if(patch[k]==='') patch[k]=null; });
+  if(Object.keys(patch).length){
+    const {error}=await sb.from('catalog').update(patch).eq('id',f.catalog_id);
+    if(error){ showMsg('fix-adm-msg',error.message,false); return; }
+  }
+  await sb.from('catalog_suggestions').update({status:'approved'}).eq('id',f.id);
+  showMsg('fix-adm-msg','Fix applied \u2713',true);
+  await loadObjs();
+}
+async function rejectFix(id){
+  const {error}=await sb.from('catalog_suggestions').update({status:'rejected'}).eq('id',id);
+  if(error){ showMsg('fix-adm-msg',error.message,false); return; }
+  loadFixes();
+}
+
+// ── Ventes remontees par les collectionneurs (a valider) ──
+async function loadPendingSales(){
+  const box=document.getElementById('pending-sales'); if(!box) return;
+  try{
+    const {data,error}=await sb.from('catalog_sales').select('*').eq('status','pending').order('created_at',{ascending:false});
+    if(error) throw error;
+    if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">Nothing waiting. \u2713</div>'; return; }
+    const ids=[...new Set(data.map(v=>String(v.catalog_id)))];
+    const names={};
+    ALL_OBJS.forEach(o=>{ if(ids.indexOf(String(o.id))>=0) names[String(o.id)]=[o.name,o.edition,o.platform,o.region].filter(Boolean).join(' \u00b7 '); });
+    box.innerHTML=data.map(v=>
+      '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px">'
+      + '<div style="font-size:.82rem;font-weight:700;margin-bottom:2px">'+esc(names[String(v.catalog_id)]||'(object not in the catalog)')+'</div>'
+      + '<div style="font-size:.78rem;color:var(--text-mid);margin-bottom:8px">'
+      +   '<b style="color:var(--green)">'+esc(String(v.price))+' \u20ac</b> \u00b7 '+esc(v.sold_on)+' \u00b7 '+esc(v.condition)
+      + '</div>'
+      + '<div style="display:flex;gap:6px">'
+      +   '<button type="button" class="btn btn-primary" style="flex:1;padding:6px;font-size:.74rem" onclick="reviewSale(\''+esc(v.id)+'\',\'approved\')">\u2713 Approve</button>'
+      +   '<button type="button" class="btn btn-ghost" style="flex:1;padding:6px;font-size:.74rem" onclick="reviewSale(\''+esc(v.id)+'\',\'rejected\')">\u2715 Reject</button>'
+      + '</div></div>').join('');
+  }catch(e){
+    box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(e.message)+'</div>'
+      + (String(e.message).indexOf('status')>=0?'<div style="font-size:.72rem;color:var(--text-dim)">Run cote_v6.sql in Supabase first.</div>':'');
+  }
+}
+async function reviewSale(id, status){
+  const {error}=await sb.from('catalog_sales').update({status:status}).eq('id',id);
+  if(error){ showMsg('pend-msg',error.message,false); return; }
+  showMsg('pend-msg', status==='approved'?'Sale approved \u2713':'Sale rejected', true);
+  loadPendingSales();
+}
+
+// ── Ventes relevees (eBay & co) ──
+let CUR_SALES=[];
+async function loadSales(objId){
+  const box=document.getElementById('o-sales');
+  const add=document.getElementById('o-sales-add');
+  if(!objId){
+    box.textContent='Save the object first, then reopen it to add sales.';
+    add.style.display='none'; CUR_SALES=[]; return;
+  }
+  add.style.display='flex';
+  box.textContent='Loading…';
+  try{
+    const {data,error}=await sb.from('catalog_sales').select('*').eq('catalog_id',objId).order('sold_on',{ascending:false});
+    if(error) throw error;
+    CUR_SALES=data||[];
+    if(!CUR_SALES.length){ box.innerHTML='<span style="color:var(--text-dim)">No sale recorded yet.</span>'; return; }
+    box.innerHTML=CUR_SALES.map(v=>
+      '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);'+(v.excluded?'opacity:.5':'')+'">'
+      + '<span style="font-weight:700;color:'+(v.excluded?'var(--text-dim)':'var(--green)')+';min-width:64px'+(v.excluded?';text-decoration:line-through':'')+'">'+esc(String(v.price))+' \u20ac</span>'
+      + '<span style="color:var(--text-mid);font-size:.74rem">'+esc(v.sold_on)+'</span>'
+      + (v.status==='pending'?'<span style="font-size:.64rem;color:var(--gold)">\u23f3 pending</span>':'')
+      + (v.status==='rejected'?'<span style="font-size:.64rem;color:var(--red)">\u2715 rejected</span>':'')
+      + '<span style="font-size:.7rem;color:var(--text-dim);flex:1">'+esc(v.condition)+(v.source?' \u00b7 '+esc(v.source):'')
+      +   (v.condition_note?'<br/><span style="font-style:italic">'+esc(v.condition_note)+'</span>':'')+'</span>'
+      + '<button type="button" class="btn btn-ghost" style="padding:3px 9px;font-size:.68rem" title="'+(v.excluded?'Put back in the rating':'Keep out of the rating')+'" onclick="toggleSale(\''+esc(v.id)+'\','+(v.excluded?'false':'true')+')">'+(v.excluded?'\u21ba':'\u2298')+'</button>'
+      + '<button type="button" class="btn btn-danger" style="padding:3px 9px;font-size:.68rem" onclick="delSale(\''+esc(v.id)+'\')">Del</button>'
+      + '</div>').join('');
+  }catch(e){
+    box.innerHTML='<span style="color:var(--red)">'+esc(e.message)+'</span>';
+    if(String(e.message).indexOf('catalog_sales')>=0) box.innerHTML+='<div style="font-size:.72rem">Run cote_v2.sql in Supabase first.</div>';
+  }
+}
+async function addSale(){
+  const id=document.getElementById('o-id').value;
+  if(!id){ showMsg('obj-msg','Save the object first.',false); return; }
+  const price=parseFloat(document.getElementById('sale-price').value);
+  const sold=document.getElementById('sale-date').value;
+  if(!price||!sold){ showMsg('obj-msg','A date and a price are required.',false); return; }
+  const {error}=await sb.from('catalog_sales').insert([{
+    catalog_id:id, price:price, sold_on:sold,
+    condition:document.getElementById('sale-cond').value,
+    source:document.getElementById('sale-source').value.trim()||'eBay',
+    condition_note:document.getElementById('sale-note').value.trim()||null,
+    excluded:document.getElementById('sale-excl').checked
+  }]);
+  if(error){ showMsg('obj-msg',error.message,false); return; }
+  document.getElementById('sale-price').value='';
+  document.getElementById('sale-note').value='';
+  document.getElementById('sale-excl').checked=false;
+  showMsg('obj-msg','Sale recorded \u2713',true);
+  loadSales(id);
+}
+async function toggleSale(id, excl){
+  const {error}=await sb.from('catalog_sales').update({excluded:excl}).eq('id',id);
+  if(error){ showMsg('obj-msg',error.message,false); return; }
+  loadSales(document.getElementById('o-id').value);
+}
+async function delSale(id){
+  if(!confirm('Delete this sale?')) return;
+  const {error}=await sb.from('catalog_sales').delete().eq('id',id);
+  if(error){ showMsg('obj-msg',error.message,false); return; }
+  loadSales(document.getElementById('o-id').value);
+}
+
+// ── Upload photo vers Cloudinary (+ detourage local optionnel) ──
+const CLD_CLOUD='dmfq8hkvu', CLD_UPLOAD_PRESET='rc-jaquettes';
+let _bgRemovalLib=null;
+async function loadBgRemoval(){
+  if(_bgRemovalLib) return _bgRemovalLib;
+  _bgRemovalLib = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm');
+  return _bgRemovalLib;
+}
+async function cutoutFile(file){
+  try{
+    showMsg('obj-msg','\u2702\ufe0f Removing the background\u2026 first time can take a while.',true);
+    const lib=await loadBgRemoval();
+    const fn=lib.removeBackground || (lib.default && lib.default.removeBackground) || lib.default;
+    const blob=await fn(file,{output:{format:'image/png'}});
+    if(!blob||!blob.size) throw new Error('empty result');
+    return new File([blob], (file.name||'photo').replace(/\.[^.]+$/,'')+'-cutout.png', {type:'image/png'});
+  }catch(e){
+    showMsg('obj-msg','Background removal failed, uploading the original photo.',false);
+    return file;
+  }
+}
+function uploadObjPhoto(targetId){
+  const input=document.createElement('input');
+  input.type='file'; input.accept='image/*'; input.setAttribute('capture','environment');
+  input.onchange=async()=>{
+    let file=input.files&&input.files[0]; if(!file) return;
+    const cut=document.getElementById('o-cutout');
+    if(cut&&cut.checked) file=await cutoutFile(file);
+    showMsg('obj-msg','Uploading\u2026 \ud83d\udce4',true);
+    try{
+      const form=new FormData();
+      form.append('file',file);
+      form.append('upload_preset',CLD_UPLOAD_PRESET);
+      const res=await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/image/upload',{method:'POST',body:form});
+      const data=await res.json();
+      if(!data.secure_url){ showMsg('obj-msg','Upload failed'+(data.error?': '+data.error.message:''),false); return; }
+      document.getElementById(targetId).value=data.secure_url;
+      showMsg('obj-msg','Photo uploaded \u2713',true);
+    }catch(e){ showMsg('obj-msg',e.message,false); }
+  };
+  input.click();
+}
+
+// ── Nettoyage : fusion de valeurs et de doublons ──
+let CLEAN_GROUPS={};
+function cleanKey(v){ return (v==null?'':String(v)).trim().toLowerCase(); }
+
+// 1) valeurs qui ne different que par l'orthographe (Comics / comics)
+let CLEAN_LIST=[];
+function cleanScan(col){
+  const out=document.getElementById('clean-out');
+  const groups={};
+  ALL_OBJS.forEach(o=>{
+    const raw=o[col]; if(raw==null||String(raw).trim()==='') return;
+    const k=cleanKey(raw);
+    if(!groups[k]) groups[k]={variants:{}, ids:[]};
+    groups[k].variants[raw]=(groups[k].variants[raw]||0)+1;
+    groups[k].ids.push(o.id);
+  });
+  CLEAN_GROUPS={col:col};
+  CLEAN_LIST=Object.keys(groups)
+    .filter(k=>Object.keys(groups[k].variants).length>1)
+    .sort()
+    .map(k=>groups[k]);
+  if(!CLEAN_LIST.length){
+    out.innerHTML='<div style="color:var(--green);font-size:.82rem">\u2713 Nothing to merge in "'+esc(col)+'".</div>';
+    return;
+  }
+  out.innerHTML=CLEAN_LIST.map((g,i)=>{
+    const vs=g.variants;
+    const best=Object.keys(vs).sort((a,b)=>vs[b]-vs[a])[0];
+    const opts=Object.keys(vs).map(v=>'<option value="'+esc(v)+'"'+(v===best?' selected':'')+'>'+esc(v)+' ('+vs[v]+')</option>').join('');
+    return '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px">'
+      + '<div style="font-size:.8rem;margin-bottom:6px">'+Object.keys(vs).map(v=>'<code>'+esc(v)+'</code>').join(' + ')+'</div>'
+      + '<div style="display:flex;gap:8px;align-items:center">'
+      +   '<select id="cl-'+i+'" style="flex:1;margin:0">'+opts+'</select>'
+      +   '<button type="button" class="btn btn-primary" style="padding:7px 14px;font-size:.75rem" onclick="cleanMerge('+i+')">Merge</button>'
+      + '</div></div>';
+  }).join('');
+}
+async function cleanMerge(i){
+  const col=CLEAN_GROUPS.col, g=CLEAN_LIST[i];
+  if(!g) return;
+  const keep=document.getElementById('cl-'+i).value;
+  if(!confirm('Set "'+keep+'" on '+g.ids.length+' object(s)?')) return;
+  const patch={}; patch[col]=keep;
+  const {error}=await sb.from('catalog').update(patch).in('id', g.ids);
+  if(error){ showMsg('clean-msg',error.message,false); return; }
+  showMsg('clean-msg',g.ids.length+' object(s) updated \u2713',true);
+  await loadObjs();
+  cleanScan(col);
+}
+
+// 2) objets saisis deux fois (meme nom + plateforme + edition + region)
+let CLEAN_DUPES=[];
+function cleanDupes(){
+  const out=document.getElementById('clean-out');
+  const map={};
+  ALL_OBJS.forEach(o=>{
+    const k=[cleanKey(o.name),cleanKey(o.platform),cleanKey(o.edition),cleanKey(o.region)].join('|');
+    (map[k]=map[k]||[]).push(o);
+  });
+  CLEAN_DUPES=Object.keys(map).filter(k=>map[k].length>1).map(k=>map[k]);
+  if(!CLEAN_DUPES.length){
+    out.innerHTML='<div style="color:var(--green);font-size:.82rem">✓ No duplicate object.</div>';
+    return;
+  }
+  out.innerHTML='<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:8px">'+CLEAN_DUPES.length+' duplicate group(s). The kept object keeps its photo and its rating; collectors\' items are moved onto it.</div>'
+    + CLEAN_DUPES.map((grp,gi)=>{
+      const opts=grp.map((o,i)=>'<option value="'+i+'">'+esc([o.name,o.edition,o.platform,o.region].filter(Boolean).join(' · '))+(o.image_url?' 🖼️':'')+'</option>').join('');
+      return '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px">'
+        + '<div style="font-size:.82rem;font-weight:700;margin-bottom:2px">'+esc(grp[0].name||'')+'</div>'
+        + '<div style="font-size:.72rem;color:var(--text-dim);margin-bottom:8px">'+grp.length+' identical entries · '+esc([grp[0].edition,grp[0].platform,grp[0].region].filter(Boolean).join(' · '))+'</div>'
+        + '<div style="display:flex;gap:8px;align-items:center">'
+        +   '<select id="dup-'+gi+'" style="flex:1;margin:0">'+opts+'</select>'
+        +   '<button type="button" class="btn btn-danger" style="padding:7px 14px;font-size:.75rem" onclick="dupMerge('+gi+')">Merge</button>'
+        + '</div></div>';
+    }).join('');
+}
+async function dupMerge(gi){
+  const grp=CLEAN_DUPES[gi]; if(!grp) return;
+  const keepIdx=parseInt(document.getElementById('dup-'+gi).value,10)||0;
+  const keep=grp[keepIdx];
+  const drops=grp.filter((o,i)=>i!==keepIdx);
+  if(!confirm('Delete '+drops.length+' duplicate(s) and keep "'+(keep.name||'')+'"?')) return;
+  const {data,error}=await sb.rpc('merge_catalog_entries',{
+    keep_id:String(keep.id),
+    drop_ids:drops.map(o=>String(o.id))
+  });
+  if(error){
+    showMsg('clean-msg', error.message.indexOf('merge_catalog_entries')>=0
+      ? 'Run merge_catalog.sql in Supabase first.' : error.message, false);
+    return;
+  }
+  showMsg('clean-msg',(data||drops.length)+' duplicate(s) removed ✓',true);
+  await loadObjs();
+  cleanDupes();
+}
+
+// Move an object up/down within its category (swaps sort_order)
+async function moveObj(id, dir){
+  const obj=ALL_OBJS.find(o=>String(o.id)===String(id));
+  if(!obj){ showToast2('Object not found in memory'); return; }
+  const cat=obj.category||'';
+  const sameCat=ALL_OBJS.filter(o=>(o.category||'')===cat)
+    .sort((a,b)=>(a.sort_order||0)-(b.sort_order||0) || (a.name||'').localeCompare(b.name||''));
+  const idx=sameCat.findIndex(o=>String(o.id)===String(id));
+  const swapIdx=idx+dir;
+  if(swapIdx<0){ showToast2('Already at the top of "'+cat+'"'); return; }
+  if(swapIdx>=sameCat.length){ showToast2('Already at the bottom of "'+cat+'"'); return; }
+  // swap positions in the array
+  [sameCat[idx], sameCat[swapIdx]] = [sameCat[swapIdx], sameCat[idx]];
+  const box=document.getElementById('objs-list');
+  box.style.opacity='.6';
+  try{
+    for(let i=0;i<sameCat.length;i++){
+      sameCat[i].sort_order=i;
+      const {error}=await sb.from('catalog').update({sort_order:i}).eq('id',sameCat[i].id);
+      if(error){ throw error; }
+    }
+    await loadObjs();
+    showToast2('Moved ✓');
+  }catch(e){
+    box.style.opacity='1';
+    showToast2('Error: '+e.message, true);
+  }
+}
+// small toast for admin feedback
+function showToast2(msg, isErr){
+  let t=document.getElementById('admin-toast');
+  if(!t){ t=document.createElement('div'); t.id='admin-toast';
+    t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 18px;border-radius:10px;font-size:.85rem;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.4);transition:opacity .3s';
+    document.body.appendChild(t); }
+  t.textContent=msg;
+  t.style.background=isErr?'#FF4D6A':'#3DD68C';
+  t.style.color=isErr?'#fff':'#06331d';
+  t.style.opacity='1';
+  clearTimeout(window._t2); window._t2=setTimeout(()=>{ t.style.opacity='0'; }, 2200);
+}
+function openObjForm(){
+  clearObjForm();
+  document.getElementById('obj-modal-title').textContent='📦 Add object';
+  document.getElementById('obj-modal').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closeObjForm(){
+  document.getElementById('obj-modal').style.display='none';
+  document.body.style.overflow='';
+}
+function editObjById(id){
+  const o=ALL_OBJS.find(x=>String(x.id)===String(id));
+  if(o) editObj(o);
+}
+// Duplicate : ouvre la fiche pre-remplie mais SANS id,
+// donc "Save object" cree un nouvel objet au lieu d'ecraser l'original.
+function dupObjById(id){
+  const o=ALL_OBJS.find(x=>String(x.id)===String(id));
+  if(!o){ showToast2('Object not found'); return; }
+  editObj(o);
+  document.getElementById('o-id').value='';
+  loadSales(null);
+  document.getElementById('obj-modal-title').textContent='\u29c9 Duplicate object';
+  const m=document.getElementById('obj-msg');
+  if(m){ m.textContent='Copy of "'+(o.name||'')+'" \u2014 change what differs (edition, region, platform...) then save. The original is untouched.'; m.className='msg ok'; m.style.display='block'; }
+  const n=document.getElementById('o-name'); n.focus(); n.select();
+}
+function editObj(o){
+  document.getElementById('o-id').value=o.id;
+  document.getElementById('o-name').value=o.name||'';
+  document.getElementById('o-category').value=o.category||'';
+  document.getElementById('o-platform').value=o.platform||'';
+  document.getElementById('o-year').value=o.year||'';
+  document.getElementById('o-image').value=o.image_url||'';
+  document.getElementById('o-edition').value=o.edition||'';
+  document.getElementById('o-region').value=o.region||'';
+  document.getElementById('o-price-new').value=(o.price_new!=null?o.price_new:'');
+  document.getElementById('o-price-used').value=(o.price_used!=null?o.price_used:'');
+  loadSales(o.id);
+  document.getElementById('o-imageback').value=o.image_back||'';
+  document.getElementById('o-desc').value=o.description||'';
+  document.getElementById('obj-modal-title').textContent='✏️ Edit object';
+  const _m=document.getElementById('obj-msg'); if(_m) _m.style.display='none';
+  document.getElementById('obj-modal').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function clearObjForm(){
+  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition','o-region','o-price-new','o-price-used'].forEach(id=>document.getElementById(id).value='');
+  loadSales(null);
+  const m=document.getElementById('obj-msg'); if(m) m.style.display='none';
+}
+async function saveObj(){
+  const id=document.getElementById('o-id').value;
+  const yr=document.getElementById('o-year').value;
+  const row={
+    name:document.getElementById('o-name').value.trim(),
+    category:document.getElementById('o-category').value.trim()||null,
+    platform:document.getElementById('o-platform').value.trim()||null,
+    year:yr!==''?parseInt(yr):null,
+    image_url:document.getElementById('o-image').value.trim()||null,
+    edition:document.getElementById('o-edition').value.trim()||null,
+    region:document.getElementById('o-region').value.trim()||null,
+    price_new:document.getElementById('o-price-new').value!==''?parseFloat(document.getElementById('o-price-new').value):null,
+    price_used:document.getElementById('o-price-used').value!==''?parseFloat(document.getElementById('o-price-used').value):null,
+    image_back:document.getElementById('o-imageback').value.trim()||null,
+    description:document.getElementById('o-desc').value.trim()||null
+  };
+  if(!row.name){ showMsg('obj-msg','Name is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('catalog').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('catalog').insert([row])); }
+  if(error){ showMsg('obj-msg',error.message,false); return; }
+  showMsg('obj-msg',id?'Object updated! ✓':'Object added! ✓',true);
+  setTimeout(()=>{ closeObjForm(); loadObjs(); }, 700);
+}
+async function delObj(id){
+  if(!confirm('Delete this object from the catalog?')) return;
+  const {error}=await sb.from('catalog').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadObjs();
+}
+// ── Trades moderation ──
+async function loadTrades(){
+  const box=document.getElementById('trades-list');
+  const {data,error}=await sb.from('site_trades').select('*').order('created_at',{ascending:false});
+  if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No listings.</div>'; return; }
+  const KL={trade:'🔄 Trade',sell:'💰 Sell',want:'🎯 Want'};
+  const SL={pending:'⏳ Pending',approved:'✅ Approved',rejected:'❌ Rejected'};
+  box.innerHTML=data.map(t=>
+    `<div class="guide-row" style="flex-wrap:wrap">
+      <span class="gi">${t.image_url?'🖼️':'📦'}</span>
+      <div class="gt" style="min-width:130px"><b>${esc(t.item_name)}</b><span>${KL[t.kind]||''} · ${esc(t.platform||'')} · ${SL[t.status]||t.status}</span></div>
+      <a href="${esc(t.listing_url)}" target="_blank" class="btn btn-ghost" style="padding:6px 10px;font-size:.72rem;text-decoration:none">Link</a>
+      ${t.status!=='approved'?`<button class="btn btn-ghost" style="padding:6px 10px;font-size:.72rem;color:var(--green)" onclick="setTradeStatus('${t.id}','approved')">✅</button>`:''}
+      ${t.status!=='rejected'?`<button class="btn btn-ghost" style="padding:6px 10px;font-size:.72rem" onclick="setTradeStatus('${t.id}','rejected')">❌</button>`:''}
+      <button class="btn btn-danger" onclick="delTrade('${t.id}')">Del</button>
+    </div>`
+  ).join('');
+}
+async function setTradeStatus(id,status){
+  const {error}=await sb.from('site_trades').update({status}).eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadTrades();
+}
+async function delTrade(id){
+  if(!confirm('Delete this listing?')) return;
+  const {error}=await sb.from('site_trades').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadTrades();
+}
+// ── Games ──
+async function loadGamesAdmin(){
+  const box=document.getElementById('games-admin-list');
+  const {data,error}=await sb.from('site_games').select('*').order('release_order');
+  if(error){ box.innerHTML='<div style="color:var(--red);font-size:.85rem">'+esc(error.message)+'</div>'; return; }
+  if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No games yet.</div>'; return; }
+  box.innerHTML=data.map(g=>
+    `<div class="guide-row">
+      <span class="gi">${g.image_url?'🖼️':'🎮'}</span>
+      <div class="gt"><b>${esc(g.name)}</b><span>Release #${g.release_order||'?'} · Story #${g.story_order||'?'}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick='editGame(${JSON.stringify(g).replace(/'/g,"&#39;")})'>Edit</button>
+      <button class="btn btn-danger" onclick="delGame('${g.id}')">Delete</button>
+    </div>`
+  ).join('');
+}
+function openGameForm(){
+  clearGameForm();
+  document.getElementById('game-msg').style.display='none';
+  document.getElementById('game-modal-title').textContent='🎮 Add game';
+  document.getElementById('game-modal').classList.add('open');
+}
+function closeGameForm(){ document.getElementById('game-modal').classList.remove('open'); }
+function editGame(g){
+  document.getElementById('ga-id').value=g.id;
+  document.getElementById('ga-name').value=g.name||'';
+  document.getElementById('ga-platform').value=g.platform||'';
+  document.getElementById('ga-year').value=g.year||'';
+  document.getElementById('ga-rel').value=g.release_order||'';
+  document.getElementById('ga-storyorder').value=g.story_order||'';
+  document.getElementById('ga-img').value=g.image_url||'';
+  document.getElementById('ga-syn').value=g.synopsis||'';
+  document.getElementById('ga-anec').value=g.anecdote||'';
+  document.getElementById('ga-story').value=g.story||'';
+  document.getElementById('ga-simg1').value=g.story_img1||'';
+  document.getElementById('ga-simg2').value=g.story_img2||'';
+  document.getElementById('game-msg').style.display='none';
+  document.getElementById('game-modal-title').textContent='✏️ Edit game';
+  document.getElementById('game-modal').classList.add('open');
+}
+function clearGameForm(){
+  ['ga-id','ga-name','ga-platform','ga-year','ga-rel','ga-storyorder','ga-img','ga-syn','ga-anec','ga-story','ga-simg1','ga-simg2'].forEach(id=>document.getElementById(id).value='');
+}
+async function saveGame(){
+  const id=document.getElementById('ga-id').value;
+  const num=v=>v!==''?parseInt(v):null;
+  const row={
+    name:document.getElementById('ga-name').value.trim(),
+    platform:document.getElementById('ga-platform').value.trim()||null,
+    year:num(document.getElementById('ga-year').value),
+    release_order:num(document.getElementById('ga-rel').value)||0,
+    story_order:num(document.getElementById('ga-storyorder').value)||0,
+    image_url:document.getElementById('ga-img').value.trim()||null,
+    synopsis:document.getElementById('ga-syn').value.trim()||null,
+    anecdote:document.getElementById('ga-anec').value.trim()||null,
+    story:document.getElementById('ga-story').value.trim()||null,
+    story_img1:document.getElementById('ga-simg1').value.trim()||null,
+    story_img2:document.getElementById('ga-simg2').value.trim()||null
+  };
+  if(!row.name){ showMsg('game-msg','Name is required.',false); return; }
+  let error;
+  if(id){ ({error}=await sb.from('site_games').update(row).eq('id',id)); }
+  else { ({error}=await sb.from('site_games').insert([row])); }
+  if(error){ showMsg('game-msg',error.message,false); return; }
+  showMsg('game-msg',id?'Game updated! ✓':'Game added! ✓',true);
+  setTimeout(()=>{ closeGameForm(); loadGamesAdmin(); }, 700);
+}
+async function delGame(id){
+  if(!confirm('Delete this game?')) return;
+  const {error}=await sb.from('site_games').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadGamesAdmin();
+}
+checkSession();
+</script>
+</body>
+</html>
