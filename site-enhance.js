@@ -299,3 +299,77 @@
     const ic=card.querySelector('.ic'); if(ic) ic.style.opacity='.5';
   }
 })();
+
+
+/* ── Bouton retour : revenir a la page precedente ──────────────────
+   Les liens .back-home pointaient tous vers index.html. On rend la main
+   a l'historique quand on vient d'une autre page du site, et on garde
+   index.html comme repli (arrivee directe, lien externe, onglet neuf). */
+(function(){
+  function wireBack(){
+    document.querySelectorAll('.back-home').forEach(function(a){
+      if(a.dataset.backWired) return;
+      a.dataset.backWired='1';
+      var ref=document.referrer||'';
+      var sameSite=ref && ref.indexOf(location.origin)===0 && ref!==location.href;
+      if(sameSite){
+        a.textContent='\u2190 Back';
+        a.addEventListener('click',function(e){ e.preventDefault(); history.back(); });
+      }
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wireBack);
+  else wireBack();
+})();
+
+
+/* ── Signaler une erreur (pages redactionnelles) ───────────────────
+   Wiki, Story, Guides et News tapent dans des tables differentes du
+   catalogue : pas de formulaire structure ici, juste un contact.
+   Fenetre avec le lien mail pre-rempli ET l'adresse copiable, parce
+   qu'un mailto: ne mene nulle part sans client mail configure. */
+(function(){
+  var MAIL='ratchetlegacy@gmail.com';
+  var PAGES={'wiki.html':'Wiki','story.html':'Story','guides.html':'Guides','news.html':'News'};
+  var page=(location.pathname.split('/').pop()||'index.html');
+  var label=PAGES[page];
+  if(!label) return;
+
+  function subject(){ return encodeURIComponent('[Ratchet Legacy] Correction - '+label); }
+  function body(){ return encodeURIComponent('Page : '+location.href+'\n\nWhat should be corrected:\n'); }
+
+  function openBox(){
+    var ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;z-index:900;background:rgba(5,6,12,.88);display:flex;align-items:center;justify-content:center;padding:20px';
+    ov.innerHTML='<div style="max-width:380px;width:100%;background:#10121F;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:24px;font-family:Inter,sans-serif;color:#EEF0F8">'
+      + '<div style="font-size:1.6rem;text-align:center;margin-bottom:8px">\u270f\ufe0f</div>'
+      + '<h3 style="font-family:Orbitron,sans-serif;font-size:1rem;text-align:center;margin:0 0 8px">Spotted a mistake?</h3>'
+      + '<p style="font-size:.82rem;color:#B8BED4;text-align:center;line-height:1.6;margin:0 0 16px">This page is written by hand \u2014 tell us what\u2019s wrong and it gets fixed.</p>'
+      + '<a href="mailto:'+MAIL+'?subject='+subject()+'&body='+body()+'" style="display:block;text-align:center;background:linear-gradient(135deg,#7B4FD4,#FF6B1A);color:#fff;border-radius:10px;padding:12px;font-weight:700;text-decoration:none;margin-bottom:8px">\u2709\ufe0f Open my mail app</a>'
+      + '<button id="rl-copy-mail" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#B8BED4;border-radius:10px;padding:11px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;margin-bottom:12px">\ud83d\udccb Copy '+MAIL+'</button>'
+      + '<button id="rl-close-mail" style="width:100%;background:none;border:none;color:#8B92AD;padding:6px;font-size:.8rem;cursor:pointer;font-family:Inter,sans-serif">Close</button>'
+      + '</div>';
+    ov.addEventListener('click',function(e){ if(e.target===ov) document.body.removeChild(ov); });
+    document.body.appendChild(ov);
+    ov.querySelector('#rl-close-mail').onclick=function(){ document.body.removeChild(ov); };
+    ov.querySelector('#rl-copy-mail').onclick=function(){
+      var btn=this;
+      (navigator.clipboard ? navigator.clipboard.writeText(MAIL) : Promise.reject())
+        .then(function(){ btn.textContent='\u2713 Copied'; })
+        .catch(function(){ btn.textContent=MAIL; });
+    };
+  }
+
+  function addButton(){
+    if(document.getElementById('rl-report-btn')) return;
+    var foot=document.querySelector('footer');
+    if(!foot) return;
+    var wrap=document.createElement('div');
+    wrap.style.cssText='text-align:center;padding:0 24px 30px';
+    wrap.innerHTML='<button id="rl-report-btn" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#8B92AD;border-radius:100px;padding:9px 20px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">\u270f\ufe0f Spotted a mistake on this page?</button>';
+    foot.parentNode.insertBefore(wrap,foot);
+    document.getElementById('rl-report-btn').onclick=openBox;
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addButton);
+  else addButton();
+})();
