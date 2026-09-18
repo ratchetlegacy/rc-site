@@ -6,6 +6,7 @@
 <title>Guides — Ratchet Legacy</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 :root{
   --bg:#0A0B14;--bg2:#10121F;--bg3:#181B2E;
@@ -62,6 +63,18 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 .foot-small{font-size:.8rem}
 
 @media(max-width:820px){.nav-links{display:flex;overflow-x:auto;gap:2px;max-width:60vw}.nav-burger{display:none}}
+
+/* ── Lecteur PDF intégré ── */
+.pdfv{position:fixed;inset:0;z-index:800;background:rgba(5,6,12,.96);display:none;flex-direction:column}
+.pdfv.open{display:flex}
+.pdfv-bar{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);background:rgba(10,11,20,.9);flex-shrink:0}
+.pdfv-title{font-family:'Orbitron',sans-serif;font-size:.86rem;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pdfv-btn{background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 12px;font-size:.8rem;cursor:pointer;font-family:Inter,sans-serif}
+.pdfv-btn:hover{background:rgba(255,255,255,.14)}
+.pdfv-pages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.pdfv-pages canvas{max-width:100%;height:auto;border-radius:6px;box-shadow:0 10px 40px -12px rgba(0,0,0,.8);pointer-events:none}
+.pdfv-state{color:var(--text-dim);padding:40px;text-align:center}
+@media(max-width:600px){.pdfv-pages{padding:10px}.pdfv-bar{padding:10px 12px}}
 </style>
 </head>
 <body>
@@ -98,6 +111,16 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <a href="index.html" class="back-home">← Back to home</a>
 </div>
 
+<div class="pdfv" id="pdfv" oncontextmenu="return false">
+  <div class="pdfv-bar">
+    <span class="pdfv-title" id="pdfv-title"></span>
+    <button class="pdfv-btn" onclick="pdfZoom(-.25)">−</button>
+    <button class="pdfv-btn" onclick="pdfZoom(.25)">+</button>
+    <button class="pdfv-btn" onclick="closePdf()">✕ Close</button>
+  </div>
+  <div class="pdfv-pages" id="pdfv-pages"></div>
+</div>
+
 <footer>
   <div class="foot-logo">RATCHET LEGACY</div>
   <div class="foot-small">Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games or Sony.</div>
@@ -112,16 +135,78 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','
 
 let GUIDES=[], GFILTER='';
 
+// ══ LECTEUR PDF INTEGRE ══
+// Chaque page est dessinee dans un canvas : pas de barre d'outils du
+// navigateur, donc pas de bouton telecharger ni d'impression directe,
+// et l'URL du fichier n'apparait nulle part dans l'interface.
+// A savoir : ca decourage, ca ne protege pas. Un visiteur determine
+// retrouvera toujours le fichier dans les outils reseau du navigateur.
+if(window.pdfjsLib){
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+let PDF_DOC=null, PDF_SCALE=1.3;
+
+async function openPdf(i){
+  const g=GUIDES[i]; if(!g||!g.pdf_url) return;
+  const v=document.getElementById('pdfv');
+  const pages=document.getElementById('pdfv-pages');
+  document.getElementById('pdfv-title').textContent=g.title||'Guide';
+  pages.innerHTML='<div class="pdfv-state"><span class="spin">⚙️</span><div style="margin-top:10px">Loading the guide…</div></div>';
+  v.classList.add('open');
+  document.body.style.overflow='hidden';
+  if(!window.pdfjsLib){
+    pages.innerHTML='<div class="pdfv-state">The reader could not start.</div>';
+    return;
+  }
+  try{
+    PDF_DOC=await pdfjsLib.getDocument({url:g.pdf_url}).promise;
+    PDF_SCALE=1.3;
+    await renderPdf();
+  }catch(e){
+    pages.innerHTML='<div class="pdfv-state">This guide could not be opened.</div>';
+  }
+}
+
+async function renderPdf(){
+  if(!PDF_DOC) return;
+  const pages=document.getElementById('pdfv-pages');
+  pages.innerHTML='';
+  const dpr=Math.min(window.devicePixelRatio||1, 2);
+  for(let n=1;n<=PDF_DOC.numPages;n++){
+    const page=await PDF_DOC.getPage(n);
+    const vp=page.getViewport({scale:PDF_SCALE*dpr});
+    const canvas=document.createElement('canvas');
+    canvas.width=vp.width; canvas.height=vp.height;
+    canvas.style.width=(vp.width/dpr)+'px';
+    pages.appendChild(canvas);
+    await page.render({canvasContext:canvas.getContext('2d'), viewport:vp}).promise;
+  }
+}
+
+function pdfZoom(d){
+  PDF_SCALE=Math.min(3, Math.max(.6, PDF_SCALE+d));
+  renderPdf();
+}
+
+function closePdf(){
+  document.getElementById('pdfv').classList.remove('open');
+  document.getElementById('pdfv-pages').innerHTML='';
+  document.body.style.overflow='';
+  PDF_DOC=null;
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePdf(); });
+
 function cardHtml(g){
   const pos=g.cover_pos||'center';
   const img=g.cover_url
     ? `<img src="${esc(g.cover_url)}" loading="lazy" style="object-position:${esc(pos)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ni-ph" style="display:none">📗</span>`
     : `<span class="ni-ph">📗</span>`;
-  return `<a class="news-card" href="${esc(g.pdf_url)}" target="_blank" rel="noopener">
+  const i=GUIDES.indexOf(g);
+  return `<a class="news-card" href="#" onclick="event.preventDefault();openPdf(${i})" style="cursor:pointer">
     <div class="news-img">${img}${g.game?`<span class="news-src">${esc(g.game)}</span>`:''}</div>
     <div class="news-body">
       <h3>${esc(g.title)}</h3>
-      <span class="news-link">Open the guide →</span>
+      <span class="news-link">Read the guide →</span>
     </div>
   </a>`;
 }
