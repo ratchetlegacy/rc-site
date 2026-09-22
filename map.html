@@ -35,6 +35,10 @@ a{color:inherit;text-decoration:none}
 
 /* Galaxy selector */
 .gal-tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:18px 0}
+.game-tabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:-6px 0 18px}
+.game-tab{padding:6px 13px;border-radius:100px;border:1px solid var(--line);background:transparent;color:var(--text-dim);font-size:.74rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:.16s}
+.game-tab:hover{color:var(--text)}
+.game-tab.active{background:rgba(123,79,212,.2);border-color:var(--purple);color:var(--text)}
 .gal-tab{padding:9px 18px;border-radius:100px;border:1px solid var(--line);background:var(--bg2);color:var(--text-mid);font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:.16s}
 .gal-tab.active{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;border-color:transparent}
 
@@ -115,6 +119,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 
 <div class="wrap">
   <div class="gal-tabs" id="gal-tabs"></div>
+  <div class="game-tabs" id="game-tabs"></div>
   <div class="map-stage" id="map-stage">
     <div class="map-stars" id="map-stars"></div>
     <div class="map-galaxy-glow"></div>
@@ -154,15 +159,46 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','
 const stars=document.getElementById('map-stars');
 for(let i=0;i<90;i++){const s=document.createElement('div');s.className='map-star';const sz=Math.random()<.8?1:2;s.style.width=sz+'px';s.style.height=sz+'px';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.animationDelay=(Math.random()*3)+'s';stars.appendChild(s);}
 
-let PLANETS=[], GALAXIES=[], activeGal='', LOCATIONS=[];
+let PLANETS=[], GALAXIES=[], activeGal='', LOCATIONS=[], activeGame='';
+function gameOf(p){ return (p.first_appearance && p.first_appearance.trim()) ? p.first_appearance.trim() : 'Other'; }
+// Jeux presents dans la galaxie, dans l'ordre chronologique (sort_order)
+function gamesIn(gal){
+  const first={};
+  PLANETS.filter(p=>galaxyOf(p)===gal).forEach(p=>{
+    const g=gameOf(p), o=(p.sort_order==null?9999:p.sort_order);
+    if(!(g in first) || o<first[g]) first[g]=o;
+  });
+  return Object.keys(first).sort((a,b)=>first[a]-first[b]);
+}
+function renderGameTabs(){
+  const box=document.getElementById('game-tabs'); if(!box) return;
+  const games=gamesIn(activeGal);
+  if(games.length<=1){ box.innerHTML=''; activeGame=''; return; }
+  if(activeGame && games.indexOf(activeGame)<0) activeGame=games[0];
+  if(!activeGame) activeGame=games[0];
+  box.innerHTML=games.map(g=>
+    `<button class="game-tab ${g===activeGame?'active':''}" onclick="setGame('${esc(g).replace(/'/g,"\\'")}')">${esc(g)}</button>`
+  ).join('') + `<button class="game-tab ${activeGame==='*'?'active':''}" onclick="setGame('*')">All</button>`;
+}
+function setGame(g){ activeGame=g; clearLocations(); renderGameTabs(); renderMap(); }
 // deterministic pseudo-random position from a string, so a planet always sits in the same spot
+// Placement regulier : un anneau jusqu'a 9 planetes, deux au-dela.
+// Les deux anneaux sont decales d'un demi-pas pour que les etiquettes
+// ne s'empilent pas. Plus de hasard : c'est lui qui creait les collisions.
 function posFor(str,i,total){
-  let h=0; for(let k=0;k<str.length;k++){ h=(h*31+str.charCodeAt(k))%10000; }
-  const ang=(i/Math.max(total,1))*Math.PI*2 + (h%100)/100*0.6;
-  const rad=26+(h%22); // 26-48% radius
+  let ring, idx, count;
+  if(total<=9){ ring=0; idx=i; count=total; }
+  else{
+    const inner=Math.floor(total*0.4);
+    if(i<inner){ ring=1; idx=i; count=inner; }
+    else       { ring=0; idx=i-inner; count=total-inner; }
+  }
+  const rad = ring===1 ? 22 : 40;
+  const shift = ring===1 ? Math.PI/Math.max(count,1) : 0;
+  const ang=(idx/Math.max(count,1))*Math.PI*2 - Math.PI/2 + shift;
   const x=50+Math.cos(ang)*rad;
-  const y=50+Math.sin(ang)*rad*0.82;
-  return {x:Math.max(8,Math.min(92,x)), y:Math.max(12,Math.min(88,y))};
+  const y=50+Math.sin(ang)*rad*0.78;
+  return {x:Math.max(7,Math.min(93,x)), y:Math.max(10,Math.min(88,y))};
 }
 
 async function load(){
@@ -177,6 +213,7 @@ async function load(){
     if(!GALAXIES.length) GALAXIES=['Known Worlds'];
     activeGal=GALAXIES[0];
     renderTabs();
+    renderGameTabs();
     renderMap();
   }catch(e){
     document.getElementById('map-stage').innerHTML='<div class="map-empty">Could not load the map right now.</div>';
@@ -198,12 +235,12 @@ function renderTabs(){
     `<button class="gal-tab ${g===activeGal?'active':''}" onclick="setGal('${esc(g).replace(/'/g,"\\'")}')">🌌 ${esc(g)}</button>`
   ).join('');
 }
-function setGal(g){ activeGal=g; clearLocations(); renderTabs(); renderMap(); }
+function setGal(g){ activeGal=g; activeGame=''; clearLocations(); renderTabs(); renderGameTabs(); renderMap(); }
 function renderMap(){
   const world=document.getElementById('map-world');
   world.querySelectorAll('.planet-node,.map-line').forEach(n=>n.remove());
   resetMapView();
-  const list=PLANETS.filter(p=>galaxyOf(p)===activeGal);
+  const list=PLANETS.filter(p=>galaxyOf(p)===activeGal && (!activeGame || activeGame==='*' || gameOf(p)===activeGame));
   if(!list.length){
     world.innerHTML='<div class="map-empty">No planet in this galaxy yet.<br>Add planets from the admin (Wiki entries → Planets).</div>';
     return;
