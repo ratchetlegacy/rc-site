@@ -151,7 +151,8 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <div class="g-title"><span>🃏 Memory</span><span class="g-score" id="mem-moves">0 moves</span></div>
     <div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap">
       <button class="btn btn-primary btn-sm" id="mem-8" onclick="setMemSize(8)">8 pairs</button>
-      <button class="btn btn-ghost btn-sm" id="mem-16" onclick="setMemSize(20)">20 pairs</button>
+      <button class="btn btn-ghost btn-sm" id="mem-16" onclick="setMemSize(16)">16 pairs</button>
+      <button class="btn btn-ghost btn-sm" id="mem-20" onclick="setMemSize(20)">20 pairs</button>
       <button class="btn btn-primary btn-sm" onclick="startMem()" style="margin-left:auto">New game</button>
     </div>
     <div class="mem-grid" id="mem-grid"></div>
@@ -336,12 +337,21 @@ let MEM_PHOTOS=[];
 let memSize=8, memFlipped=[], memMatched=0, memMoves=0, memLock=false;
 function setMemSize(n){
   memSize=n;
-  document.getElementById('mem-8').className='btn btn-sm '+(n===8?'btn-primary':'btn-ghost');
-  document.getElementById('mem-16').className='btn btn-sm '+(n===20?'btn-primary':'btn-ghost');
+  [[8,'mem-8'],[16,'mem-16'],[20,'mem-20']].forEach(([v,id])=>{
+    const b=document.getElementById(id);
+    if(b) b.className='btn btn-sm '+(n===v?'btn-primary':'btn-ghost');
+  });
   startMem();
 }
 async function loadMemPhotos(){
-  try{ const {data}=await sb.from('arcade_memory_images').select('*').order('sort_order'); MEM_PHOTOS=(data||[]).map(r=>r.image_url).filter(Boolean); }catch(e){ MEM_PHOTOS=[]; }
+  try{
+    const {data}=await sb.from('arcade_memory_images').select('*').order('sort_order');
+    MEM_PHOTOS=(data||[]).map(r=>r.image_url).filter(Boolean);
+  }catch(e){ MEM_PHOTOS=[]; }
+  // Si les photos arrivent apres l'ouverture du jeu, la grille affichait
+  // des emojis : on la reconstruit une fois les images connues.
+  const grid=document.getElementById('mem-grid');
+  if(MEM_PHOTOS.length && grid && grid.children.length) startMem();
 }
 function memFaces(n){
   const faces=[];
