@@ -697,15 +697,33 @@ async function loadMemImages(){
   _MEMIMG=data||[];
   const box=document.getElementById('memimg-list'); if(!box) return;
   if(!_MEMIMG.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No image yet.</div>'; return; }
-  box.innerHTML=_MEMIMG.map(m=>
+  box.innerHTML=_MEMIMG.map((m,i)=>
     `<div class="guide-row">
-      <span class="gi">${m.image_url?'🖼️':'🃏'}</span>
-      <div class="gt"><b>${esc(m.label||'Image')}</b><span>order ${m.sort_order||0}</span></div>
+      <span class="gi">${m.image_url?`<img src="${esc(m.image_url)}" style="width:34px;height:34px;object-fit:cover;border-radius:6px" onerror="this.replaceWith(document.createTextNode('🃏'))"/>`:'🃏'}</span>
+      <div class="gt"><b>${i+1}. ${esc(m.label||'Image')}</b><span>order ${m.sort_order||0}</span></div>
+      <button class="btn btn-ghost" style="padding:6px 9px;font-size:.78rem" title="Move up" ${i===0?'disabled':''} onclick="moveMemImg(${i},-1)">▲</button>
+      <button class="btn btn-ghost" style="padding:6px 9px;font-size:.78rem" title="Move down" ${i===_MEMIMG.length-1?'disabled':''} onclick="moveMemImg(${i},1)">▼</button>
       <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editMemImgById('${esc(m.id)}')">Edit</button>
       <button class="btn btn-danger" onclick="delMemImg('${esc(m.id)}')">Del</button>
     </div>`
   ).join('');
 }
+// Reordonnancement : on echange les deux voisins puis on renumerote
+// toute la liste de 1 a N, pour ne pas laisser de trous.
+async function moveMemImg(i, dir){
+  const j=i+dir;
+  if(j<0 || j>=_MEMIMG.length) return;
+  const arr=_MEMIMG.slice();
+  const tmp=arr[i]; arr[i]=arr[j]; arr[j]=tmp;
+  for(let k=0;k<arr.length;k++){
+    if((arr[k].sort_order||0)!==k+1){
+      const {error}=await sb.from('arcade_memory_images').update({sort_order:k+1}).eq('id',arr[k].id);
+      if(error){ showMsg('memimg-msg',error.message,false); return; }
+    }
+  }
+  loadMemImages();
+}
+
 function openMemImgForm(){
   ['mi-id','mi-img','mi-label','mi-order'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('memimg-msg').style.display='none';
