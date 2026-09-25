@@ -148,7 +148,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 
   <!-- MEMORY -->
   <div class="game-panel g-hidden" id="game-mem">
-    <div class="g-title"><span>🃏 Memory</span><span class="g-score" id="mem-moves">0 moves</span></div>
+    <div class="g-title"><span>🃏 Memory</span><span class="g-score"><span id="mem-pairs">0/8</span> · <span id="mem-moves">0 moves</span></span></div>
     <div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap">
       <button class="btn btn-primary btn-sm" id="mem-8" onclick="setMemSize(8)">8 pairs</button>
       <button class="btn btn-ghost btn-sm" id="mem-16" onclick="setMemSize(16)">16 pairs</button>
@@ -361,12 +361,19 @@ function memFaces(n){
   }
   return faces;
 }
+// Paires trouvees sur le total de la grille (0/8, 0/16, 0/20)
+function updateMemPairs(){
+  const el=document.getElementById('mem-pairs');
+  if(el) el.textContent=memMatched+'/'+memSize;
+}
+
 function startMem(){
   const winOld=document.getElementById('mem-win'); if(winOld) winOld.remove();
   const faces=memFaces(memSize);
   const deck=[...faces,...faces].sort(()=>Math.random()-0.5);
   memFlipped=[]; memMatched=0; memMoves=0; memLock=false;
   document.getElementById('mem-moves').textContent='0 moves';
+  updateMemPairs();
   const grid=document.getElementById('mem-grid');
   grid.style.gridTemplateColumns='repeat('+(memSize<=8?4:8)+',1fr)';
   grid.innerHTML=deck.map((c,i)=>{
@@ -387,7 +394,7 @@ function flipMem(i){
     memLock=true;
     const [a,b]=memFlipped;
     if(a.dataset.key===b.dataset.key){
-      setTimeout(()=>{ a.classList.add('matched'); b.classList.add('matched'); memFlipped=[]; memLock=false; memMatched++;
+      setTimeout(()=>{ a.classList.add('matched'); b.classList.add('matched'); memFlipped=[]; memLock=false; memMatched++; updateMemPairs();
         if(memMatched===memSize){
           document.getElementById('mem-grid').insertAdjacentHTML('afterend','<div class="win-msg" id="mem-win">🎉 Solved in '+memMoves+' moves! <button class="btn btn-primary btn-sm" onclick="submitScore(\'mem\','+memMoves+',\''+memSize+' pairs\')">💾 Save score</button></div>');
         }
