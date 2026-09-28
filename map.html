@@ -185,6 +185,36 @@ function setGame(g){ activeGame=g; clearLocations(); renderGameTabs(); renderMap
 // Placement regulier : un anneau jusqu'a 9 planetes, deux au-dela.
 // Les deux anneaux sont decales d'un demi-pas pour que les etiquettes
 // ne s'empilent pas. Plus de hasard : c'est lui qui creait les collisions.
+// Faute de photo, chaque planete recoit une teinte et un relief
+// deterministes tires de son nom : deux planetes ne se ressemblent
+// jamais, et l'aspect ne change pas d'une visite a l'autre.
+function planetSkin(name){
+  let h=0; for(let k=0;k<String(name).length;k++) h=(h*31+name.charCodeAt(k))%360;
+  const h2=(h+38)%360;
+  const light=42+(h%14);
+  return 'background:radial-gradient(circle at 32% 28%,'
+    + 'hsl('+h+',68%,'+(light+16)+'%) 0%,'
+    + 'hsl('+h+',62%,'+light+'%) 42%,'
+    + 'hsl('+h2+',58%,'+Math.max(16,light-24)+'%) 100%);'
+    + 'box-shadow:0 0 18px -2px hsla('+h+',70%,55%,.55), inset -4px -5px 10px rgba(0,0,0,.45);';
+}
+
+// Meme principe pour les lieux, mais la teinte vient du TYPE :
+// toutes les villes se ressemblent, toutes les boutiques aussi,
+// ce qui rend la carte lisible d'un coup d'oeil.
+const LOC_HUES={city:205,district:212,shop:35,corporation:268,factory:20,base:150,
+  headquarters:280,prison:0,arena:330,resort:172,region:95,ruins:28,caverns:258,
+  island:188,sewers:78,building:222,laboratory:292,citadel:48,'defense center':352,
+  superweapon:12,'training ground':118,bar:44,'space station':240,moon:228};
+function locSkin(name, type){
+  const key=String(type||'').toLowerCase().trim();
+  let h=LOC_HUES[key];
+  if(h==null){ h=0; for(let k=0;k<String(name).length;k++) h=(h*31+name.charCodeAt(k))%360; }
+  return 'background:radial-gradient(circle at 34% 30%,'
+    + 'hsl('+h+',72%,64%) 0%, hsl('+h+',66%,48%) 60%, hsl('+h+',60%,32%) 100%);'
+    + 'box-shadow:0 0 12px -1px hsla('+h+',75%,58%,.6);';
+}
+
 function posFor(str,i,total){
   let ring, idx, count;
   if(total<=9){ ring=0; idx=i; count=total; }
@@ -261,7 +291,7 @@ function renderMap(){
     node.style.left=pt.pos.x+'%'; node.style.top=pt.pos.y+'%';
     const dot = (pt.p.image_url && pt.p.image_url.trim())
       ? '<div class="planet-dot has-photo"><img src="'+esc(pt.p.image_url)+'" onerror="this.parentNode.classList.remove(\'has-photo\');this.remove()"/></div>'
-      : '<div class="planet-dot"></div>';
+      : '<div class="planet-dot" style="'+planetSkin(pt.p.name)+'"></div>';
     node.innerHTML=dot+'<div class="planet-label">'+esc(pt.p.name)+'</div>';
     node.onclick=(e)=>{ e.stopPropagation(); toggleLocations(pt); };
     world.appendChild(node);
@@ -317,7 +347,7 @@ function toggleLocations(pt){
     lp.style.left=lx+'%'; lp.style.top=ly+'%';
     const dot = (loc.image_url && loc.image_url.trim())
       ? '<div class="loc-dot loc-photo"><img src="'+esc(loc.image_url)+'" onerror="this.parentNode.classList.remove(\'loc-photo\');this.remove()"/></div>'
-      : '<div class="loc-dot"></div>';
+      : '<div class="loc-dot" style="'+locSkin(loc.name, loc.loc_type)+'"></div>';
     lp.innerHTML=dot+'<div class="loc-label">'+esc(loc.name)+'</div>';
     lp.onclick=(e)=>{ e.stopPropagation(); if(loc._text){ openP(pt.p); } else { openLoc(loc, pt.p); } };
     world.appendChild(lp);
