@@ -119,7 +119,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 
 <div class="wrap">
   <div class="gal-tabs" id="gal-tabs"></div>
-  <div class="game-tabs" id="game-tabs"></div>
+  <div class="game-tabs" id="system-tabs"></div>
   <div class="map-stage" id="map-stage">
     <div class="map-stars" id="map-stars"></div>
     <div class="map-galaxy-glow"></div>
@@ -160,25 +160,22 @@ const stars=document.getElementById('map-stars');
 for(let i=0;i<90;i++){const s=document.createElement('div');s.className='map-star';const sz=Math.random()<.8?1:2;s.style.width=sz+'px';s.style.height=sz+'px';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.animationDelay=(Math.random()*3)+'s';stars.appendChild(s);}
 
 let PLANETS=[], GALAXIES=[], activeGal='', LOCATIONS=[], activeGame='';
-function gameOf(p){ return (p.first_appearance && p.first_appearance.trim()) ? p.first_appearance.trim() : 'Other'; }
-// Jeux presents dans la galaxie, dans l'ordre chronologique (sort_order)
-function gamesIn(gal){
-  const first={};
-  PLANETS.filter(p=>galaxyOf(p)===gal).forEach(p=>{
-    const g=gameOf(p), o=(p.sort_order==null?9999:p.sort_order);
-    if(!(g in first) || o<first[g]) first[g]=o;
-  });
-  return Object.keys(first).sort((a,b)=>first[a]-first[b]);
+// Systeme stellaire, renseigne dans l'admin. Le filtre ne s'affiche
+// que si la galaxie en compte au moins deux.
+function systemOf(p){ return (p.system && p.system.trim()) ? p.system.trim() : ''; }
+function systemsIn(gal){
+  const set={};
+  PLANETS.filter(p=>galaxyOf(p)===gal).forEach(p=>{ const sy=systemOf(p); if(sy) set[sy]=true; });
+  return Object.keys(set).sort();
 }
 function renderGameTabs(){
-  const box=document.getElementById('game-tabs'); if(!box) return;
-  const games=gamesIn(activeGal);
-  if(games.length<=1){ box.innerHTML=''; activeGame=''; return; }
-  if(activeGame && games.indexOf(activeGame)<0) activeGame=games[0];
-  if(!activeGame) activeGame=games[0];
-  box.innerHTML=games.map(g=>
+  const box=document.getElementById('system-tabs'); if(!box) return;
+  const sys=systemsIn(activeGal);
+  if(sys.length<2){ box.innerHTML=''; activeGame=''; return; }
+  box.innerHTML=`<button class="game-tab ${!activeGame?'active':''}" onclick="setGame('')">All systems</button>`
+    + sys.map(g=>
     `<button class="game-tab ${g===activeGame?'active':''}" onclick="setGame('${esc(g).replace(/'/g,"\\'")}')">${esc(g)}</button>`
-  ).join('') + `<button class="game-tab ${activeGame==='*'?'active':''}" onclick="setGame('*')">All</button>`;
+  ).join('');
 }
 function setGame(g){ activeGame=g; clearLocations(); renderGameTabs(); renderMap(); }
 // deterministic pseudo-random position from a string, so a planet always sits in the same spot
@@ -270,7 +267,7 @@ function renderMap(){
   const world=document.getElementById('map-world');
   world.querySelectorAll('.planet-node,.map-line').forEach(n=>n.remove());
   resetMapView();
-  const list=PLANETS.filter(p=>galaxyOf(p)===activeGal && (!activeGame || activeGame==='*' || gameOf(p)===activeGame));
+  const list=PLANETS.filter(p=>galaxyOf(p)===activeGal && (!activeGame || systemOf(p)===activeGame));
   if(!list.length){
     world.innerHTML='<div class="map-empty">No planet in this galaxy yet.<br>Add planets from the admin (Wiki entries → Planets).</div>';
     return;
@@ -297,21 +294,56 @@ function renderMap(){
     world.appendChild(node);
   });
 }
-function resetMapView(){
-  const world=document.getElementById('map-world');
-  if(world) world.style.transform='none';
-  const btn=document.getElementById('map-reset'); if(btn) btn.style.display='none';
-}
-function zoomToPlanet(pos){
+// ── Vue : zoom a la molette, deplacement a la souris ou au doigt ──
+let viewScale=1, viewX=0, viewY=0;
+function applyView(animate){
   const world=document.getElementById('map-world');
   if(!world) return;
-  const scale=1.6;
-  // translate so the planet moves toward center, then scale
-  const tx=(50-pos.x)*scale;
-  const ty=(50-pos.y)*scale;
-  world.style.transform='translate('+tx+'%,'+ty+'%) scale('+scale+')';
-  const btn=document.getElementById('map-reset'); if(btn) btn.style.display='inline-block';
+  world.style.transition = animate ? 'transform .5s cubic-bezier(.3,.7,.3,1)' : 'none';
+  world.style.transform='translate('+viewX+'%,'+viewY+'%) scale('+viewScale+')';
+  const btn=document.getElementById('map-reset');
+  if(btn) btn.style.display=(viewScale!==1||viewX!==0||viewY!==0)?'inline-block':'none';
 }
+function resetMapView(){ viewScale=1; viewX=0; viewY=0; applyView(true); }
+function zoomToPlanet(pos){
+  viewScale=1.6;
+  viewX=(50-pos.x)*viewScale;
+  viewY=(50-pos.y)*viewScale;
+  applyView(true);
+}
+(function(){
+  const stage=document.getElementById('map-stage');
+  if(!stage) return;
+  stage.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const f = e.deltaY<0 ? 1.15 : 1/1.15;
+    viewScale=Math.max(.5, Math.min(5, viewScale*f));
+    applyView(false);
+  }, {passive:false});
+
+  let dragging=false, lastX=0, lastY=0, moved=0;
+  stage.addEventListener('pointerdown', e=>{
+    dragging=true; moved=0; lastX=e.clientX; lastY=e.clientY;
+    stage.setPointerCapture(e.pointerId);
+    stage.style.cursor='grabbing';
+  });
+  stage.addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    const r=stage.getBoundingClientRect();
+    const dx=e.clientX-lastX, dy=e.clientY-lastY;
+    moved+=Math.abs(dx)+Math.abs(dy);
+    lastX=e.clientX; lastY=e.clientY;
+    viewX += (dx/r.width)*100;
+    viewY += (dy/r.height)*100;
+    applyView(false);
+  });
+  const stop=e=>{ dragging=false; stage.style.cursor='grab'; };
+  stage.addEventListener('pointerup', stop);
+  stage.addEventListener('pointercancel', stop);
+  // Un glissement ne doit pas etre pris pour un clic sur une planete
+  stage.addEventListener('click', e=>{ if(moved>6){ e.stopPropagation(); moved=0; } }, true);
+  stage.style.cursor='grab';
+})();
 
 // show location sub-points around a planet when clicked; second click opens the full sheet
 let activeLocPlanet=null;
