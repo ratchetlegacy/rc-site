@@ -321,27 +321,34 @@ function zoomToPlanet(pos){
     applyView(false);
   }, {passive:false});
 
+  // Pas de setPointerCapture ici : il detourne les evenements vers la
+  // carte et le clic n'atteint plus la planete. On ecoute donc au niveau
+  // du document, et on ne bloque le clic que si on a vraiment glisse.
   let dragging=false, lastX=0, lastY=0, moved=0;
   stage.addEventListener('pointerdown', e=>{
+    if(e.button!==undefined && e.button!==0) return;
     dragging=true; moved=0; lastX=e.clientX; lastY=e.clientY;
-    stage.setPointerCapture(e.pointerId);
     stage.style.cursor='grabbing';
   });
-  stage.addEventListener('pointermove', e=>{
+  document.addEventListener('pointermove', e=>{
     if(!dragging) return;
     const r=stage.getBoundingClientRect();
     const dx=e.clientX-lastX, dy=e.clientY-lastY;
     moved+=Math.abs(dx)+Math.abs(dy);
+    if(moved<=6) return;          // simple clic : on ne bouge pas la carte
     lastX=e.clientX; lastY=e.clientY;
     viewX += (dx/r.width)*100;
     viewY += (dy/r.height)*100;
     applyView(false);
   });
-  const stop=e=>{ dragging=false; stage.style.cursor='grab'; };
-  stage.addEventListener('pointerup', stop);
-  stage.addEventListener('pointercancel', stop);
-  // Un glissement ne doit pas etre pris pour un clic sur une planete
-  stage.addEventListener('click', e=>{ if(moved>6){ e.stopPropagation(); moved=0; } }, true);
+  const stop=()=>{ dragging=false; stage.style.cursor='grab'; };
+  document.addEventListener('pointerup', stop);
+  document.addEventListener('pointercancel', stop);
+  // Un vrai glissement ne doit pas ouvrir une planete
+  stage.addEventListener('click', e=>{
+    if(moved>6){ e.stopPropagation(); e.preventDefault(); }
+    moved=0;
+  }, true);
   stage.style.cursor='grab';
 })();
 
