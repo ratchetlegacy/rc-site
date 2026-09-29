@@ -44,6 +44,7 @@ a{color:inherit;text-decoration:none}
 
 /* The map canvas */
 .map-stage{position:relative;width:100%;aspect-ratio:16/10;max-height:620px;border-radius:20px;border:1px solid var(--line);overflow:hidden;background:radial-gradient(ellipse at 30% 30%,#1a1240,#0A0B14 70%)}
+.map-stage{touch-action:none}
 .map-world{position:absolute;inset:0;transition:transform .5s cubic-bezier(.3,.7,.3,1);transform-origin:center center}
 .map-stars{position:absolute;inset:0}
 .map-star{position:absolute;background:#fff;border-radius:50%;animation:tw 3s infinite ease-in-out}
@@ -291,6 +292,7 @@ function renderMap(){
       : '<div class="planet-dot" style="'+planetSkin(pt.p.name)+'"></div>';
     node.innerHTML=dot+'<div class="planet-label">'+esc(pt.p.name)+'</div>';
     node.onclick=(e)=>{ e.stopPropagation(); toggleLocations(pt); };
+    pt.node=node;
     world.appendChild(node);
   });
 }
@@ -306,7 +308,7 @@ function applyView(animate){
 }
 function resetMapView(){ viewScale=1; viewX=0; viewY=0; applyView(true); }
 function zoomToPlanet(pos){
-  viewScale=1.6;
+  viewScale=2.6;
   viewX=(50-pos.x)*viewScale;
   viewY=(50-pos.y)*viewScale;
   applyView(true);
@@ -324,13 +326,37 @@ function zoomToPlanet(pos){
   // Pas de setPointerCapture ici : il detourne les evenements vers la
   // carte et le clic n'atteint plus la planete. On ecoute donc au niveau
   // du document, et on ne bloque le clic que si on a vraiment glisse.
+  // Pincement a deux doigts : on suit les pointeurs actifs et on
+  // compare l'ecart entre eux d'un mouvement a l'autre.
+  const pts=new Map();
+  let pinchDist=0;
+  function dist(){
+    const a=[...pts.values()];
+    if(a.length<2) return 0;
+    const dx=a[0].x-a[1].x, dy=a[0].y-a[1].y;
+    return Math.sqrt(dx*dx+dy*dy);
+  }
+
   let dragging=false, lastX=0, lastY=0, moved=0;
   stage.addEventListener('pointerdown', e=>{
+    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pts.size===2){ pinchDist=dist(); dragging=false; return; }
     if(e.button!==undefined && e.button!==0) return;
     dragging=true; moved=0; lastX=e.clientX; lastY=e.clientY;
     stage.style.cursor='grabbing';
   });
   document.addEventListener('pointermove', e=>{
+    if(pts.has(e.pointerId)) pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pts.size>=2){
+      const d=dist();
+      if(pinchDist>0 && d>0){
+        viewScale=Math.max(.5, Math.min(5, viewScale*(d/pinchDist)));
+        applyView(false);
+      }
+      pinchDist=d;
+      moved=99;               // un pincement n'ouvre pas une planete
+      return;
+    }
     if(!dragging) return;
     const r=stage.getBoundingClientRect();
     const dx=e.clientX-lastX, dy=e.clientY-lastY;
@@ -341,7 +367,11 @@ function zoomToPlanet(pos){
     viewY += (dy/r.height)*100;
     applyView(false);
   });
-  const stop=()=>{ dragging=false; stage.style.cursor='grab'; };
+  const stop=e=>{
+    if(e && e.pointerId!=null) pts.delete(e.pointerId);
+    if(pts.size<2) pinchDist=0;
+    dragging=false; stage.style.cursor='grab';
+  };
   document.addEventListener('pointerup', stop);
   document.addEventListener('pointercancel', stop);
   // Un vrai glissement ne doit pas ouvrir une planete
@@ -355,6 +385,7 @@ function zoomToPlanet(pos){
 // show location sub-points around a planet when clicked; second click opens the full sheet
 let activeLocPlanet=null;
 function clearLocations(){
+  document.querySelectorAll('.planet-node').forEach(n=>{ n.style.opacity=''; });
   document.getElementById('map-world').querySelectorAll('.loc-point,.loc-line').forEach(n=>n.remove());
   activeLocPlanet=null;
   resetMapView();
@@ -364,6 +395,9 @@ function toggleLocations(pt){
   if(activeLocPlanet===pt.p){ openP(pt.p); return; }
   clearLocations();
   activeLocPlanet=pt.p;
+  // On attenue les autres planetes : seule celle ouverte reste lisible
+  document.querySelectorAll('.planet-node').forEach(n=>{ n.style.opacity='.25'; });
+  if(pt.node) pt.node.style.opacity='1';
   zoomToPlanet(pt.pos);
   // real locations from the table, fallback to the text field
   let locs=locationsFor(pt.p.id);
@@ -372,11 +406,14 @@ function toggleLocations(pt){
       .map(name=>({name, _text:true}));
   }
   if(!locs.length){ resetMapView(); openP(pt.p); return; }
-  locs.slice(0,7).forEach((loc,i)=>{
-    const ang=(i/Math.max(locs.length,1))*Math.PI*2 - Math.PI/2;
-    const rad=10;
+  const shown=locs.slice(0,7);
+  shown.forEach((loc,i)=>{
+    const ang=(i/Math.max(shown.length,1))*Math.PI*2 - Math.PI/2;
+    // Rayon resserre : au-dela, les lieux empietaient sur les planetes
+    // voisines et les etiquettes se melangeaient.
+    const rad=5.5;
     const lx=pt.pos.x+Math.cos(ang)*rad;
-    const ly=pt.pos.y+Math.sin(ang)*rad*0.9;
+    const ly=pt.pos.y+Math.sin(ang)*rad*0.85;
     const line=document.createElement('div'); line.className='loc-line';
     const dx=lx-pt.pos.x,dy=ly-pt.pos.y,len=Math.sqrt(dx*dx+dy*dy);
     line.style.left=pt.pos.x+'%'; line.style.top=pt.pos.y+'%'; line.style.width=len+'%';
