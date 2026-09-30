@@ -214,56 +214,33 @@ function locSkin(name, type){
 }
 
 function posFor(str,i,total){
-  let ring, idx, count;
-  if(total<=9){ ring=0; idx=i; count=total; }
-  else{
-    const inner=Math.floor(total*0.4);
-    if(i<inner){ ring=1; idx=i; count=inner; }
-    else       { ring=0; idx=i-inner; count=total-inner; }
-  }
-  const rad = ring===1 ? 22 : 40;
-  const shift = ring===1 ? Math.PI/Math.max(count,1) : 0;
-  const ang=(idx/Math.max(count,1))*Math.PI*2 - Math.PI/2 + shift;
+  // Un a trois anneaux selon le nombre de planetes, et repartition
+  // proportionnelle au rayon : un anneau deux fois plus petit recoit
+  // deux fois moins de planetes. Avec deux anneaux egaux, l'interieur
+  // se tassait et les etiquettes se chevauchaient.
+  let radii;
+  if(total<=10)      radii=[34];
+  else if(total<=26) radii=[22,41];
+  else               radii=[17,30,44];
+
+  const weight=radii.reduce((acc,r)=>acc+r,0);
+  const counts=radii.map(r=>Math.max(1, Math.round(total*r/weight)));
+  counts[counts.length-1] += total - counts.reduce((acc,c)=>acc+c,0);
+
+  let ring=0, idx=i;
+  while(ring<counts.length-1 && idx>=counts[ring]){ idx-=counts[ring]; ring++; }
+  const count=Math.max(counts[ring],1);
+  const rad=radii[ring];
+
+  // un anneau sur deux est decale d'un demi-pas : ses etiquettes
+  // tombent dans les creux du precedent
+  const shift=(ring%2) ? Math.PI/count : 0;
+  const ang=(idx/count)*Math.PI*2 - Math.PI/2 + shift;
   const x=50+Math.cos(ang)*rad;
-  const y=50+Math.sin(ang)*rad*0.78;
+  const y=50+Math.sin(ang)*rad*0.8;
   return {x:Math.max(7,Math.min(93,x)), y:Math.max(10,Math.min(88,y))};
 }
 
-async function load(){
-  try{
-    const [planetsRes, locsRes] = await Promise.all([
-      sb.from('site_wiki_entries').select('*').eq('type','planet').order('sort_order').order('name'),
-      sb.from('site_locations').select('*').order('sort_order').order('name')
-    ]);
-    PLANETS=planetsRes.data||[];
-    LOCATIONS=locsRes.data||[];
-    GALAXIES=[...new Set(PLANETS.map(p=>galaxyOf(p)).filter(Boolean))];
-    if(!GALAXIES.length) GALAXIES=['Known Worlds'];
-    activeGal=GALAXIES[0];
-    renderTabs();
-    renderGameTabs();
-    renderMap();
-  }catch(e){
-    document.getElementById('map-stage').innerHTML='<div class="map-empty">Could not load the map right now.</div>';
-  }
-}
-function locationsFor(planetId){ return LOCATIONS.filter(l=>l.planet_id===planetId); }
-function galaxyOf(p){
-  // 1) use the explicit galaxy field if set
-  if(p.galaxy && p.galaxy.trim()) return p.galaxy.trim();
-  // 2) otherwise try to detect from the subtitle
-  const s=(p.subtitle||'');
-  if(/solana/i.test(s)) return 'Solana';
-  if(/bogon/i.test(s)) return 'Bogon';
-  if(/polaris/i.test(s)) return 'Polaris';
-  return 'Known Worlds';
-}
-function renderTabs(){
-  document.getElementById('gal-tabs').innerHTML=GALAXIES.map(g=>
-    `<button class="gal-tab ${g===activeGal?'active':''}" onclick="setGal('${esc(g).replace(/'/g,"\\'")}')">🌌 ${esc(g)}</button>`
-  ).join('');
-}
-function setGal(g){ activeGal=g; activeGame=''; clearLocations(); renderTabs(); renderGameTabs(); renderMap(); }
 function renderMap(){
   const world=document.getElementById('map-world');
   world.querySelectorAll('.planet-node,.map-line').forEach(n=>n.remove());
