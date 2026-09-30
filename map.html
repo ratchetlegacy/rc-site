@@ -40,6 +40,13 @@ a{color:inherit;text-decoration:none}
 .game-tab:hover{color:var(--text)}
 .game-tab.active{background:rgba(123,79,212,.2);border-color:var(--purple);color:var(--text)}
 .map-stage{touch-action:none}
+@media(max-width:680px){
+  .planet-label{font-size:.6rem;max-width:80px;line-height:1.1}
+  .loc-label{font-size:.55rem;max-width:70px}
+  .planet-dot{width:34px;height:34px}
+  .map-stage{min-height:78vh}
+  .gal-tab{padding:7px 13px;font-size:.72rem}
+}
 .gal-tab{padding:9px 18px;border-radius:100px;border:1px solid var(--line);background:var(--bg2);color:var(--text-mid);font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:.16s}
 .gal-tab.active{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;border-color:transparent}
 
@@ -181,8 +188,16 @@ function setSystem(g){ activeSystem=g; clearLocations(); renderSystemTabs(); ren
 // Un a trois anneaux selon le nombre de planetes, repartition
 // proportionnelle au rayon pour que l'interieur ne se tasse pas.
 function posFor(str,i,total){
+  // Sur telephone la scene est plus etroite : on resserre les anneaux
+  // et on en ajoute un plus tot, sinon les etiquettes debordent.
+  const narrow = window.innerWidth < 680;
   let radii;
-  if(total<=10)      radii=[34];
+  if(narrow){
+    if(total<=8)       radii=[30];
+    else if(total<=18) radii=[19,36];
+    else               radii=[14,26,38];
+  }
+  else if(total<=10) radii=[34];
   else if(total<=26) radii=[22,41];
   else               radii=[17,30,44];
   const weight=radii.reduce((acc,r)=>acc+r,0);
@@ -430,6 +445,11 @@ function openP(p){
 function closeP(){ document.getElementById('pmodal').classList.remove('open'); document.body.style.overflow=''; }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeP(); });
 load();
+let _rsz;
+window.addEventListener('resize', ()=>{
+  clearTimeout(_rsz);
+  _rsz=setTimeout(()=>{ if(typeof renderMap==='function') renderMap(); }, 250);
+});
 </script>
 <script src="site-enhance.js"></script>
 </body>
