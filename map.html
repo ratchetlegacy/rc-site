@@ -39,12 +39,12 @@ a{color:inherit;text-decoration:none}
 .game-tab{padding:6px 13px;border-radius:100px;border:1px solid var(--line);background:transparent;color:var(--text-dim);font-size:.74rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:.16s}
 .game-tab:hover{color:var(--text)}
 .game-tab.active{background:rgba(123,79,212,.2);border-color:var(--purple);color:var(--text)}
+.map-stage{touch-action:none}
 .gal-tab{padding:9px 18px;border-radius:100px;border:1px solid var(--line);background:var(--bg2);color:var(--text-mid);font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:.16s}
 .gal-tab.active{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;border-color:transparent}
 
 /* The map canvas */
 .map-stage{position:relative;width:100%;aspect-ratio:16/10;max-height:620px;border-radius:20px;border:1px solid var(--line);overflow:hidden;background:radial-gradient(ellipse at 30% 30%,#1a1240,#0A0B14 70%)}
-.map-stage{touch-action:none}
 .map-world{position:absolute;inset:0;transition:transform .5s cubic-bezier(.3,.7,.3,1);transform-origin:center center}
 .map-stars{position:absolute;inset:0}
 .map-star{position:absolute;background:#fff;border-radius:50%;animation:tw 3s infinite ease-in-out}
@@ -107,7 +107,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <a href="guides.html">Guides</a>
     <a href="trades.html">Trades</a>
     <a href="https://instagram.com/ratchetlegacy" target="_blank" class="nav-insta-btn" title="Instagram">📸</a>
-    <a href="https://ratchetlegacy.github.io/rc-tracker/app.html" target="_blank" class="nav-cta">Open the tracker</a>
+    <a href="https://ratchetlegacy.github.io/rc-tracker" target="_blank" class="nav-cta">Open the tracker</a>
   </div>
   <button class="nav-burger" onclick="document.querySelector('.nav-links').style.display='flex';this.style.display='none'">☰</button>
 </nav>
@@ -160,46 +160,53 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','
 const stars=document.getElementById('map-stars');
 for(let i=0;i<90;i++){const s=document.createElement('div');s.className='map-star';const sz=Math.random()<.8?1:2;s.style.width=sz+'px';s.style.height=sz+'px';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.animationDelay=(Math.random()*3)+'s';stars.appendChild(s);}
 
-let PLANETS=[], GALAXIES=[], activeGal='', LOCATIONS=[], activeGame='';
-// Systeme stellaire, renseigne dans l'admin. Le filtre ne s'affiche
-// que si la galaxie en compte au moins deux.
+let PLANETS=[], GALAXIES=[], activeGal='', LOCATIONS=[], activeSystem='';
+// Systeme stellaire renseigne dans l'admin. Le rang de filtres
+// n'apparait que si la galaxie en compte au moins deux.
 function systemOf(p){ return (p.system && p.system.trim()) ? p.system.trim() : ''; }
 function systemsIn(gal){
   const set={};
   PLANETS.filter(p=>galaxyOf(p)===gal).forEach(p=>{ const sy=systemOf(p); if(sy) set[sy]=true; });
   return Object.keys(set).sort();
 }
-function renderGameTabs(){
+function renderSystemTabs(){
   const box=document.getElementById('system-tabs'); if(!box) return;
   const sys=systemsIn(activeGal);
-  if(sys.length<2){ box.innerHTML=''; activeGame=''; return; }
-  box.innerHTML=`<button class="game-tab ${!activeGame?'active':''}" onclick="setGame('')">All systems</button>`
-    + sys.map(g=>
-    `<button class="game-tab ${g===activeGame?'active':''}" onclick="setGame('${esc(g).replace(/'/g,"\\'")}')">${esc(g)}</button>`
-  ).join('');
+  if(sys.length<2){ box.innerHTML=''; activeSystem=''; return; }
+  box.innerHTML=`<button class="game-tab ${!activeSystem?'active':''}" onclick="setSystem('')">All systems</button>`
+    + sys.map(g=>`<button class="game-tab ${g===activeSystem?'active':''}" onclick="setSystem('${esc(g).replace(/'/g,"\\'")}')">${esc(g)}</button>`).join('');
 }
-function setGame(g){ activeGame=g; clearLocations(); renderGameTabs(); renderMap(); }
+function setSystem(g){ activeSystem=g; clearLocations(); renderSystemTabs(); renderMap(); }
 // deterministic pseudo-random position from a string, so a planet always sits in the same spot
-// Placement regulier : un anneau jusqu'a 9 planetes, deux au-dela.
-// Les deux anneaux sont decales d'un demi-pas pour que les etiquettes
-// ne s'empilent pas. Plus de hasard : c'est lui qui creait les collisions.
-// Faute de photo, chaque planete recoit une teinte et un relief
-// deterministes tires de son nom : deux planetes ne se ressemblent
-// jamais, et l'aspect ne change pas d'une visite a l'autre.
-function planetSkin(name){
-  let h=0; for(let k=0;k<String(name).length;k++) h=(h*31+name.charCodeAt(k))%360;
-  const h2=(h+38)%360;
-  const light=42+(h%14);
-  return 'background:radial-gradient(circle at 32% 28%,'
-    + 'hsl('+h+',68%,'+(light+16)+'%) 0%,'
-    + 'hsl('+h+',62%,'+light+'%) 42%,'
-    + 'hsl('+h2+',58%,'+Math.max(16,light-24)+'%) 100%);'
-    + 'box-shadow:0 0 18px -2px hsla('+h+',70%,55%,.55), inset -4px -5px 10px rgba(0,0,0,.45);';
+// Un a trois anneaux selon le nombre de planetes, repartition
+// proportionnelle au rayon pour que l'interieur ne se tasse pas.
+function posFor(str,i,total){
+  let radii;
+  if(total<=10)      radii=[34];
+  else if(total<=26) radii=[22,41];
+  else               radii=[17,30,44];
+  const weight=radii.reduce((acc,r)=>acc+r,0);
+  const counts=radii.map(r=>Math.max(1, Math.round(total*r/weight)));
+  counts[counts.length-1] += total - counts.reduce((acc,c)=>acc+c,0);
+  let ring=0, idx=i;
+  while(ring<counts.length-1 && idx>=counts[ring]){ idx-=counts[ring]; ring++; }
+  const count=Math.max(counts[ring],1);
+  const rad=radii[ring];
+  const shift=(ring%2) ? Math.PI/count : 0;
+  const ang=(idx/count)*Math.PI*2 - Math.PI/2 + shift;
+  const x=50+Math.cos(ang)*rad;
+  const y=50+Math.sin(ang)*rad*0.8;
+  return {x:Math.max(7,Math.min(93,x)), y:Math.max(10,Math.min(88,y))};
 }
 
-// Meme principe pour les lieux, mais la teinte vient du TYPE :
-// toutes les villes se ressemblent, toutes les boutiques aussi,
-// ce qui rend la carte lisible d'un coup d'oeil.
+// Aspect genere : teinte deterministe tiree du nom pour les planetes,
+// du type pour les lieux. Une vraie photo reprend toujours le dessus.
+function planetSkin(name){
+  let h=0; for(let k=0;k<String(name).length;k++) h=(h*31+name.charCodeAt(k))%360;
+  const h2=(h+38)%360, light=42+(h%14);
+  return 'background:radial-gradient(circle at 32% 28%,hsl('+h+',68%,'+(light+16)+'%) 0%,hsl('+h+',62%,'+light+'%) 42%,hsl('+h2+',58%,'+Math.max(16,light-24)+'%) 100%);'
+    + 'box-shadow:0 0 18px -2px hsla('+h+',70%,55%,.55), inset -4px -5px 10px rgba(0,0,0,.45);';
+}
 const LOC_HUES={city:205,district:212,shop:35,corporation:268,factory:20,base:150,
   headquarters:280,prison:0,arena:330,resort:172,region:95,ruins:28,caverns:258,
   island:188,sewers:78,building:222,laboratory:292,citadel:48,'defense center':352,
@@ -208,44 +215,50 @@ function locSkin(name, type){
   const key=String(type||'').toLowerCase().trim();
   let h=LOC_HUES[key];
   if(h==null){ h=0; for(let k=0;k<String(name).length;k++) h=(h*31+name.charCodeAt(k))%360; }
-  return 'background:radial-gradient(circle at 34% 30%,'
-    + 'hsl('+h+',72%,64%) 0%, hsl('+h+',66%,48%) 60%, hsl('+h+',60%,32%) 100%);'
+  return 'background:radial-gradient(circle at 34% 30%,hsl('+h+',72%,64%) 0%,hsl('+h+',66%,48%) 60%,hsl('+h+',60%,32%) 100%);'
     + 'box-shadow:0 0 12px -1px hsla('+h+',75%,58%,.6);';
 }
 
-function posFor(str,i,total){
-  // Un a trois anneaux selon le nombre de planetes, et repartition
-  // proportionnelle au rayon : un anneau deux fois plus petit recoit
-  // deux fois moins de planetes. Avec deux anneaux egaux, l'interieur
-  // se tassait et les etiquettes se chevauchaient.
-  let radii;
-  if(total<=10)      radii=[34];
-  else if(total<=26) radii=[22,41];
-  else               radii=[17,30,44];
-
-  const weight=radii.reduce((acc,r)=>acc+r,0);
-  const counts=radii.map(r=>Math.max(1, Math.round(total*r/weight)));
-  counts[counts.length-1] += total - counts.reduce((acc,c)=>acc+c,0);
-
-  let ring=0, idx=i;
-  while(ring<counts.length-1 && idx>=counts[ring]){ idx-=counts[ring]; ring++; }
-  const count=Math.max(counts[ring],1);
-  const rad=radii[ring];
-
-  // un anneau sur deux est decale d'un demi-pas : ses etiquettes
-  // tombent dans les creux du precedent
-  const shift=(ring%2) ? Math.PI/count : 0;
-  const ang=(idx/count)*Math.PI*2 - Math.PI/2 + shift;
-  const x=50+Math.cos(ang)*rad;
-  const y=50+Math.sin(ang)*rad*0.8;
-  return {x:Math.max(7,Math.min(93,x)), y:Math.max(10,Math.min(88,y))};
+async function load(){
+  try{
+    const [planetsRes, locsRes] = await Promise.all([
+      sb.from('site_wiki_entries').select('*').eq('type','planet').order('sort_order').order('name'),
+      sb.from('site_locations').select('*').order('sort_order').order('name')
+    ]);
+    PLANETS=planetsRes.data||[];
+    LOCATIONS=locsRes.data||[];
+    GALAXIES=[...new Set(PLANETS.map(p=>galaxyOf(p)).filter(Boolean))];
+    if(!GALAXIES.length) GALAXIES=['Known Worlds'];
+    activeGal=GALAXIES[0];
+    renderTabs();
+    renderSystemTabs();
+    renderMap();
+  }catch(e){
+    document.getElementById('map-stage').innerHTML='<div class="map-empty">Could not load the map right now.</div>';
+  }
 }
-
+function locationsFor(planetId){ return LOCATIONS.filter(l=>l.planet_id===planetId); }
+function galaxyOf(p){
+  // 1) use the explicit galaxy field if set
+  if(p.galaxy && p.galaxy.trim()) return p.galaxy.trim();
+  // 2) otherwise try to detect from the subtitle
+  const s=(p.subtitle||'');
+  if(/solana/i.test(s)) return 'Solana';
+  if(/bogon/i.test(s)) return 'Bogon';
+  if(/polaris/i.test(s)) return 'Polaris';
+  return 'Known Worlds';
+}
+function renderTabs(){
+  document.getElementById('gal-tabs').innerHTML=GALAXIES.map(g=>
+    `<button class="gal-tab ${g===activeGal?'active':''}" onclick="setGal('${esc(g).replace(/'/g,"\\'")}')">🌌 ${esc(g)}</button>`
+  ).join('');
+}
+function setGal(g){ activeGal=g; activeSystem=''; clearLocations(); renderTabs(); renderSystemTabs(); renderMap(); }
 function renderMap(){
   const world=document.getElementById('map-world');
   world.querySelectorAll('.planet-node,.map-line').forEach(n=>n.remove());
   resetMapView();
-  const list=PLANETS.filter(p=>galaxyOf(p)===activeGal && (!activeGame || systemOf(p)===activeGame));
+  const list=PLANETS.filter(p=>galaxyOf(p)===activeGal && (!activeSystem || systemOf(p)===activeSystem));
   if(!list.length){
     world.innerHTML='<div class="map-empty">No planet in this galaxy yet.<br>Add planets from the admin (Wiki entries → Planets).</div>';
     return;
@@ -273,7 +286,7 @@ function renderMap(){
     world.appendChild(node);
   });
 }
-// ── Vue : zoom a la molette, deplacement a la souris ou au doigt ──
+// ── Vue : molette, glisser, pincement a deux doigts ──
 let viewScale=1, viewX=0, viewY=0;
 function applyView(animate){
   const world=document.getElementById('map-world');
@@ -295,26 +308,18 @@ function zoomToPlanet(pos){
   if(!stage) return;
   stage.addEventListener('wheel', e=>{
     e.preventDefault();
-    const f = e.deltaY<0 ? 1.15 : 1/1.15;
-    viewScale=Math.max(.5, Math.min(5, viewScale*f));
+    viewScale=Math.max(.5, Math.min(5, viewScale*(e.deltaY<0?1.15:1/1.15)));
     applyView(false);
   }, {passive:false});
 
-  // Pas de setPointerCapture ici : il detourne les evenements vers la
-  // carte et le clic n'atteint plus la planete. On ecoute donc au niveau
-  // du document, et on ne bloque le clic que si on a vraiment glisse.
-  // Pincement a deux doigts : on suit les pointeurs actifs et on
-  // compare l'ecart entre eux d'un mouvement a l'autre.
   const pts=new Map();
-  let pinchDist=0;
+  let pinchDist=0, dragging=false, lastX=0, lastY=0, moved=0;
   function dist(){
     const a=[...pts.values()];
     if(a.length<2) return 0;
     const dx=a[0].x-a[1].x, dy=a[0].y-a[1].y;
     return Math.sqrt(dx*dx+dy*dy);
   }
-
-  let dragging=false, lastX=0, lastY=0, moved=0;
   stage.addEventListener('pointerdown', e=>{
     pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(pts.size===2){ pinchDist=dist(); dragging=false; return; }
@@ -322,6 +327,8 @@ function zoomToPlanet(pos){
     dragging=true; moved=0; lastX=e.clientX; lastY=e.clientY;
     stage.style.cursor='grabbing';
   });
+  // au niveau du document : setPointerCapture empecherait le clic
+  // d'atteindre la planete
   document.addEventListener('pointermove', e=>{
     if(pts.has(e.pointerId)) pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(pts.size>=2){
@@ -330,15 +337,14 @@ function zoomToPlanet(pos){
         viewScale=Math.max(.5, Math.min(5, viewScale*(d/pinchDist)));
         applyView(false);
       }
-      pinchDist=d;
-      moved=99;               // un pincement n'ouvre pas une planete
+      pinchDist=d; moved=99;
       return;
     }
     if(!dragging) return;
     const r=stage.getBoundingClientRect();
     const dx=e.clientX-lastX, dy=e.clientY-lastY;
     moved+=Math.abs(dx)+Math.abs(dy);
-    if(moved<=6) return;          // simple clic : on ne bouge pas la carte
+    if(moved<=6) return;
     lastX=e.clientX; lastY=e.clientY;
     viewX += (dx/r.width)*100;
     viewY += (dy/r.height)*100;
@@ -351,7 +357,6 @@ function zoomToPlanet(pos){
   };
   document.addEventListener('pointerup', stop);
   document.addEventListener('pointercancel', stop);
-  // Un vrai glissement ne doit pas ouvrir une planete
   stage.addEventListener('click', e=>{
     if(moved>6){ e.stopPropagation(); e.preventDefault(); }
     moved=0;
@@ -372,7 +377,6 @@ function toggleLocations(pt){
   if(activeLocPlanet===pt.p){ openP(pt.p); return; }
   clearLocations();
   activeLocPlanet=pt.p;
-  // On attenue les autres planetes : seule celle ouverte reste lisible
   document.querySelectorAll('.planet-node').forEach(n=>{ n.style.opacity='.25'; });
   if(pt.node) pt.node.style.opacity='1';
   zoomToPlanet(pt.pos);
@@ -386,9 +390,7 @@ function toggleLocations(pt){
   const shown=locs.slice(0,7);
   shown.forEach((loc,i)=>{
     const ang=(i/Math.max(shown.length,1))*Math.PI*2 - Math.PI/2;
-    // Rayon resserre : au-dela, les lieux empietaient sur les planetes
-    // voisines et les etiquettes se melangeaient.
-    const rad=5.5;
+    const rad=5.5;   // au-dela, les lieux empietaient sur les planetes voisines
     const lx=pt.pos.x+Math.cos(ang)*rad;
     const ly=pt.pos.y+Math.sin(ang)*rad*0.85;
     const line=document.createElement('div'); line.className='loc-line';
