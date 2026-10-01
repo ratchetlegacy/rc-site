@@ -35,6 +35,8 @@ a{color:inherit;text-decoration:none}
 
 /* Galaxy selector */
 .gal-tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:18px 0}
+.loc-label{max-width:104px;line-height:1.15;text-shadow:0 2px 6px rgba(5,6,12,.95),0 0 12px rgba(5,6,12,.9)}
+.planet-label{text-shadow:0 2px 6px rgba(5,6,12,.95)}
 .game-tabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:-6px 0 18px}
 .game-tab{padding:6px 13px;border-radius:100px;border:1px solid var(--line);background:transparent;color:var(--text-dim);font-size:.74rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:.16s}
 .game-tab:hover{color:var(--text)}
@@ -382,7 +384,11 @@ function zoomToPlanet(pos){
 // show location sub-points around a planet when clicked; second click opens the full sheet
 let activeLocPlanet=null;
 function clearLocations(){
-  document.querySelectorAll('.planet-node').forEach(n=>{ n.style.opacity=''; });
+  document.querySelectorAll('.planet-node').forEach(n=>{
+    n.style.opacity='';
+    const lb=n.querySelector('.planet-label');
+    if(lb){ lb.style.visibility=''; lb.style.top=''; lb.style.bottom=''; }
+  });
   document.getElementById('map-world').querySelectorAll('.loc-point,.loc-line').forEach(n=>n.remove());
   activeLocPlanet=null;
   resetMapView();
@@ -392,8 +398,16 @@ function toggleLocations(pt){
   if(activeLocPlanet===pt.p){ openP(pt.p); return; }
   clearLocations();
   activeLocPlanet=pt.p;
-  document.querySelectorAll('.planet-node').forEach(n=>{ n.style.opacity='.25'; });
-  if(pt.node) pt.node.style.opacity='1';
+  document.querySelectorAll('.planet-node').forEach(n=>{
+    n.style.opacity='.18';
+    const lb=n.querySelector('.planet-label'); if(lb) lb.style.visibility='hidden';
+  });
+  if(pt.node){
+    pt.node.style.opacity='1';
+    const lb=pt.node.querySelector('.planet-label');
+    // le nom de la planete passe au-dessus du globe pour liberer le dessous
+    if(lb){ lb.style.visibility='visible'; lb.style.top='-34px'; lb.style.bottom='auto'; }
+  }
   zoomToPlanet(pt.pos);
   // real locations from the table, fallback to the text field
   let locs=locationsFor(pt.p.id);
@@ -405,7 +419,9 @@ function toggleLocations(pt){
   const shown=locs.slice(0,7);
   shown.forEach((loc,i)=>{
     const ang=(i/Math.max(shown.length,1))*Math.PI*2 - Math.PI/2;
-    const rad=5.5;   // au-dela, les lieux empietaient sur les planetes voisines
+    // rayon alterne : une position sur deux est repoussee, sinon les
+    // etiquettes voisines se recouvrent
+    const rad=(i%2===0) ? 6.2 : 9.4;
     const lx=pt.pos.x+Math.cos(ang)*rad;
     const ly=pt.pos.y+Math.sin(ang)*rad*0.85;
     const line=document.createElement('div'); line.className='loc-line';
