@@ -396,21 +396,35 @@ for(let i=0;i<70;i++){
     const suf=['th','st','nd','rd'], v=n%100;
     return n.toLocaleString('en-GB')+(suf[(v-20)%10]||suf[v]||suf[0]);
   }
-  function show(n){
-    if(!isFinite(n)||n<1) return;
-    el.innerHTML='You are the <b>'+ordinal(n)+'</b> Lombax to visit the Legacy';
-    el.classList.add('show');
-  }
+  function render(html){ el.innerHTML=html; el.classList.add('show'); }
+  const nb=n=>Number(n).toLocaleString('en-GB');
+
+  const sb=window.supabase.createClient(SB_URL,SB_KEY);
 
   let mine=null;
   try{ mine=localStorage.getItem(KEY); }catch(e){}
-  if(mine){ show(parseInt(mine,10)); return; }
 
-  const sb=window.supabase.createClient(SB_URL,SB_KEY);
+  if(mine){
+    // Habitue : il garde son numero, mais on lui montre aussi ou en
+    // est le total, sinon il ne verrait jamais le site grandir.
+    const n=parseInt(mine,10);
+    sb.rpc('visitor_count').then(({data,error})=>{
+      if(!isFinite(n)||n<1) return;
+      if(error||data==null){
+        render('You are Lombax <b>#'+nb(n)+'</b> of the Legacy');
+      }else{
+        render('Welcome back, Lombax <b>#'+nb(n)+'</b> · <b>'+nb(data)+'</b> have visited the Legacy');
+      }
+    });
+    return;
+  }
+
   sb.rpc('bump_visitor').then(({data,error})=>{
     if(error||data==null) return;   // en cas de pepin, on n'affiche rien
-    try{ localStorage.setItem(KEY,String(data)); }catch(e){}
-    show(parseInt(data,10));
+    const n=parseInt(data,10);
+    if(!isFinite(n)||n<1) return;
+    try{ localStorage.setItem(KEY,String(n)); }catch(e){}
+    render('You are the <b>'+ordinal(n)+'</b> Lombax to visit the Legacy');
   });
 })();
 </script>
