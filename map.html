@@ -376,10 +376,17 @@ let viewScale=1, viewX=0, viewY=0;
 function scaleLabels(){
   const world=document.getElementById('map-world');
   if(!world) return;
-  const inv=(1/viewScale).toFixed(4);
+  const inv=1/viewScale;
   world.querySelectorAll('.planet-label,.loc-label').forEach(l=>{
     l.style.transformOrigin='top center';
-    l.style.transform='scale('+inv+')';
+    l.style.transform='scale('+inv.toFixed(4)+')';
+  });
+  // Meme probleme pour les traits : 1 px a l'echelle 1 devient une
+  // grosse barre a fond de zoom. On compense leur epaisseur, et on
+  // les attenue en zoom profond ou ils se croisent tous au centre.
+  world.querySelectorAll('.map-line,.loc-line').forEach(l=>{
+    l.style.height=Math.max(inv,0.08).toFixed(3)+'px';
+    l.style.opacity=(viewScale>4 ? 0.35 : 1);
   });
 }
 
