@@ -125,6 +125,15 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 @media(max-width:680px){
   .planet-label{font-size:.6rem;line-height:1.1;max-width:74px;white-space:normal;word-break:break-word}
   .loc-label{font-size:.55rem;line-height:1.1;max-width:66px;white-space:normal;word-break:break-word}
+
+  /* Galaxie chargee sur petit ecran : au-dela d'une trentaine de
+     planetes, les noms se recouvrent et plus rien n'est lisible. On
+     ne garde que les globes, et les noms reviennent des qu'on zoome
+     ou qu'on touche une planete. */
+  .map-stage.dense .planet-dot{width:22px;height:22px}
+  .map-stage.dense .planet-dot.has-photo{width:28px;height:28px}
+  .map-stage.dense .planet-label{opacity:0;transition:opacity .25s}
+  .map-stage.dense.zoomed .planet-label{opacity:1}
 }
 </style>
 </head>
@@ -162,7 +171,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <div class="map-world" id="map-world"></div>
   </div>
   <div style="text-align:center;margin-top:10px"><button id="map-reset" onclick="resetMapView()" style="display:none;background:var(--bg2);border:1px solid var(--line);border-radius:100px;padding:8px 18px;color:var(--text);font-weight:600;font-size:.82rem;cursor:pointer">🔍 Reset view</button></div>
-  <div class="map-hint">💡 Planets are pulled from the wiki — add or edit them from the admin.</div>
+  <div class="map-hint" id="map-hint">💡 Planets are pulled from the wiki — add or edit them from the admin.</div>
   <a href="index.html" class="back-home">← Back to home</a>
 </div>
 
@@ -239,11 +248,15 @@ function posFor(str,i,total){
   if(narrow){
     if(total<=8)       radii=[30];
     else if(total<=18) radii=[19,36];
-    else               radii=[14,26,38];
+    else if(total<=32) radii=[14,26,38];
+    else if(total<=48) radii=[11,21,31,41];
+    else               radii=[9,17,25,33,41,47];
   }
   else if(total<=10) radii=[34];
   else if(total<=26) radii=[22,41];
-  else               radii=[17,30,44];
+  else if(total<=44) radii=[17,30,44];
+  else if(total<=70) radii=[13,23,33,43];
+  else               radii=[11,19,27,35,43,48];
   const weight=radii.reduce((acc,r)=>acc+r,0);
   const counts=radii.map(r=>Math.max(1, Math.round(total*r/weight)));
   counts[counts.length-1] += total - counts.reduce((acc,c)=>acc+c,0);
@@ -328,6 +341,14 @@ function renderMap(){
     return;
   }
   world.innerHTML='';
+  // Vue dense : trop de planetes pour afficher tous les noms a la fois
+  // sur un petit ecran. Le CSS s'en sert pour les masquer jusqu'au zoom.
+  const stage=document.getElementById('map-stage');
+  if(stage) stage.classList.toggle('dense', list.length>26);
+  const hint=document.getElementById('map-hint');
+  if(hint) hint.textContent = (list.length>26 && window.innerWidth<680)
+    ? '💡 Pinch to zoom in, or tap a planet to see its name and places.'
+    : '💡 Planets are pulled from the wiki — add or edit them from the admin.';
   const pts=list.map((p,i)=>({p,pos:posFor(p.name||('P'+i),i,list.length)}));
   pts.forEach(pt=>{
     const line=document.createElement('div'); line.className='map-line';
@@ -348,11 +369,29 @@ function renderMap(){
 }
 // ── Vue : molette, glisser, pincement a deux doigts ──
 let viewScale=1, viewX=0, viewY=0;
+// Le zoom agrandit toute la scene, texte compris : a 2,6x les noms
+// des lieux devenaient enormes et se chevauchaient. On leur applique
+// l'echelle inverse pour qu'ils gardent la meme taille a l'ecran,
+// quel que soit le zoom.
+function scaleLabels(){
+  const world=document.getElementById('map-world');
+  if(!world) return;
+  const inv=(1/viewScale).toFixed(4);
+  world.querySelectorAll('.planet-label,.loc-label').forEach(l=>{
+    l.style.transformOrigin='top center';
+    l.style.transform='scale('+inv+')';
+  });
+}
+
 function applyView(animate){
   const world=document.getElementById('map-world');
   if(!world) return;
   world.style.transition = animate ? 'transform .5s cubic-bezier(.3,.7,.3,1)' : 'none';
   world.style.transform='translate('+viewX+'%,'+viewY+'%) scale('+viewScale+')';
+  // Au-dela de ce zoom, les noms masques en vue dense reapparaissent.
+  const st=document.getElementById('map-stage');
+  if(st) st.classList.toggle('zoomed', viewScale>1.4);
+  scaleLabels();
   const btn=document.getElementById('map-reset');
   if(btn) btn.style.display=(viewScale!==1||viewX!==0||viewY!==0)?'inline-block':'none';
 }
@@ -464,7 +503,9 @@ function toggleLocations(pt){
     const ang=(i/Math.max(shown.length,1))*Math.PI*2 - Math.PI/2;
     // rayon alterne : une position sur deux est repoussee, sinon les
     // etiquettes voisines se recouvrent
-    const rad=(i%2===0) ? 6.2 : 9.4;
+    // Assez loin pour degager le globe de la planete, qui est lui
+    // aussi agrandi par le zoom : a 6,2 les noms passaient dessous.
+    const rad=(i%2===0) ? 9 : 13;
     const lx=pt.pos.x+Math.cos(ang)*rad;
     const ly=pt.pos.y+Math.sin(ang)*rad*0.85;
     const line=document.createElement('div'); line.className='loc-line';
@@ -479,6 +520,9 @@ function toggleLocations(pt){
     lp.onclick=(e)=>{ e.stopPropagation(); if(loc._text){ openP(pt.p); } else { openLoc(loc, pt.p); } };
     world.appendChild(lp);
   });
+  // Les etiquettes de lieux viennent d'etre creees, apres le zoom :
+  // il faut leur appliquer la contre-echelle a leur tour.
+  scaleLabels();
 }
 // location detail sheet
 function openLoc(loc, planet){
