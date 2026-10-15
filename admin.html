@@ -233,12 +233,18 @@ body.menu-only .card{display:none}
         <input type="text" id="n-summary" placeholder="A few words (your own, not the article)"/>
         <label>Source</label>
         <input type="text" id="n-source" placeholder="IGN, Gameblog..."/>
-        <label>Article link *</label>
+        <label>Your article (leave empty to just link out)</label>
+        <textarea id="n-body" rows="12" placeholder="Write your article here.&#10;&#10;One blank line between paragraphs."
+          style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--text);font-family:Inter,sans-serif;font-size:.86rem;line-height:1.6;resize:vertical"></textarea>
+        <div style="font-size:.72rem;color:var(--text-dim);margin:4px 0 12px">
+          Filled in: the card opens your article on the site. Left empty: the card links straight to the source, like before.
+        </div>
+        <label>Link (the source, or where the card goes if you wrote nothing)</label>
         <input type="text" id="n-url" placeholder="https://..."/>
         <label>Image URL</label>
         <input type="text" id="n-image" placeholder="https://... (your own or leave empty)"/>
         <label>Date label</label>
-        <input type="text" id="n-date" placeholder="Sept 2026"/>
+        <input type="text" id="n-date" placeholder="Oct 2026"/>
         <button class="btn btn-primary" style="width:100%" onclick="saveNews()">💾 Save news</button>
       </div>
     </div>
@@ -1077,7 +1083,9 @@ async function loadNews(){
   window._NEWS=data;
 }
 function openNewsForm(){
-  ['n-id','n-title','n-summary','n-source','n-url','n-image','n-date'].forEach(id=>document.getElementById(id).value='');
+  ['n-id','n-title','n-summary','n-source','n-url','n-image','n-date','n-body'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
   document.getElementById('news-msg').style.display='none';
   document.getElementById('news-modal-title').textContent='📰 Add news';
   document.getElementById('news-modal').classList.add('open');
@@ -1092,6 +1100,7 @@ function editNewsById(id){
   document.getElementById('n-url').value=n.url||'';
   document.getElementById('n-image').value=n.image_url||'';
   document.getElementById('n-date').value=n.date_label||'';
+  const _b=document.getElementById('n-body'); if(_b) _b.value=n.body||'';
   document.getElementById('news-msg').style.display='none';
   document.getElementById('news-modal-title').textContent='✏️ Edit news';
   document.getElementById('news-modal').classList.add('open');
@@ -1102,11 +1111,14 @@ async function saveNews(){
     title:document.getElementById('n-title').value.trim(),
     summary:document.getElementById('n-summary').value.trim()||null,
     source:document.getElementById('n-source').value.trim()||null,
-    url:document.getElementById('n-url').value.trim(),
+    url:document.getElementById('n-url').value.trim()||null,
+    source_url:document.getElementById('n-url').value.trim()||null,
     image_url:document.getElementById('n-image').value.trim()||null,
-    date_label:document.getElementById('n-date').value.trim()||null
+    date_label:document.getElementById('n-date').value.trim()||null,
+    body:(document.getElementById('n-body')||{value:''}).value.trim()||null
   };
-  if(!row.title||!row.url){ showMsg('news-msg','Title and link are required.',false); return; }
+  if(!row.title){ showMsg('news-msg','A title is required.',false); return; }
+  if(!row.body && !row.url){ showMsg('news-msg','Write an article, or give a link.',false); return; }
   let error;
   if(id){ ({error}=await sb.from('site_news').update(row).eq('id',id)); }
   else { ({error}=await sb.from('site_news').insert([row])); }
