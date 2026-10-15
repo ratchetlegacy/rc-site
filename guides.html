@@ -3,15 +3,30 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Guides — Ratchet Legacy</title>
+<title>Megacorp Vault — Ratchet Legacy</title>
+<meta name="description" content="Megacorp Vault — the collector's catalogue of Ratchet &amp; Clank games, consoles and merch, with market values."/>
+<link rel="canonical" href="https://ratchetlegacy.com/database.html"/>
+<!-- Apercu quand un lien est colle dans Discord, WhatsApp, Twitter... -->
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Ratchet Legacy"/>
+<meta property="og:title" content="Megacorp Vault — Ratchet Legacy"/>
+<meta property="og:description" content="Megacorp Vault — the collector's catalogue of Ratchet &amp; Clank games, consoles and merch, with market values."/>
+<meta property="og:url" content="https://ratchetlegacy.com/database.html"/>
+<meta property="og:image" content="https://res.cloudinary.com/dmfq8hkvu/image/upload/c_pad,w_1200,h_630,b_rgb:0A0B14/v1788954181/Ratchet_Legacy_ikwdp6.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:locale" content="en_GB"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 :root{
   --bg:#0A0B14;--bg2:#10121F;--bg3:#181B2E;
   --purple:#7B4FD4;--purple-light:#9B6FF4;--orange:#FF6B1A;--orange-light:#FF8A3D;
-  --gold:#FFC85A;--green:#3DD68C;--text:#EEF0F8;--text-dim:#8B92AD;--text-mid:#B8BED4;--line:rgba(255,255,255,.08);
+  --gold:#FFC85A;--green:#3DD68C;
+  --text:#EEF0F8;--text-dim:#8B92AD;--text-mid:#B8BED4;--line:rgba(255,255,255,.08);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -26,55 +41,85 @@ a{color:inherit;text-decoration:none}
 .nav-cta{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff!important;font-weight:700!important}
 .nav-burger{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
 
-.page-hero{padding:130px 24px 30px;text-align:center;position:relative;overflow:hidden}
+.page-hero{padding:120px 24px 30px;text-align:center;position:relative;overflow:hidden}
 .page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 0%,rgba(123,79,212,.2),transparent 70%)}
 .page-hero .tag{position:relative;font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:.24em;color:var(--gold);margin-bottom:14px}
 .page-hero h1{position:relative;font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2rem,5.5vw,3.4rem);margin-bottom:14px}
 .page-hero h1 .grad{background:linear-gradient(120deg,var(--purple-light),var(--orange));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.page-hero p{position:relative;color:var(--text-mid);max-width:560px;margin:0 auto;font-size:1.02rem}
+.page-hero p{position:relative;color:var(--text-mid);max-width:580px;margin:0 auto;font-size:1.02rem}
+.vault-stats{position:relative;display:flex;gap:26px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.vs-item{display:flex;flex-direction:column;align-items:center}
+.vs-item b{font-family:'Orbitron',sans-serif;font-size:1.7rem;background:linear-gradient(120deg,var(--purple-light),var(--orange));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.vs-item span{font-size:.72rem;color:var(--text-dim);letter-spacing:.02em}
 
-.wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
 
-.news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;padding-bottom:60px}
-.news-card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:.2s}
-.news-card:hover{transform:translateY(-5px);border-color:var(--purple);box-shadow:0 14px 34px -14px rgba(123,79,212,.5)}
-.news-img{width:100%;aspect-ratio:3/4;background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
-.news-img img{width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
-.news-card:hover .news-img img{transform:scale(1.08)}
-.gfilter{padding:8px 16px;border-radius:100px;border:1px solid var(--line);background:var(--bg2);color:var(--text-mid);font-size:.8rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif}
-.gfilter.active{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;border-color:transparent}
-.news-img .ni-ph{font-size:2.4rem;opacity:.3}
-.news-src{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.65);color:#fff;font-size:.62rem;font-weight:700;padding:3px 9px;border-radius:5px;letter-spacing:.03em}
-.news-body{padding:16px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
-.news-date{font-size:.68rem;color:var(--orange-light);font-weight:600;letter-spacing:.03em}
-.news-body h3{font-size:1.02rem;font-weight:700;line-height:1.25}
-.news-body p{color:var(--text-mid);font-size:.86rem;flex:1}
-.news-link{margin-top:6px;color:var(--purple-light);font-weight:700;font-size:.82rem}
+/* category tabs */
+.cat-tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0 6px}
+/* category MENU cards */
+.cat-menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;padding-bottom:60px}
+.cat-menu-card{position:relative;border-radius:16px;overflow:hidden;min-height:150px;cursor:pointer;border:1px solid var(--line);background:var(--bg2);display:flex;flex-direction:column;justify-content:flex-end;padding:20px;transition:.2s}
+.cat-menu-card:hover{transform:translateY(-5px);border-color:var(--purple);box-shadow:0 14px 34px -12px rgba(123,79,212,.5)}
+.cat-menu-card .cm-ic{display:none}
+.cat-menu-card .cm-shade{position:absolute;inset:0;background:linear-gradient(160deg,rgba(123,79,212,.18),transparent 70%)}
+.cat-menu-card h3{position:relative;z-index:1;font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.1rem}
+.cat-menu-card .cm-count{position:relative;z-index:1;color:var(--text-dim);font-size:.82rem;margin-top:4px}
+.back-cat{display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 16px;color:var(--text);font-weight:600;font-size:.85rem;cursor:pointer;margin-bottom:16px}
+.back-cat:hover{border-color:var(--purple)}
+.cat-tab{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:100px;border:1px solid var(--line);background:var(--bg2);color:var(--text-mid);font-size:.84rem;font-weight:600;cursor:pointer;transition:.16s}
+.cat-tab:hover{color:var(--text);border-color:var(--purple)}
+.cat-tab.active{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;border-color:transparent}
+.cat-tab .cnt{font-size:.68rem;opacity:.85;background:rgba(255,255,255,.15);padding:1px 7px;border-radius:100px}
+/* section headers when grouped */
+.cat-section-title{grid-column:1/-1;font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.1rem;margin:22px 0 4px;display:flex;align-items:center;gap:10px;color:var(--text)}
+.cat-section-title .n{font-size:.72rem;color:var(--text-dim);font-weight:600;background:var(--bg2);padding:3px 10px;border-radius:100px;border:1px solid var(--line)}
+/* controls */
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0 8px;align-items:center;justify-content:center}
+.controls input,.controls select{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:var(--text);font-family:Inter,sans-serif;font-size:.88rem;outline:none}
+.controls input{min-width:220px}
+.controls input:focus,.controls select:focus{border-color:var(--purple)}
+.count-line{text-align:center;color:var(--text-dim);font-size:.85rem;margin-bottom:20px}
 
-.state{text-align:center;padding:60px;color:var(--text-dim)}
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;padding-bottom:60px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:.18s;cursor:pointer}
+.card:hover{transform:translateY(-4px);border-color:var(--purple);box-shadow:0 12px 28px -10px rgba(123,79,212,.5)}
+.card-cover{width:100%;aspect-ratio:3/4;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.card-cover img{width:100%;height:100%;object-fit:contain;transition:transform .35s ease}
+.card:hover .card-cover img{transform:scale(1.12)}
+.card-cover .await{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--bg3);color:var(--text-dim)}
+.card-cover .await img{width:100%;height:100%;object-fit:cover;opacity:.55}
+.card-cover .await .await-lbl{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:.6rem;letter-spacing:.06em;color:var(--text-dim)}
+.card-cover .ph{font-size:2.2rem;opacity:.25}
+.card-cat{position:absolute;bottom:6px;left:6px;font-size:.55rem;font-weight:700;background:rgba(0,0,0,.7);color:#fff;padding:2px 7px;border-radius:4px}
+.card-body{padding:10px 11px}
+.card-name{font-size:.8rem;font-weight:600;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-meta{font-size:.66rem;color:var(--text-dim);margin-top:3px}
+
+.state{text-align:center;padding:60px 20px;color:var(--text-dim)}
 .spin{display:inline-block;animation:sp 1s linear infinite;font-size:1.6rem}
 @keyframes sp{to{transform:rotate(360deg)}}
-.disclaimer{text-align:center;color:var(--text-dim);font-size:.78rem;max-width:640px;margin:0 auto 30px;padding:14px;background:var(--bg2);border:1px solid var(--line);border-radius:12px}
 
-.back-home{display:inline-flex;align-items:center;gap:8px;margin:10px 0 40px;color:var(--text-dim);font-weight:600}
-.back-home:hover{color:var(--text)}
+/* lightbox */
+.lb{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,6,12,.92);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px}
+.lb.open{display:flex}
+.lb-inner{max-width:420px;width:100%;max-height:calc(100vh - 48px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--bg2);border:1px solid var(--line);border-radius:18px}
+.lb-inner::-webkit-scrollbar{width:8px}
+.lb-inner::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:8px}
+.lb-img{width:100%;max-height:52vh;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:18px 18px 0 0}
+.lb-img img{width:100%;height:auto;max-height:52vh;object-fit:contain;display:block;transition:transform .35s ease;cursor:zoom-in}
+.lb-img:hover img{transform:scale(1.6)}
+.lb-info{padding:20px}
+.lb-info h3{font-family:'Orbitron',sans-serif;font-size:1.1rem;margin-bottom:8px}
+.lb-info .m{color:var(--purple-light);font-size:.8rem;font-weight:600;margin-bottom:4px}
+.lb-info .d{color:var(--text-mid);font-size:.88rem;margin-top:10px}
+.lb-close{position:absolute;top:20px;right:20px;background:rgba(255,255,255,.1);border:none;color:#fff;width:40px;height:40px;border-radius:12px;font-size:1.2rem;cursor:pointer}
+
 footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;color:var(--text-dim)}
 .foot-logo{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.06em;color:var(--text);margin-bottom:12px}
 .foot-small{font-size:.8rem}
 
-@media(max-width:820px){.nav-links{display:flex;overflow-x:auto;gap:2px;max-width:60vw}.nav-burger{display:none}}
-
-/* ── Lecteur PDF intégré ── */
-.pdfv{position:fixed;inset:0;z-index:800;background:rgba(5,6,12,.96);display:none;flex-direction:column}
-.pdfv.open{display:flex}
-.pdfv-bar{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);background:rgba(10,11,20,.9);flex-shrink:0}
-.pdfv-title{font-family:'Orbitron',sans-serif;font-size:.86rem;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pdfv-btn{background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 12px;font-size:.8rem;cursor:pointer;font-family:Inter,sans-serif}
-.pdfv-btn:hover{background:rgba(255,255,255,.14)}
-.pdfv-pages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;align-items:center;gap:16px}
-.pdfv-pages canvas{max-width:100%;height:auto;border-radius:6px;box-shadow:0 10px 40px -12px rgba(0,0,0,.8);pointer-events:none}
-.pdfv-state{color:var(--text-dim);padding:40px;text-align:center}
-@media(max-width:600px){.pdfv-pages{padding:10px}.pdfv-bar{padding:10px 12px}}
+@media(max-width:820px){.nav-links{display:flex;overflow-x:auto;gap:2px;-webkit-overflow-scrolling:touch;max-width:60vw}.nav-burger{display:none}}
 </style>
 </head>
 <body>
@@ -88,42 +133,69 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <a href="arcade.html">Arcade</a>
     <a href="story.html">Story</a>
     <a href="news.html">News</a>
-    <a href="database.html">Megacorp Vault</a>
-    <a href="guides.html" class="active">Guides</a>
+    <a href="database.html" class="active">Megacorp Vault</a>
+    <a href="guides.html">Guides</a>
     <a href="trades.html">Trades</a>
     <a href="https://instagram.com/ratchetlegacy" target="_blank" class="nav-insta-btn" title="Instagram">📸</a>
-    <a href="https://ratchetlegacy.github.io/rc-tracker/app.html" target="_blank" class="nav-cta">Open the tracker</a>
+    <a href="https://tracker.ratchetlegacy.com" target="_blank" class="nav-cta">Open the tracker</a>
   </div>
   <button class="nav-burger" onclick="document.querySelector('.nav-links').style.display='flex';this.style.display='none'">☰</button>
 </nav>
 
 <header class="page-hero">
-  <div class="tag">COLLECTOR RESOURCES</div>
-  <h1>R&amp;C <span class="grad">Guides</span></h1>
-  <p>Printable guides, checklists and reference sheets — made for collectors, free to download.</p>
+  <div class="tag">GADGETRON · MEGACORP REGISTRY</div>
+  <h1>The <span class="grad">Megacorp</span> Vault</h1>
+  <p>Every known Ratchet &amp; Clank collectible — games, figures, plush, guides and more. The most complete reference for collectors.</p>
+  <div class="vault-stats" id="vault-stats"></div>
 </header>
 
 <div class="wrap">
-  <div id="guide-filters" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:24px"></div>
-  <div class="news-grid" id="guides-grid">
-    <div class="state" style="grid-column:1/-1"><span class="spin">⚙️</span><div style="margin-top:10px">Loading guides…</div></div>
+  <div class="controls">
+    <input type="text" id="search" placeholder="🔍 Search in this section..." oninput="applyFilters()"/>
   </div>
-  <a href="index.html" class="back-home">← Back to home</a>
+  <div class="cat-tabs" id="cat-tabs"></div>
+  <div class="count-line" id="count">Loading the database…</div>
+  <div class="grid" id="grid"></div>
+  <div class="state" id="state"><span class="spin">⚙️</span><div style="margin-top:10px">Connecting to the database…</div></div>
 </div>
 
-<div class="pdfv" id="pdfv" oncontextmenu="return false">
-  <div class="pdfv-bar">
-    <span class="pdfv-title" id="pdfv-title"></span>
-    <button class="pdfv-btn" onclick="pdfZoom(-.25)">−</button>
-    <button class="pdfv-btn" onclick="pdfZoom(.25)">+</button>
-    <button class="pdfv-btn" onclick="closePdf()">✕ Close</button>
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" onclick="if(event.target===this)closeLb()">
+  <button class="lb-close" onclick="closeLb()">✕</button>
+  <div class="lb-inner">
+    <div class="lb-img" id="lb-img"></div>
+    <div class="lb-info">
+      <h3 id="lb-name"></h3>
+      <div class="m" id="lb-meta"></div>
+      <div class="d" id="lb-desc"></div>
+      <button id="lb-report" onclick="openFix()" style="width:100%;margin-top:14px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--text-mid);border-radius:10px;padding:10px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">✏️ Something wrong? Suggest a fix</button>
+    </div>
   </div>
-  <div class="pdfv-pages" id="pdfv-pages"></div>
+</div>
+
+<div class="lb" id="fix-lb" onclick="if(event.target===this)closeFix()">
+  <button class="lb-close" onclick="closeFix()">✕</button>
+  <div class="lb-inner">
+    <div class="lb-info" style="padding:22px">
+      <h3 style="font-family:Orbitron,sans-serif;font-size:1.05rem;margin-bottom:4px">Suggest a fix</h3>
+      <div id="fix-target" style="color:var(--purple-light);font-size:.8rem;margin-bottom:14px"></div>
+      <div id="fix-msg" style="display:none;font-size:.8rem;padding:10px 12px;border-radius:8px;margin-bottom:12px"></div>
+      <div style="font-size:.74rem;color:var(--text-dim);margin-bottom:14px">Change only what's wrong and leave the rest as is. Everything is reviewed before it goes live.</div>
+      <div id="fix-fields"></div>
+      <label style="display:block;font-size:.72rem;color:var(--text-dim);margin:14px 0 4px">Photo</label>
+      <div id="fix-photo-preview" style="margin-bottom:8px"></div>
+      <button type="button" onclick="fixPickPhoto()" style="width:100%;background:rgba(123,79,212,.15);border:1px solid rgba(123,79,212,.4);color:var(--purple-light);border-radius:10px;padding:10px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;margin-bottom:12px">📷 Add a photo</button>
+      <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Your message</label>
+      <textarea id="fix-note" rows="3" maxlength="500" placeholder="What's wrong? (optional)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:10px"></textarea>
+      <input type="text" id="fix-by" maxlength="60" placeholder="Your name or Insta handle (optional)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:14px"/>
+      <button onclick="submitFix()" style="width:100%;background:linear-gradient(135deg,var(--purple),var(--orange));border:none;color:#fff;border-radius:10px;padding:12px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Send suggestion</button>
+    </div>
+  </div>
 </div>
 
 <footer>
   <div class="foot-logo">RATCHET LEGACY</div>
-  <div class="foot-small">Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games or Sony.</div>
+  <div class="foot-small">Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games or Sony. · <a href="legal.html" style="color:var(--text-dim)">Terms &amp; Legal</a></div>
   <div style="margin-top:14px"><a href="admin.html" style="color:var(--text-dim);font-size:.75rem;opacity:.6;text-decoration:none">⚙️ Admin</a></div>
 </footer>
 
@@ -131,118 +203,463 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
+const catIcon={'Game':'🎮','Console/Pack':'📦','Figure':'🎯','Plush':'🧸','Goodie':'🎁','Clothing':'👕','Print':'🖼️','Book':'📖','Guide':'📗','Media':'🎬','Misc':'📌'};
+const CAT_ORDER=['Game','Console/Pack','Figure','Plush','Goodie','Clothing','Print','Book','Guide','Media','Misc'];
+let ALL=[];
+let RATING={};
+let VAULTIMG={};   // vault_img_<category> choisi dans l'admin
+let AWAIT_IMG='';  // visuel affiche quand un objet n'a pas encore de photo
+let COMPLETION={};  // stats 100% / trophees, par jeu du wiki
+async function loadCompletion(){
+  try{
+    const {data}=await sb.from('game_completion').select('*');
+    COMPLETION={};
+    (data||[]).forEach(r=>{ if(r.game_id!=null) COMPLETION[String(r.game_id)]=r; });
+  }catch(e){ COMPLETION={}; }
+}
+// Les stats portent sur le JEU, pas sur l'edition : deux versions d'un
+// meme titre affichent donc le meme pourcentage, ce qui est voulu.
+function completionHtml(c){
+  if(!c || c.game_id==null) return '';
+  const st=COMPLETION[String(c.game_id)];
+  if(!st || !st.declared) return '';
+  const pct=(n,d)=> d>0 ? Math.round((n/d)*100) : 0;
+  const bar=(label,val,pctv,total,color)=>
+    `<div style="flex:1;min-width:120px">
+       <div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--text-dim);margin-bottom:4px">
+         <span>${label}</span><span style="color:${color};font-weight:700">${pctv}%</span>
+       </div>
+       <div style="height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden">
+         <div style="width:${pctv}%;height:100%;background:${color}"></div>
+       </div>
+       <div style="font-size:.56rem;color:var(--text-dim);margin-top:3px">${val} of ${total}</div>
+     </div>`;
+  const a=bar('🏁 Finished at 100%', st.completed, pct(st.completed, st.declared), st.declared, 'var(--green)');
+  const b=st.trophy_eligible>0 ? bar('🏆 All trophies', st.platinum, pct(st.platinum, st.trophy_eligible), st.trophy_eligible, 'var(--gold)') : '';
+  return `<div style="margin:12px 0;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px">
+    <div style="font-size:.6rem;color:var(--text-dim);letter-spacing:.1em;margin-bottom:10px">📊 COLLECTOR PROGRESS</div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap">${a}${b}</div>
+    <div style="font-size:.56rem;color:var(--text-dim);margin-top:8px">Declared by ${st.declared} of the ${st.owners} collectors who own this game.</div>
+  </div>`;
+}
+// Bloc "photo a venir" : l'image choisie en admin, sinon l'icone de categorie.
+function awaitingHtml(c){
+  const icon=(typeof catIcon!=='undefined' && catIcon[c.category])||'📦';
+  if(AWAIT_IMG){
+    return `<span class="await"><img src="${esc(AWAIT_IMG)}" alt="" loading="lazy"/><span class="await-lbl">Photo coming soon</span></span>`;
+  }
+  return `<span style="font-size:2.2rem;opacity:.25">${icon}</span><span class="await-lbl" style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:.6rem;color:var(--text-dim)">Photo coming soon</span>`;
+}
+async function loadVaultImages(){
+  try{
+    const {data}=await sb.from('site_settings').select('key,value');
+    VAULTIMG={};
+    (data||[]).forEach(r=>{
+      if(r.key&&r.key.indexOf('vault_img_')===0 && r.value) VAULTIMG[r.key.slice(10)]=r.value;
+      if(r.key==='awaiting_img') AWAIT_IMG=r.value||'';
+    });
+  }catch(e){ VAULTIMG={}; }
+}
+async function loadRating(){
+  try{
+    const {data}=await sb.from('market_rating').select('*');
+    RATING={};
+    (data||[]).forEach(r=>{
+      if(r.catalog_id==null) return;
+      const k=String(r.catalog_id);
+      if(!RATING[k]) RATING[k]={};
+      RATING[k][r.cond]={
+        median: r.median_price!=null?parseFloat(r.median_price):null,
+        count:  (r.user_count||0) + (r.sale_count||0)   // collectionneurs + ventes relevees
+      };
+    });
+  }catch(e){ RATING={}; }
+}
+let activeCat='';
+
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
-let GUIDES=[], GFILTER='';
-
-// ══ LECTEUR PDF INTEGRE ══
-// Chaque page est dessinee dans un canvas : pas de barre d'outils du
-// navigateur, donc pas de bouton telecharger ni d'impression directe,
-// et l'URL du fichier n'apparait nulle part dans l'interface.
-// A savoir : ca decourage, ca ne protege pas. Un visiteur determine
-// retrouvera toujours le fichier dans les outils reseau du navigateur.
-if(window.pdfjsLib){
-  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-}
-let PDF_DOC=null, PDF_SCALE=1.3;
-
-async function openPdf(i){
-  const g=GUIDES[i]; if(!g||!g.pdf_url) return;
-  const v=document.getElementById('pdfv');
-  const pages=document.getElementById('pdfv-pages');
-  document.getElementById('pdfv-title').textContent=g.title||'Guide';
-  pages.innerHTML='<div class="pdfv-state"><span class="spin">⚙️</span><div style="margin-top:10px">Loading the guide…</div></div>';
-  v.classList.add('open');
-  document.body.style.overflow='hidden';
-  if(!window.pdfjsLib){
-    pages.innerHTML='<div class="pdfv-state">The reader could not start.</div>';
-    return;
-  }
-  try{
-    PDF_DOC=await pdfjsLib.getDocument({url:g.pdf_url}).promise;
-    PDF_SCALE=1.3;
-    await renderPdf();
-  }catch(e){
-    pages.innerHTML='<div class="pdfv-state">This guide could not be opened.</div>';
-  }
-}
-
-async function renderPdf(){
-  if(!PDF_DOC) return;
-  const pages=document.getElementById('pdfv-pages');
-  pages.innerHTML='';
-  const dpr=Math.min(window.devicePixelRatio||1, 2);
-  for(let n=1;n<=PDF_DOC.numPages;n++){
-    const page=await PDF_DOC.getPage(n);
-    const vp=page.getViewport({scale:PDF_SCALE*dpr});
-    const canvas=document.createElement('canvas');
-    canvas.width=vp.width; canvas.height=vp.height;
-    canvas.style.width=(vp.width/dpr)+'px';
-    pages.appendChild(canvas);
-    await page.render({canvasContext:canvas.getContext('2d'), viewport:vp}).promise;
-  }
-}
-
-function pdfZoom(d){
-  PDF_SCALE=Math.min(3, Math.max(.6, PDF_SCALE+d));
-  renderPdf();
-}
-
-function closePdf(){
-  document.getElementById('pdfv').classList.remove('open');
-  document.getElementById('pdfv-pages').innerHTML='';
-  document.body.style.overflow='';
-  PDF_DOC=null;
-}
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePdf(); });
-
-function cardHtml(g){
-  const pos=g.cover_pos||'center';
-  const img=g.cover_url
-    ? `<img src="${esc(g.cover_url)}" loading="lazy" style="object-position:${esc(pos)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ni-ph" style="display:none">📗</span>`
-    : `<span class="ni-ph">📗</span>`;
-  const i=GUIDES.indexOf(g);
-  return `<a class="news-card" href="#" onclick="event.preventDefault();openPdf(${i})" style="cursor:pointer">
-    <div class="news-img">${img}${g.game?`<span class="news-src">${esc(g.game)}</span>`:''}</div>
-    <div class="news-body">
-      <h3>${esc(g.title)}</h3>
-      <span class="news-link">Read the guide →</span>
-    </div>
-  </a>`;
-}
-
-function render(){
-  const box=document.getElementById('guides-grid');
-  const list=GFILTER?GUIDES.filter(g=>(g.game||'')===GFILTER):GUIDES;
-  box.innerHTML = list.length
-    ? list.map(cardHtml).join('')
-    : '<div class="state" style="grid-column:1/-1">No guide here yet.</div>';
-}
-
-function setFilter(v){
-  GFILTER=v;
-  document.querySelectorAll('.gfilter').forEach(b=>b.classList.toggle('active', b.dataset.g===v));
-  render();
-}
-
 async function load(){
-  const box=document.getElementById('guides-grid');
   try{
-    const {data,error}=await sb.from('site_guides').select('*').order('sort_order').order('created_at');
-    if(error) throw error;
-    GUIDES=(data||[]).filter(g=>g.pdf_url);
-    if(!GUIDES.length){ box.innerHTML='<div class="state" style="grid-column:1/-1">No guide published yet — check back soon!</div>'; return; }
-    const games=[...new Set(GUIDES.map(g=>g.game).filter(Boolean))].sort();
-    if(games.length>1){
-      document.getElementById('guide-filters').innerHTML=
-        `<button class="gfilter active" data-g="" onclick="setFilter('')">All</button>`
-        + games.map(g=>`<button class="gfilter" data-g="${esc(g)}" onclick="setFilter('${esc(g).replace(/'/g,"&#39;")}')">${esc(g)}</button>`).join('');
-    }
-    render();
+    const {data,error}=await sb.from('catalog').select('*').order('sort_order',{ascending:true}).order('name',{ascending:true});
+    if(error){throw error;}
+    ALL=data||[];
+    document.getElementById('state').style.display='none';
+    await loadRating();
+    await loadVaultImages();
+    await loadCompletion();
+    // fill the stats banner
+    const nCats=new Set(ALL.map(c=>c.category||'Misc')).size;
+    const nPlats=new Set(ALL.map(c=>c.platform).filter(Boolean)).size;
+    const sb2=document.getElementById('vault-stats');
+    if(sb2) sb2.innerHTML=
+      '<div class="vs-item"><b>'+ALL.length+'</b><span>items</span></div>'
+     +'<div class="vs-item"><b>'+nCats+'</b><span>categories</span></div>'
+     +'<div class="vs-item"><b>'+nPlats+'</b><span>platforms</span></div>';
+    showCategoryMenu();
   }catch(e){
-    box.innerHTML='<div class="state" style="grid-column:1/-1">Could not load the guides right now.</div>';
+    document.getElementById('state').innerHTML='<div style="color:var(--text-dim)">Could not load the database right now. Please try again later.</div>';
+    document.getElementById('count').textContent='';
   }
 }
+
+// STEP 1: show the big category menu
+// ===== Cascade nav: Category > Platform > Region > Items =====
+let navCat='', navPlat='', navReg='';
+
+// La zone se lit dans la parenthese de la region : "NL (PAL)" -> "PAL".
+// Rien n'est modifie en base, c'est du regroupement d'affichage.
+function zoneOf(c){
+  const r=(c && c.region) ? String(c.region) : '';
+  const m=r.match(/\(([^)]+)\)/);
+  if(m) return m[1].trim().toUpperCase();
+  return r.trim() ? r.trim() : '—';
+}
+function langList(c){
+  return String((c&&c.languages)||'').split(/[,;/]/).map(x=>x.trim().toUpperCase()).filter(Boolean);
+}
+function langChips(c, max){
+  const L=langList(c); if(!L.length) return '';
+  const shown=L.slice(0,max||3);
+  const rest=L.length-shown.length;
+  return '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">'
+    + shown.map(l=>'<span style="font-size:.6rem;font-weight:700;background:rgba(123,79,212,.18);color:var(--purple-light);border-radius:5px;padding:1px 6px">'+esc(l)+'</span>').join('')
+    + (rest>0?'<span style="font-size:.6rem;color:var(--text-dim);padding:1px 4px">+'+rest+'</span>':'')
+    + '</div>';
+}
+
+function renderMenuCards(items, onClick){
+  const grid=document.getElementById('grid');
+  grid.className='cat-menu';
+  document.querySelector('.controls').style.display='none';
+  grid.innerHTML=items.map(it=>{
+    const sample=it.sampleImg;
+    const bg=sample?`background-image:linear-gradient(to top,rgba(10,11,20,.92),rgba(10,11,20,.35)),url(${esc(sample)});background-size:cover;background-position:center`:'';
+    return `<div class="cat-menu-card" style="${bg}" onclick="${onClick(it.key)}">
+      <div class="cm-shade"></div>
+      <span class="cm-ic">${it.icon||'📦'}</span>
+      <h3>${esc(it.label)}</h3>
+      <div class="cm-count">${it.count} item${it.count>1?'s':''}</div>
+      ${it.sub?`<div style="font-size:.66rem;color:var(--text-dim);margin-top:2px">${esc(it.sub)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function crumb(){
+  const parts=['<button class="back-cat" onclick="showCategoryMenu()">🗂️ Categories</button>'];
+  if(navCat) parts.push(`<button class="back-cat" onclick="openCategory('${esc(navCat).replace(/'/g,"\\'")}')">${catIcon[navCat]||''} ${esc(navCat)}</button>`);
+  if(navPlat) parts.push(`<button class="back-cat" onclick="openPlatform('${esc(navPlat).replace(/'/g,"\\'")}')">${esc(navPlat)}</button>`);
+  if(navReg) parts.push(`<span class="back-cat" style="cursor:default">${esc(navReg)}</span>`);
+  document.getElementById('count').innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+parts.join('<span style="color:var(--text-dim)">›</span>')+'</div>';
+}
+
+// LEVEL 0: categories
+function showCategoryMenu(){
+  navCat=''; navPlat=''; navReg='';
+  const counts={};
+  ALL.forEach(c=>{ const k=c.category||'Misc'; counts[k]=(counts[k]||0)+1; });
+  const present=CAT_ORDER.filter(c=>counts[c]);
+  Object.keys(counts).forEach(k=>{ if(!CAT_ORDER.includes(k)) present.push(k); });
+  document.getElementById('count').textContent='';
+  renderMenuCards(present.map(cat=>({
+    key:cat, label:cat, icon:catIcon[cat]||'📌', count:counts[cat],
+    sampleImg: VAULTIMG[cat] || (ALL.find(o=>(o.category||'Misc')===cat && o.image_url)||{}).image_url
+  })), k=>`openCategory('${k.replace(/'/g,"\\'")}')`);
+}
+
+// LEVEL 1: platforms within a category
+function openCategory(cat){
+  navCat=cat; navPlat=''; navReg='';
+  const inCat=ALL.filter(c=>(c.category||'Misc')===cat);
+  const counts={};
+  inCat.forEach(c=>{ const k=c.platform||'—'; counts[k]=(counts[k]||0)+1; });
+  const plats=Object.keys(counts).sort();
+  crumb();
+  // If only one platform (or none meaningful), skip straight to regions
+  renderMenuCards(plats.map(p=>({
+    key:p, label:p==='—'?'(no platform)':p, icon:'🕹️', count:counts[p],
+    sampleImg:(inCat.find(o=>(o.platform||'—')===p && o.image_url)||{}).image_url
+  })), k=>`openPlatform('${k.replace(/'/g,"\\'")}')`);
+}
+
+// LEVEL 2: regions/versions within a platform
+function openPlatform(plat){
+  navPlat=plat; navReg='';
+  const inSel=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===plat);
+  const counts={}, countries={};
+  inSel.forEach(c=>{
+    const k=zoneOf(c); counts[k]=(counts[k]||0)+1;
+    const r=(c.region||'').replace(/\s*\([^)]*\)/,'').trim();
+    if(r){ (countries[k]=countries[k]||{})[r]=true; }
+  });
+  const zones=Object.keys(counts).sort();
+  crumb();
+  if(zones.length<=1){ openRegion(zones[0]||'—'); return; }
+  renderMenuCards(zones.map(z=>({
+    key:z, label:z==='—'?'(no version)':z, icon:'🌍', count:counts[z],
+    sub:Object.keys(countries[z]||{}).sort().slice(0,4).join(' · '),
+    sampleImg:(inSel.find(o=>zoneOf(o)===z && o.image_url)||{}).image_url
+  })), k=>`openRegion('${k.replace(/'/g,"\\'")}')`);
+}
+
+// LEVEL 3: the items
+function openRegion(reg){
+  navReg=reg;
+  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && zoneOf(c)===reg);
+  crumb();
+  document.querySelector('.controls').style.display='flex';
+  const grid=document.getElementById('grid'); grid.className='grid';
+  if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:40px">No item.</div>'; return; }
+  grid.innerHTML=list.map(cardHtml).join('');
+  window.scrollTo({top:document.getElementById('count').offsetTop-90,behavior:'smooth'});
+}
+
+function cardHtml(c){
+  const meta=[c.platform,c.region,c.year].filter(Boolean).join(' · ');
+  const cover=c.image_url
+    ? `<img src="${esc(c.image_url)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ph" style="display:none">${awaitingHtml(c)}</span>`
+    : `<span class="ph">${awaitingHtml(c)}</span>`;
+  const editionBadge = (c.edition && c.edition.trim() && c.edition.toLowerCase()!=='standard')
+    ? `<span style="position:absolute;top:6px;right:6px;background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;font-size:.55rem;font-weight:800;padding:2px 7px;border-radius:5px;letter-spacing:.02em">${esc(c.edition)}</span>` : '';
+  const rc=RATING[String(c.id)]||{};
+  const rv=(rc.occasion&&rc.occasion.median!=null)?rc.occasion:((rc.neuf&&rc.neuf.median!=null)?rc.neuf:null);
+  const ratingChip = rv
+    ? `<div style="margin-top:6px;font-size:.68rem;font-weight:700;color:var(--green)">💰 ${parseFloat(rv.median).toFixed(2).replace(/\.00$/,'')} €</div>` : '';
+  return `<div class="card" onclick="openLb(${ALL.indexOf(c)})">
+    <div class="card-cover">${cover}${editionBadge}${c.category?`<span class="card-cat">${catIcon[c.category]||''} ${esc(c.category)}</span>`:''}</div>
+    <div class="card-body"><div class="card-name">${esc(c.name)}</div>${meta?`<div class="card-meta">${esc(meta)}</div>`:''}${langChips(c,3)}${ratingChip}</div>
+  </div>`;
+}
+
+// search within the current items view
+function applyFilters(){
+  if(!navReg){ return; }
+  const q=(document.getElementById('search').value||'').toLowerCase().trim();
+  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && zoneOf(c)===navReg
+    && (!q || (c.name||'').toLowerCase().includes(q)));
+  const grid=document.getElementById('grid');
+  if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:40px">No item matches.</div>'; return; }
+  grid.innerHTML=list.map(cardHtml).join('');
+}
+
+// ══ COURBE DE TENDANCE DES PRIX ══
+// Source : la vue market_rating_history (mediane glissante 12 mois des
+// prix reellement payes : achats utilisateurs + ventes relevees en admin).
+// L'estimation admin n'y entre pas, sinon la courbe serait plate.
+function trendSvg(points, color){
+  const W=280, H=90, P=6;
+  const vals=points.map(p=>p.v);
+  const min=Math.min.apply(null,vals), max=Math.max.apply(null,vals);
+  const span=(max-min)||1;
+  const stepX=(W-2*P)/Math.max(1,points.length-1);
+  const xy=points.map((p,i)=>[P+i*stepX, H-P-((p.v-min)/span)*(H-2*P)]);
+  const line=xy.map((c,i)=>(i?'L':'M')+c[0].toFixed(1)+' '+c[1].toFixed(1)).join(' ');
+  const area=line+' L'+xy[xy.length-1][0].toFixed(1)+' '+(H-P)+' L'+xy[0][0].toFixed(1)+' '+(H-P)+' Z';
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'
+    + '<path d="'+area+'" fill="'+color+'" opacity=".14"/>'
+    + '<path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'
+    + xy.map((c,i)=>'<circle cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="4" fill="'+color+'" style="cursor:help"><title>'+(points[i].tip||'')+'</title></circle>').join('')
+    + '</svg>';
+}
+function trendHtml(rows, sales){
+  // Une courbe par etat : neuf et occasion sont deux marches differents.
+  const byCond={};
+  rows.forEach(r=>{ (byCond[r.cond]=byCond[r.cond]||[]).push(r); });
+  const fmt=v=>parseFloat(v).toFixed(2).replace(/\.00$/,'')+' \u20ac';
+  const blocks=[];
+  let bestCount=0;
+  ['occasion','neuf'].forEach(cond=>{
+    const arr=(byCond[cond]||[]).slice().sort((a,b)=>String(a.month).localeCompare(String(b.month)));
+    if(!arr.length) return;
+    // points_total = tous les prix dates de l'objet pour cet etat.
+    const totalPts=Math.max.apply(null, arr.map(r=>r.points_total||r.sample_count||0));
+    bestCount=Math.max(bestCount,totalPts);
+    if(arr.length<3 || totalPts<4) return;
+    const pts=arr.map(r=>{
+      const m=String(r.month).slice(0,7);
+      let tip=m+' \u00b7 '+fmt(r.median_price)+' (median of '+r.sample_count+')';
+      (sales||[]).forEach(v=>{
+        if(v.condition!==cond) return;
+        if(String(v.sold_on).slice(0,7)!==m) return;
+        tip+='\n\u2022 '+fmt(v.price)+(v.source?' \u00b7 '+v.source:'')+(v.condition_note?' \u00b7 '+v.condition_note:'');
+      });
+      return {m:m, v:parseFloat(r.median_price), tip:tip};
+    });
+    const first=pts[0].v, last=pts[pts.length-1].v;
+    const diff=last-first, pct=first>0?((diff/first)*100):0;
+    const up=diff>=0, color=up?'#3DD68C':'#FF6B6B';
+    blocks.push(
+      '<div style="margin:12px 0;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px">'
+      + '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">'
+      +   '<span style="font-size:.6rem;color:var(--text-dim);letter-spacing:.1em">\ud83d\udcc8 TREND \u00b7 '+(cond==='neuf'?'NEW / SEALED':'PRE-OWNED')+'</span>'
+      +   '<span style="font-size:.78rem;font-weight:700;color:'+color+'">'+(up?'\u25b2':'\u25bc')+' '+(up?'+':'')+pct.toFixed(0)+'%</span>'
+      + '</div>'
+      + trendSvg(pts,color)
+      + '<div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--text-dim);margin-top:4px">'
+      +   '<span>'+pts[0].m+' \u00b7 '+fmt(first)+'</span><span>'+pts[pts.length-1].m+' \u00b7 '+fmt(last)+'</span>'
+      + '</div>'
+      + '<div style="font-size:.56rem;color:var(--text-dim);text-align:center;margin-top:4px">Hover a point for the sales behind it</div>'
+      + '</div>');
+  });
+  if(!blocks.length){
+    return '<div style="font-size:.7rem;color:var(--text-dim);text-align:center;padding:10px">'
+      + '\ud83d\udcc9 Not enough data for a trend yet'
+      + (bestCount?' ('+bestCount+' dated price'+(bestCount>1?'s':'')+')':'')
+      + '</div>';
+  }
+  return blocks.join('');
+}
+
+async function loadTrendInto(boxId, catalogId, client){
+  const box=document.getElementById(boxId); if(!box) return;
+  try{
+    const [hist, sales] = await Promise.all([
+      client.from('market_rating_history').select('*').eq('catalog_id',catalogId),
+      client.from('catalog_sales').select('price,sold_on,condition,condition_note,source,excluded').eq('catalog_id',catalogId)
+    ]);
+    if(hist.error) throw hist.error;
+    const ok=(sales.data||[]).filter(v=>!v.excluded);
+    box.innerHTML=trendHtml(hist.data||[], ok);
+  }catch(e){ box.innerHTML=''; }
+}
+
+
+let LB_INDEX=0;
+function openLb(i){
+  const c=ALL[i]; if(!c) return;
+  LB_INDEX=i;
+  _lbFront=true;
+  const box=document.getElementById('lb-img');
+  if(c.image_url){
+    const hasBack = c.image_back && c.image_back.trim();
+    box.innerHTML = `<img id="lb-photo" src="${esc(c.image_url)}"/>`
+      + (hasBack?`<button onclick="lbFlip('${esc(c.image_url)}','${esc(c.image_back)}')" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:600;cursor:pointer;z-index:2">🔄 Flip</button>`:'');
+    box.style.position='relative';
+  } else {
+    box.innerHTML=`<span style="font-size:3rem;opacity:.3">${catIcon[c.category]||'📦'}</span>`;
+  }
+  document.getElementById('lb-name').textContent=c.name||'';
+  document.getElementById('lb-meta').textContent=[c.category,c.edition,c.platform,c.region,c.year].filter(Boolean).join(' · ');
+  const L=langList(c);
+  const extraRows =
+    (L.length?`<div style="margin-top:8px;font-size:.78rem"><span style="color:var(--text-dim)">Languages</span> ${L.map(l=>`<span style="display:inline-block;font-size:.68rem;font-weight:700;background:rgba(123,79,212,.18);color:var(--purple-light);border-radius:5px;padding:2px 7px;margin:0 4px 4px 0">${esc(l)}</span>`).join('')}</div>`:'')
+  + (c.reference?`<div style="margin-top:4px;font-size:.78rem"><span style="color:var(--text-dim)">Reference</span> <code style="font-size:.74rem">${esc(c.reference)}</code></div>`:'');
+  const rr=RATING[String(c.id)]||{};
+  const rLine=(lbl,r)=> (r&&r.median!=null)
+    ? `<div style="flex:1">
+        <div style="font-size:.58rem;color:var(--text-dim);letter-spacing:.08em">${lbl}</div>
+        <div style="font-family:Orbitron,sans-serif;font-weight:700;font-size:1.15rem;color:var(--green)">${parseFloat(r.median).toFixed(2).replace(/\.00$/,'')} €</div>
+        <div style="font-size:.56rem;color:var(--text-dim)">${r.count?`based on ${r.count} real price${r.count>1?'s':''}`:'estimate only'}</div>
+      </div>` : '';
+  const rNew=rLine('NEW / SEALED',rr.neuf), rUsed=rLine('PRE-OWNED',rr.occasion);
+  const ratingHtml = (rNew||rUsed)
+    ? `<div style="margin:12px 0;padding:12px 14px;background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.3);border-radius:10px;text-align:center">
+        <div style="font-size:.6rem;color:var(--text-dim);letter-spacing:.1em;margin-bottom:6px">💰 MARKET RATING (median)</div>
+        <div style="display:flex;gap:10px">${rNew}${rUsed}</div>
+      </div>` : '';
+  const dbox=document.getElementById('lb-desc');
+  dbox.innerHTML = extraRows + ratingHtml + completionHtml(c) + '<div id="lb-trend"></div>' + (c.description?esc(c.description):'');
+  loadTrendInto('lb-trend', c.id, sb);
+  document.getElementById('lb').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+// ══ SUGGESTIONS DE CORRECTION (visiteurs, sans compte) ══
+const FIX_FIELDS=[
+  ['name','Name'],['category','Category'],['platform','Platform'],
+  ['edition','Edition'],['region','Region'],['year','Year']
+];
+let FIX_OBJ=null, FIX_PHOTO='';
+function fixMsg(txt, ok){
+  const b=document.getElementById('fix-msg');
+  b.textContent=txt; b.style.display='block';
+  b.style.background = ok?'rgba(61,214,140,.12)':'rgba(255,107,107,.12)';
+  b.style.color = ok?'var(--green)':'#FF6B6B';
+}
+function openFix(){
+  const c=ALL[LB_INDEX]; if(!c) return;
+  FIX_OBJ=c; FIX_PHOTO='';
+  document.getElementById('fix-target').textContent=[c.name,c.edition,c.platform,c.region].filter(Boolean).join(' · ');
+  document.getElementById('fix-msg').style.display='none';
+  document.getElementById('fix-note').value='';
+  document.getElementById('fix-photo-preview').innerHTML='';
+  document.getElementById('fix-fields').innerHTML=FIX_FIELDS.map(f=>
+    `<label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">${f[1]}</label>
+     <input type="text" id="fix-${f[0]}" value="${esc(c[f[0]]==null?'':c[f[0]])}" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:10px"/>`
+  ).join('');
+  document.getElementById('fix-lb').classList.add('open');
+}
+function closeFix(){ document.getElementById('fix-lb').classList.remove('open'); }
+
+function fixPickPhoto(){
+  const input=document.createElement('input');
+  input.type='file'; input.accept='image/*';
+  input.onchange=async()=>{
+    const file=input.files&&input.files[0]; if(!file) return;
+    if(file.size > 8*1024*1024){ fixMsg('Photo too large (8 MB max).',false); return; }
+    fixMsg('Uploading the photo…',true);
+    try{
+      const form=new FormData();
+      form.append('file',file);
+      form.append('upload_preset','rc-jaquettes');
+      const res=await fetch('https://api.cloudinary.com/v1_1/dmfq8hkvu/image/upload',{method:'POST',body:form});
+      const data=await res.json();
+      if(!data.secure_url) throw new Error('upload failed');
+      FIX_PHOTO=data.secure_url;
+      document.getElementById('fix-photo-preview').innerHTML=
+        `<img src="${esc(FIX_PHOTO)}" style="width:100%;border-radius:10px;display:block"/>`;
+      fixMsg('Photo attached ✓',true);
+    }catch(e){ fixMsg('Photo upload failed.',false); }
+  };
+  input.click();
+}
+
+async function submitFix(){
+  if(!FIX_OBJ) return;
+  // Garde-fous navigateur : 60 s entre deux envois, 5 par session.
+  const now=Date.now();
+  const last=parseInt(localStorage.getItem('rc_fix_last')||'0',10);
+  if(now-last < 60000){ fixMsg('Please wait a minute between two suggestions.',false); return; }
+  const count=parseInt(localStorage.getItem('rc_fix_count')||'0',10);
+  if(count>=5){ fixMsg('You have reached the suggestion limit for now. Thanks!',false); return; }
+
+  const proposed={};
+  FIX_FIELDS.forEach(f=>{
+    const el=document.getElementById('fix-'+f[0]); if(!el) return;
+    const v=el.value.trim();
+    const cur=(FIX_OBJ[f[0]]==null?'':String(FIX_OBJ[f[0]])).trim();
+    if(v!==cur) proposed[f[0]]=v;
+  });
+  if(FIX_PHOTO) proposed.image_url=FIX_PHOTO;
+  const note=document.getElementById('fix-note').value.trim();
+  if(!Object.keys(proposed).length && !note){ fixMsg('Change something or leave a message first.',false); return; }
+
+  try{
+    const {error}=await sb.from('catalog_suggestions').insert([{
+      kind:'edit',
+      catalog_id:FIX_OBJ.id,
+      name:FIX_OBJ.name,
+      proposed:proposed,
+      image_url:FIX_PHOTO||null,
+      note:note||null,
+      suggested_by:document.getElementById('fix-by').value.trim()||null,
+      status:'pending'
+    }]);
+    if(error) throw error;
+    localStorage.setItem('rc_fix_last',String(now));
+    localStorage.setItem('rc_fix_count',String(count+1));
+    fixMsg('Thank you! Your suggestion was sent 💜',true);
+    setTimeout(closeFix,1400);
+  }catch(e){ fixMsg(e.message,false); }
+}
+
+function closeLb(){document.getElementById('lb').classList.remove('open');document.body.style.overflow='';}
+let _lbFront=true;
+function lbFlip(front,back){
+  const img=document.getElementById('lb-photo'); if(!img) return;
+  _lbFront=!_lbFront;
+  img.src=_lbFront?front:back;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLb();});
+
 load();
 </script>
 <script src="site-enhance.js"></script>
