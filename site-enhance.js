@@ -1,7 +1,8 @@
 /* Ratchet Legacy — shared site enhancements
    Logo injection · scroll fade-in · subtle logo glow */
 (function(){
-  const LOGO='https://ratchetlegacy.github.io/rc-tracker/Ratchet%20Legacy.jpg';
+  // Servi par Cloudinary : le logo ne depend plus du depot du tracker.
+  const LOGO='https://res.cloudinary.com/dmfq8hkvu/image/upload/v1788954181/Ratchet_Legacy_ikwdp6.jpg';
 
   // ---- Inject styles ----
   const css=`
