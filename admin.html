@@ -1631,8 +1631,17 @@ async function loadPendingSales(){
     box.innerHTML=data.map(v=>
       '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px">'
       + '<div style="font-size:.82rem;font-weight:700;margin-bottom:2px">'+esc(names[String(v.catalog_id)]||'(object not in the catalog)')+'</div>'
-      + '<div style="font-size:.78rem;color:var(--text-mid);margin-bottom:8px">'
+      + '<div style="font-size:.78rem;color:var(--text-mid);margin-bottom:4px">'
       +   '<b style="color:var(--green)">'+esc(String(v.price))+' \u20ac</b> \u00b7 '+esc(v.sold_on)+' \u00b7 '+esc(v.condition)
+      +   (v.source?' \u00b7 '+esc(v.source):'')
+      + '</div>'
+      // Provenance : un visiteur non connecte laisse librement son nom
+      // dans reported_by, un membre du tracker arrive par submitted_by.
+      + '<div style="font-size:.7rem;color:var(--text-dim);margin-bottom:8px">'
+      +   (v.reported_by ? 'Reported by ' + esc(v.reported_by)
+                         : (v.submitted_by ? 'From a signed-in collector' : 'Anonymous visitor'))
+      +   (v.url?' \u00b7 <a href="'+esc(v.url)+'" target="_blank" rel="noopener" style="color:var(--purple-light)">see the listing \u2197</a>':'')
+      +   (v.note?'<div style="margin-top:4px;color:var(--text-mid);font-style:italic">\u201c'+esc(v.note)+'\u201d</div>':'')
       + '</div>'
       + '<div style="display:flex;gap:6px">'
       +   '<button type="button" class="btn btn-primary" style="flex:1;padding:6px;font-size:.74rem" onclick="reviewSale(\''+esc(v.id)+'\',\'approved\')">\u2713 Approve</button>'
