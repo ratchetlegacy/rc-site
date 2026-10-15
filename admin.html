@@ -1512,6 +1512,10 @@ function renderObjs(){
       <div class="ac-body">
         <div class="ac-name">${esc(o.name)}</div>
         <div class="ac-meta">${esc([o.platform,o.edition,o.year].filter(Boolean).join(' · ')||o.category||'')}</div>
+        <div style="font-size:.66rem;margin-top:3px;color:${o.barcode?'var(--green)':'var(--text-dim)'}"
+             title="${o.barcode?'Barcode: '+esc(o.barcode):'No barcode yet'}">
+          ${o.barcode?'▌▌▌ '+esc(o.barcode):'▌▌▌ no barcode'}
+        </div>
       </div>
       <div class="ac-actions">
         <button type="button" class="btn btn-ghost" style="flex:1;padding:6px;font-size:.72rem" onclick="editObjById('${esc(o.id)}')">Edit</button>
@@ -1940,8 +1944,38 @@ function editObj(o){
   document.getElementById('obj-modal').style.display='flex';
   document.body.style.overflow='hidden';
 }
+// Controle du code-barres pendant la saisie. Le dernier chiffre se
+// deduit des autres : une faute de frappe se voit tout de suite, au
+// lieu d'etre refusee par la base au moment d'enregistrer.
+function barcodeOk(code){
+  const c=String(code||'').replace(/\s/g,'');
+  if(!/^\d+$/.test(c)) return false;
+  if(![8,12,13,14].includes(c.length)) return false;
+  const n=c.length;
+  let s=0;
+  for(let i=1;i<n;i++) s += (+c[n-1-i]) * (i%2 ? 3 : 1);
+  return (10 - s%10) % 10 === (+c[n-1]);
+}
+function checkBarcode(){
+  const el=document.getElementById('o-barcode');
+  const msg=document.getElementById('o-barcode-msg');
+  if(!el||!msg) return;
+  const v=el.value.replace(/\s/g,'');
+  if(!v){ msg.textContent=''; el.style.borderColor=''; return; }
+  if(barcodeOk(v)){
+    msg.textContent='✓ valid check digit ('+v.length+' digits)';
+    msg.style.color='var(--green)';
+    el.style.borderColor='rgba(61,214,140,.6)';
+  }else{
+    msg.textContent='✗ check digit does not match — re-read it from the box';
+    msg.style.color='var(--orange-light)';
+    el.style.borderColor='rgba(255,107,26,.6)';
+  }
+}
+
 function clearObjForm(){
-  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition','o-region','o-price-new','o-price-used','o-game','o-reference'].forEach(id=>document.getElementById(id).value='');
+  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition','o-region','o-price-new','o-price-used','o-game','o-reference','o-barcode'].forEach(id=>document.getElementById(id).value='');
+  checkBarcode();
   setLangs('');
   loadSales(null);
   const m=document.getElementById('obj-msg'); if(m) m.style.display='none';
@@ -1960,6 +1994,7 @@ async function saveObj(){
     game_id:document.getElementById('o-game').value||null,
     languages:CUR_LANGS.length?CUR_LANGS.join(', '):null,
     reference:document.getElementById('o-reference').value.trim()||null,
+    barcode:document.getElementById('o-barcode').value.replace(/\s/g,'')||null,
     price_new:document.getElementById('o-price-new').value!==''?parseFloat(document.getElementById('o-price-new').value):null,
     price_used:document.getElementById('o-price-used').value!==''?parseFloat(document.getElementById('o-price-used').value):null,
     image_back:document.getElementById('o-imageback').value.trim()||null,
