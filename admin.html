@@ -1635,6 +1635,23 @@ async function loadPendingSales(){
       +   '<b style="color:var(--green)">'+esc(String(v.price))+' \u20ac</b> \u00b7 '+esc(v.sold_on)+' \u00b7 '+esc(v.condition)
       +   (v.source?' \u00b7 '+esc(v.source):'')
       + '</div>'
+      // Etat detaille : la note pour une occasion, et ce qui manquait.
+      // Un exemplaire scelle est complet par definition.
+      + (function(){
+          const G={excellent:'\u2b50\u2b50\u2b50\u2b50\u2b50 Excellent',tres_bon:'\u2b50\u2b50\u2b50\u2b50 Very good',
+                   bon:'\u2b50\u2b50\u2b50 Good',correct:'\u2b50\u2b50 Fair',abime:'\u2b50 Rough'};
+          let t=[];
+          if(v.condition==='neuf') t.push('<span style="color:var(--green)">\ud83e\udee7 sealed \u00b7 complete</span>');
+          if(v.grade&&G[v.grade]) t.push(esc(G[v.grade]));
+          if(v.completeness){
+            const manque=Object.keys(v.completeness).filter(k=>!v.completeness[k])
+                               .map(k=>k.replace('has_',''));
+            t.push(manque.length
+              ? '<span style="color:var(--orange-light)">\u26a0\ufe0f missing: '+esc(manque.join(', '))+'</span>'
+              : '<span style="color:var(--green)">\u2713 complete</span>');
+          }
+          return t.length?'<div style="font-size:.72rem;margin-bottom:4px">'+t.join(' \u00b7 ')+'</div>':'';
+        })()
       // Provenance : un visiteur non connecte laisse librement son nom
       // dans reported_by, un membre du tracker arrive par submitted_by.
       + '<div style="font-size:.7rem;color:var(--text-dim);margin-bottom:8px">'
