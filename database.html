@@ -155,7 +155,8 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
       <h3 id="lb-name"></h3>
       <div class="m" id="lb-meta"></div>
       <div class="d" id="lb-desc"></div>
-      <button id="lb-report" onclick="openFix()" style="width:100%;margin-top:14px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--text-mid);border-radius:10px;padding:10px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">✏️ Something wrong? Suggest a fix</button>
+      <button id="lb-sale" onclick="openSale()" style="width:100%;margin-top:14px;background:rgba(61,214,140,.12);border:1px solid rgba(61,214,140,.4);color:var(--green);border-radius:10px;padding:10px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">💰 Sold yours? Report the price</button>
+      <button id="lb-report" onclick="openFix()" style="width:100%;margin-top:8px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--text-mid);border-radius:10px;padding:10px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">✏️ Something wrong? Suggest a fix</button>
     </div>
   </div>
 </div>
@@ -176,6 +177,53 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
       <textarea id="fix-note" rows="3" maxlength="500" placeholder="What's wrong? (optional)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:10px"></textarea>
       <input type="text" id="fix-by" maxlength="60" placeholder="Your name or Insta handle (optional)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:14px"/>
       <button onclick="submitFix()" style="width:100%;background:linear-gradient(135deg,var(--purple),var(--orange));border:none;color:#fff;border-radius:10px;padding:12px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Send suggestion</button>
+    </div>
+  </div>
+</div>
+
+<!-- Un visiteur qui vient de vendre son exemplaire peut remonter le
+     prix obtenu. La vente arrive en attente et n'entre dans la cote
+     qu'une fois validee depuis l'admin. -->
+<div class="lb" id="sale-lb" onclick="if(event.target===this)closeSale()">
+  <button class="lb-close" onclick="closeSale()">✕</button>
+  <div class="lb-inner">
+    <div class="lb-info" style="padding:22px">
+      <h3 style="font-family:Orbitron,sans-serif;font-size:1.05rem;margin-bottom:4px">Report a sale</h3>
+      <div id="sale-target" style="color:var(--purple-light);font-size:.8rem;margin-bottom:14px"></div>
+      <div id="sale-msg" style="display:none;font-size:.8rem;padding:10px 12px;border-radius:8px;margin-bottom:12px"></div>
+      <div style="font-size:.74rem;color:var(--text-dim);margin-bottom:14px">Sold this one? Tell us what it went for. Real prices are what keep the rating honest — every entry is reviewed before it counts.</div>
+
+      <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Price paid</label>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input type="number" id="sale-price" step="0.01" min="0.01" max="10000" placeholder="45.00"
+               style="flex:1;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem"/>
+        <span style="align-self:center;color:var(--text-dim);font-size:.9rem">€</span>
+      </div>
+
+      <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Date of sale</label>
+      <input type="date" id="sale-date"
+             style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:12px"/>
+
+      <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Condition</label>
+      <select id="sale-condition"
+              style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:12px">
+        <option value="occasion">Pre-owned</option>
+        <option value="neuf">New / sealed</option>
+      </select>
+
+      <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Where</label>
+      <input type="text" id="sale-source" maxlength="60" placeholder="eBay, Vinted, a collector fair…"
+             style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:12px"/>
+
+      <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Link to the listing (optional)</label>
+      <input type="url" id="sale-url" maxlength="300" placeholder="https://…"
+             style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:12px"/>
+
+      <textarea id="sale-note" rows="2" maxlength="500" placeholder="Anything worth knowing? Missing manual, scratched disc, sold as a lot… (optional)"
+                style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:10px"></textarea>
+      <input type="text" id="sale-by" maxlength="60" placeholder="Your name or Insta handle (optional)"
+             style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:14px"/>
+      <button onclick="submitSale()" style="width:100%;background:linear-gradient(135deg,var(--green),#2fae72);border:none;color:#06281a;border-radius:10px;padding:12px;font-weight:800;cursor:pointer;font-family:Inter,sans-serif">Send this sale</button>
     </div>
   </div>
 </div>
@@ -638,6 +686,81 @@ async function submitFix(){
     setTimeout(closeFix,1400);
   }catch(e){ fixMsg(e.message,false); }
 }
+
+// ══ VENTES REMONTEES PAR LES VISITEURS ══
+// Meme principe que les suggestions : l'envoi arrive en attente et
+// n'entre dans la cote qu'une fois valide depuis l'admin.
+function saleMsg(txt, ok){
+  const b=document.getElementById('sale-msg');
+  b.textContent=txt; b.style.display='block';
+  b.style.background = ok ? 'rgba(61,214,140,.15)' : 'rgba(255,107,26,.15)';
+  b.style.color      = ok ? 'var(--green)'         : 'var(--orange-light)';
+}
+let SALE_OBJ=null;
+function openSale(){
+  const c=ALL[LB_INDEX]; if(!c) return;
+  SALE_OBJ=c;
+  document.getElementById('sale-target').textContent =
+    [c.name,c.edition,c.platform,c.region].filter(Boolean).join(' · ');
+  document.getElementById('sale-msg').style.display='none';
+  ['sale-price','sale-source','sale-url','sale-note','sale-by'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  // Par defaut aujourd'hui, et on interdit les dates futures des le
+  // selecteur plutot que d'attendre le refus du serveur.
+  const d=new Date(), iso=d.toISOString().slice(0,10);
+  const dt=document.getElementById('sale-date');
+  dt.value=iso; dt.max=iso; dt.min='2002-01-01';
+  document.getElementById('sale-condition').value='occasion';
+  document.getElementById('sale-lb').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeSale(){
+  document.getElementById('sale-lb').classList.remove('open');
+  document.body.style.overflow='hidden'; // la fiche de l'objet reste ouverte derriere
+}
+async function submitSale(){
+  if(!SALE_OBJ) return;
+  // Garde-fous navigateur, doubles cote base : 60 s entre deux envois,
+  // 5 par session.
+  const now=Date.now();
+  const last=parseInt(localStorage.getItem('rc_sale_last')||'0',10);
+  if(now-last < 60000){ saleMsg('Please wait a minute between two reports.',false); return; }
+  const count=parseInt(localStorage.getItem('rc_sale_count')||'0',10);
+  if(count>=5){ saleMsg('You have reached the limit for now. Thanks!',false); return; }
+
+  const price=parseFloat(document.getElementById('sale-price').value);
+  if(!isFinite(price)||price<=0){ saleMsg('Enter the price it sold for.',false); return; }
+  if(price>10000){ saleMsg('That price looks off — over 10 000 €.',false); return; }
+  const sold=document.getElementById('sale-date').value;
+  if(!sold){ saleMsg('Pick the date of the sale.',false); return; }
+  if(sold > new Date().toISOString().slice(0,10)){ saleMsg('The sale date cannot be in the future.',false); return; }
+
+  const url=document.getElementById('sale-url').value.trim();
+  if(url && !/^https?:\/\//i.test(url)){ saleMsg('The link should start with http:// or https://',false); return; }
+
+  try{
+    const {error}=await sb.from('catalog_sales').insert([{
+      catalog_id:SALE_OBJ.id,
+      price:price,
+      sold_on:sold,
+      condition:document.getElementById('sale-condition').value,
+      source:document.getElementById('sale-source').value.trim()||null,
+      url:url||null,
+      note:document.getElementById('sale-note').value.trim()||null,
+      reported_by:document.getElementById('sale-by').value.trim()||null,
+      status:'pending'
+    }]);
+    if(error) throw error;
+    localStorage.setItem('rc_sale_last',String(now));
+    localStorage.setItem('rc_sale_count',String(count+1));
+    saleMsg('Thank you! Your sale was sent for review 💜',true);
+    setTimeout(closeSale,1600);
+  }catch(e){ saleMsg(e.message,false); }
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && document.getElementById('sale-lb').classList.contains('open')) closeSale();
+});
 
 function closeLb(){document.getElementById('lb').classList.remove('open');document.body.style.overflow='';}
 let _lbFront=true;
