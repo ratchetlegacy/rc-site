@@ -189,41 +189,75 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <div class="lb-inner">
     <div class="lb-info" style="padding:22px">
       <h3 style="font-family:Orbitron,sans-serif;font-size:1.05rem;margin-bottom:4px">Report a sale</h3>
-      <div id="sale-target" style="color:var(--purple-light);font-size:.8rem;margin-bottom:14px"></div>
-      <div id="sale-msg" style="display:none;font-size:.8rem;padding:10px 12px;border-radius:8px;margin-bottom:12px"></div>
-      <div style="font-size:.74rem;color:var(--text-dim);margin-bottom:14px">Sold this one? Tell us what it went for. Real prices are what keep the rating honest — every entry is reviewed before it counts.</div>
+      <div id="sale-target" style="color:var(--purple-light);font-size:.8rem;margin-bottom:10px"></div>
 
-      <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Price paid</label>
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <input type="number" id="sale-price" step="0.01" min="0.01" max="10000" placeholder="45.00"
-               style="flex:1;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem"/>
-        <span style="align-self:center;color:var(--text-dim);font-size:.9rem">€</span>
+      <!-- Fil d'etapes -->
+      <div id="sale-steps" style="display:flex;gap:6px;margin-bottom:16px"></div>
+      <div id="sale-msg" style="display:none;font-size:.8rem;padding:10px 12px;border-radius:8px;margin-bottom:12px"></div>
+
+      <!-- ETAPE 1 — l'etat -->
+      <div class="sale-step" data-step="1">
+        <div style="font-size:.74rem;color:var(--text-dim);margin-bottom:12px">How was the copy you sold?</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+          <label style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;cursor:pointer" id="sale-cond-neuf-row">
+            <input type="radio" name="sale-cond" value="neuf" onchange="saleCondChanged()"/>
+            <span><b style="font-size:.88rem">🫧 New, still sealed</b><br>
+            <span style="font-size:.72rem;color:var(--text-dim)">Never opened — counts as complete, nothing else to tick.</span></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;cursor:pointer">
+            <input type="radio" name="sale-cond" value="occasion" checked onchange="saleCondChanged()"/>
+            <span><b style="font-size:.88rem">📦 Pre-owned</b><br>
+            <span style="font-size:.72rem;color:var(--text-dim)">Opened, played, loved.</span></span>
+          </label>
+        </div>
+        <div id="sale-grade-group">
+          <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Overall condition</label>
+          <select id="sale-grade" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem">
+            <option value="excellent">⭐⭐⭐⭐⭐ Excellent</option>
+            <option value="tres_bon">⭐⭐⭐⭐ Very good</option>
+            <option value="bon" selected>⭐⭐⭐ Good</option>
+            <option value="correct">⭐⭐ Fair</option>
+            <option value="abime">⭐ Rough</option>
+          </select>
+        </div>
       </div>
 
-      <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Date of sale</label>
-      <input type="date" id="sale-date"
-             style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:12px"/>
+      <!-- ETAPE 2 — ce qu'il y avait dedans -->
+      <div class="sale-step" data-step="2" style="display:none">
+        <div style="font-size:.74rem;color:var(--text-dim);margin-bottom:12px">Tick what was there. Leave unticked whatever was missing.</div>
+        <div id="sale-checks" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+        <div id="sale-complete-hint" style="font-size:.74rem;padding:9px 11px;border-radius:8px"></div>
+      </div>
 
-      <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Condition</label>
-      <select id="sale-condition"
-              style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:12px">
-        <option value="occasion">Pre-owned</option>
-        <option value="neuf">New / sealed</option>
-      </select>
+      <!-- ETAPE 3 — la vente -->
+      <div class="sale-step" data-step="3" style="display:none">
+        <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Price it sold for</label>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <input type="number" id="sale-price" step="0.01" min="0.01" max="10000" placeholder="45.00"
+                 style="flex:1;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem"/>
+          <span style="align-self:center;color:var(--text-dim);font-size:.9rem">€</span>
+        </div>
+        <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Date of sale</label>
+        <input type="date" id="sale-date"
+               style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:12px"/>
+        <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Where</label>
+        <input type="text" id="sale-source" maxlength="60" placeholder="eBay, Vinted, a collector fair…"
+               style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:12px"/>
+        <input type="url" id="sale-url" maxlength="300" placeholder="Link to the listing (optional)"
+               style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:12px"/>
+        <textarea id="sale-note" rows="2" maxlength="500" placeholder="Anything worth knowing? Sold as a lot, cracked case… (optional)"
+                  style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:10px"></textarea>
+        <input type="text" id="sale-by" maxlength="60" placeholder="Your name or Insta handle (optional)"
+               style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:8px"/>
+        <div id="sale-recap" style="font-size:.74rem;color:var(--text-dim);padding:9px 11px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:14px"></div>
+      </div>
 
-      <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Where</label>
-      <input type="text" id="sale-source" maxlength="60" placeholder="eBay, Vinted, a collector fair…"
-             style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:12px"/>
-
-      <label style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px">Link to the listing (optional)</label>
-      <input type="url" id="sale-url" maxlength="300" placeholder="https://…"
-             style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:12px"/>
-
-      <textarea id="sale-note" rows="2" maxlength="500" placeholder="Anything worth knowing? Missing manual, scratched disc, sold as a lot… (optional)"
-                style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:10px"></textarea>
-      <input type="text" id="sale-by" maxlength="60" placeholder="Your name or Insta handle (optional)"
-             style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-family:Inter,sans-serif;font-size:.82rem;margin-bottom:14px"/>
-      <button onclick="submitSale()" style="width:100%;background:linear-gradient(135deg,var(--green),#2fae72);border:none;color:#06281a;border-radius:10px;padding:12px;font-weight:800;cursor:pointer;font-family:Inter,sans-serif">Send this sale</button>
+      <!-- Navigation -->
+      <div style="display:flex;gap:8px">
+        <button id="sale-back" onclick="saleGo(-1)" style="flex:0 0 auto;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--text-mid);border-radius:10px;padding:12px 16px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">← Back</button>
+        <button id="sale-next" onclick="saleGo(1)" style="flex:1;background:linear-gradient(135deg,var(--purple),var(--orange));border:none;color:#fff;border-radius:10px;padding:12px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Next →</button>
+        <button id="sale-send" onclick="submitSale()" style="flex:1;display:none;background:linear-gradient(135deg,var(--green),#2fae72);border:none;color:#06281a;border-radius:10px;padding:12px;font-weight:800;cursor:pointer;font-family:Inter,sans-serif">Send this sale</button>
+      </div>
     </div>
   </div>
 </div>
@@ -688,41 +722,158 @@ async function submitFix(){
 }
 
 // ══ VENTES REMONTEES PAR LES VISITEURS ══
-// Meme principe que les suggestions : l'envoi arrive en attente et
-// n'entre dans la cote qu'une fois valide depuis l'admin.
+// Assistant en trois temps, calque sur l'ajout d'une piece dans le
+// tracker : l'etat, ce qu'il y avait dans la boite, puis le prix.
+// Un exemplaire scelle saute la deuxieme etape : il est complet.
+
+// Ce qu'on demande de cocher selon la categorie de l'objet. Memes
+// libelles que dans le tracker pour que les deux se repondent.
+const SALE_CHECKS = {
+  'Game':         [['has_box','Box','📦'],['has_manual','Manual','📄'],['has_disc','Disc','💿'],['has_sleeve','Sleeve','🗂'],['has_docs','Inserts / papers','📋']],
+  'Console/Pack': [['has_box','Box','📦'],['has_sleeve','Sleeve','🗂'],['has_docs','Foam inserts','📋'],['has_disc','Console','🎮'],['has_cables','Cables','🔌'],['has_controllers','Controllers','🕹'],['has_manual','Documentation','📄']],
+  'Figure':       [['has_box','Box','📦'],['has_docs','Certificate','📋'],['has_sleeve','Original packaging','🗂']],
+  'Plush':        [['has_sleeve','Original packaging','🗂'],['has_docs','Label / tag','🏷']],
+  'Goodie':       [['has_sleeve','Original packaging','🗂'],['has_docs','Label / tag','🏷']],
+  'Clothing':     [['has_sleeve','Original packaging','🗂'],['has_docs','Label / tag','🏷']],
+  'Media':        [['has_box','Case','📦'],['has_disc','Disc','💿'],['has_manual','Booklet','📄']]
+  // Guide, Book, Print, Misc : rien a cocher, l'etape est sautee.
+};
+
+let SALE_OBJ=null, SALE_STEP=1;
+
+function saleChecksFor(c){ return SALE_CHECKS[c && c.category] || []; }
+// Le neuf scelle n'a rien a cocher, et certaines categories non plus.
+function saleSkipsStep2(){
+  return saleCondition()==='neuf' || saleChecksFor(SALE_OBJ).length===0;
+}
+function saleCondition(){
+  const r=document.querySelector('input[name="sale-cond"]:checked');
+  return r ? r.value : 'occasion';
+}
+
 function saleMsg(txt, ok){
   const b=document.getElementById('sale-msg');
   b.textContent=txt; b.style.display='block';
   b.style.background = ok ? 'rgba(61,214,140,.15)' : 'rgba(255,107,26,.15)';
   b.style.color      = ok ? 'var(--green)'         : 'var(--orange-light)';
 }
-let SALE_OBJ=null;
+
+function saleCondChanged(){
+  const neuf = saleCondition()==='neuf';
+  document.getElementById('sale-grade-group').style.display = neuf ? 'none' : 'block';
+}
+
+function saleRenderChecks(){
+  const box=document.getElementById('sale-checks');
+  const list=saleChecksFor(SALE_OBJ);
+  box.innerHTML = list.map(([k,l,i])=>
+    `<label style="display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;cursor:pointer">
+       <input type="checkbox" data-k="${k}" checked onchange="saleHint()"/>
+       <span style="font-size:.84rem">${i} ${l}</span>
+     </label>`).join('');
+  saleHint();
+}
+
+function saleCollect(){
+  const out={};
+  document.querySelectorAll('#sale-checks input[type=checkbox]').forEach(cb=>{
+    out[cb.dataset.k]=cb.checked;
+  });
+  return out;
+}
+function saleIsComplete(){
+  const v=saleCollect();
+  const keys=Object.keys(v);
+  if(!keys.length) return null;          // la question ne se pose pas
+  return keys.every(k=>v[k]);
+}
+function saleHint(){
+  const h=document.getElementById('sale-complete-hint');
+  if(!h) return;
+  const v=saleCollect();
+  const manquants=Object.keys(v).filter(k=>!v[k]).length;
+  if(!manquants){
+    h.textContent='✓ Complete copy';
+    h.style.background='rgba(61,214,140,.12)'; h.style.color='var(--green)';
+  }else{
+    h.textContent='⚠️ Incomplete — '+manquants+' item'+(manquants>1?'s':'')+' missing';
+    h.style.background='rgba(255,107,26,.12)'; h.style.color='var(--orange-light)';
+  }
+}
+
+function saleRenderSteps(){
+  const etapes = saleSkipsStep2() ? [1,3] : [1,2,3];
+  document.getElementById('sale-steps').innerHTML = etapes.map((n,idx)=>{
+    const actif = n===SALE_STEP, fait = etapes.indexOf(SALE_STEP)>idx;
+    const col = actif ? 'linear-gradient(90deg,var(--purple),var(--orange))'
+              : fait  ? 'var(--green)' : 'rgba(255,255,255,.12)';
+    return `<div style="flex:1;height:4px;border-radius:3px;background:${col}"></div>`;
+  }).join('');
+
+  document.querySelectorAll('.sale-step').forEach(el=>{
+    el.style.display = (+el.dataset.step===SALE_STEP) ? 'block' : 'none';
+  });
+  const premier = SALE_STEP===1;
+  const dernier = SALE_STEP===3;
+  document.getElementById('sale-back').style.display = premier ? 'none' : 'block';
+  document.getElementById('sale-next').style.display = dernier ? 'none' : 'block';
+  document.getElementById('sale-send').style.display = dernier ? 'block' : 'none';
+  if(SALE_STEP===2) saleRenderChecks();
+  if(dernier) saleRecap();
+}
+
+function saleRecap(){
+  const r=document.getElementById('sale-recap');
+  const neuf=saleCondition()==='neuf';
+  let txt = neuf ? '🫧 New, sealed — complete' : '📦 Pre-owned';
+  if(!neuf){
+    const g=document.getElementById('sale-grade');
+    txt += ' · ' + g.options[g.selectedIndex].text;
+    const comp=saleIsComplete();
+    if(comp===true)  txt += ' · complete';
+    if(comp===false) txt += ' · incomplete';
+  }
+  r.textContent=txt;
+}
+
+function saleGo(sens){
+  document.getElementById('sale-msg').style.display='none';
+  if(sens>0 && SALE_STEP===1 && saleSkipsStep2()){ SALE_STEP=3; }
+  else if(sens<0 && SALE_STEP===3 && saleSkipsStep2()){ SALE_STEP=1; }
+  else { SALE_STEP=Math.min(3,Math.max(1,SALE_STEP+sens)); }
+  saleRenderSteps();
+}
+
 function openSale(){
   const c=ALL[LB_INDEX]; if(!c) return;
-  SALE_OBJ=c;
+  SALE_OBJ=c; SALE_STEP=1;
   document.getElementById('sale-target').textContent =
     [c.name,c.edition,c.platform,c.region].filter(Boolean).join(' · ');
   document.getElementById('sale-msg').style.display='none';
   ['sale-price','sale-source','sale-url','sale-note','sale-by'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
-  // Par defaut aujourd'hui, et on interdit les dates futures des le
-  // selecteur plutot que d'attendre le refus du serveur.
-  const d=new Date(), iso=d.toISOString().slice(0,10);
+  const r=document.querySelector('input[name="sale-cond"][value="occasion"]');
+  if(r) r.checked=true;
+  document.getElementById('sale-grade').value='bon';
+  saleCondChanged();
+  // Date du jour par defaut, et le selecteur refuse deja le futur.
+  const iso=new Date().toISOString().slice(0,10);
   const dt=document.getElementById('sale-date');
   dt.value=iso; dt.max=iso; dt.min='2002-01-01';
-  document.getElementById('sale-condition').value='occasion';
+  saleRenderSteps();
   document.getElementById('sale-lb').classList.add('open');
   document.body.style.overflow='hidden';
 }
+
 function closeSale(){
   document.getElementById('sale-lb').classList.remove('open');
-  document.body.style.overflow='hidden'; // la fiche de l'objet reste ouverte derriere
+  document.body.style.overflow='hidden';   // la fiche reste ouverte derriere
 }
+
 async function submitSale(){
   if(!SALE_OBJ) return;
-  // Garde-fous navigateur, doubles cote base : 60 s entre deux envois,
-  // 5 par session.
+  // Garde-fous navigateur, doubles cote base.
   const now=Date.now();
   const last=parseInt(localStorage.getItem('rc_sale_last')||'0',10);
   if(now-last < 60000){ saleMsg('Please wait a minute between two reports.',false); return; }
@@ -735,16 +886,20 @@ async function submitSale(){
   const sold=document.getElementById('sale-date').value;
   if(!sold){ saleMsg('Pick the date of the sale.',false); return; }
   if(sold > new Date().toISOString().slice(0,10)){ saleMsg('The sale date cannot be in the future.',false); return; }
-
   const url=document.getElementById('sale-url').value.trim();
   if(url && !/^https?:\/\//i.test(url)){ saleMsg('The link should start with http:// or https://',false); return; }
+
+  const neuf = saleCondition()==='neuf';
+  const checks = (neuf || saleChecksFor(SALE_OBJ).length===0) ? null : saleCollect();
 
   try{
     const {error}=await sb.from('catalog_sales').insert([{
       catalog_id:SALE_OBJ.id,
       price:price,
       sold_on:sold,
-      condition:document.getElementById('sale-condition').value,
+      condition: neuf ? 'neuf' : 'occasion',
+      grade: neuf ? null : document.getElementById('sale-grade').value,
+      completeness: checks,
       source:document.getElementById('sale-source').value.trim()||null,
       url:url||null,
       note:document.getElementById('sale-note').value.trim()||null,
@@ -758,6 +913,7 @@ async function submitSale(){
     setTimeout(closeSale,1600);
   }catch(e){ saleMsg(e.message,false); }
 }
+
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape' && document.getElementById('sale-lb').classList.contains('open')) closeSale();
 });
