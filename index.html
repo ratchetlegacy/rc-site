@@ -411,9 +411,10 @@ for(let i=0;i<70;i++){
     sb.rpc('visitor_count').then(({data,error})=>{
       if(!isFinite(n)||n<1) return;
       if(error||data==null){
-        render('You are Lombax <b>#'+nb(n)+'</b> of the Legacy');
+        render('Welcome back — you were the <b>'+ordinal(n)+'</b> Lombax to visit the Legacy');
       }else{
-        render('Welcome back, Lombax <b>#'+nb(n)+'</b> · <b>'+nb(data)+'</b> have visited the Legacy');
+        render('Welcome back — you were the <b>'+ordinal(n)+'</b> Lombax here. '
+             + 'The Legacy has had <b>'+nb(data)+'</b> visitors so far.');
       }
     });
     return;
