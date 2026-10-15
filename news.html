@@ -50,7 +50,13 @@ a{color:inherit;text-decoration:none}
 .art{position:fixed;inset:0;z-index:600;background:rgba(5,6,12,.96);display:none;overflow-y:auto;overscroll-behavior:contain}
 .art.open{display:block}
 .art-inner{max-width:720px;margin:0 auto;padding:28px 22px 80px}
-.art-close{position:sticky;top:14px;float:right;background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--text);width:42px;height:42px;border-radius:12px;font-size:1.1rem;cursor:pointer;z-index:2}
+.art-actions{position:sticky;top:14px;float:right;display:flex;gap:8px;z-index:2}
+.art-btn{background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--text);width:42px;height:42px;border-radius:12px;font-size:1.1rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.art-btn:hover{background:rgba(255,255,255,.16)}
+.art-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* Confirmation de copie du lien, en bas d'ecran. */
+.art-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);background:var(--bg2);border:1px solid var(--line);color:var(--text);padding:11px 18px;border-radius:12px;font-size:.84rem;font-weight:600;z-index:700;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.art-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .art-tag{font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:.2em;color:var(--gold);margin:10px 0 10px}
 .art h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.5rem,4.6vw,2.2rem);line-height:1.25;margin-bottom:12px}
 .art-meta{color:var(--text-dim);font-size:.82rem;margin-bottom:22px}
@@ -110,10 +116,16 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 
 <div class="art" id="art">
   <div class="art-inner">
-    <button class="art-close" onclick="closeArticle()">✕</button>
+    <div class="art-actions">
+      <button class="art-btn" onclick="shareArticle()" title="Share this article" aria-label="Share this article">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>
+      </button>
+      <button class="art-btn" onclick="closeArticle()" title="Close" aria-label="Close">✕</button>
+    </div>
     <div id="art-content"></div>
   </div>
 </div>
+<div class="art-toast" id="art-toast"></div>
 
 <footer>
   <div class="foot-logo">RATCHET LEGACY</div>
@@ -131,7 +143,10 @@ let NEWS=[];
 // Ouvre un article ecrit sur le site. Le texte est decoupe en
 // paragraphes sur les lignes vides et echappe : rien d'HTML
 // saisi dans l'admin n'est execute.
-function openArticle(i){
+let ART_OPEN=-1;       // index de l'article affiche, -1 si ferme
+let ART_PUSHED=false;  // true si on a empile une entree d'historique
+
+function openArticle(i,fromHistory){
   const n=NEWS[i]; if(!n) return;
   const box=document.getElementById('art');
   const paras=String(n.body||'').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
@@ -147,12 +162,68 @@ function openArticle(i){
   box.classList.add('open');
   box.scrollTop=0;
   document.body.style.overflow='hidden';
+  ART_OPEN=i;
+
+  // L'article devient une adresse a lui tout seul : le lien partage
+  // l'ouvre directement, et le bouton retour du navigateur le referme
+  // au lieu de quitter la page.
+  if(!fromHistory && n.id!=null){
+    history.pushState({art:n.id},'', 'news.html?a='+encodeURIComponent(n.id));
+    ART_PUSHED=true;
+  }
 }
+
 function closeArticle(){
   document.getElementById('art').classList.remove('open');
   document.body.style.overflow='';
+  ART_OPEN=-1;
+  // Si on avait empile une entree, on la retire pour que le bouton
+  // retour reste coherent. Sinon (arrivee directe par lien partage)
+  // on nettoie juste l'adresse.
+  if(ART_PUSHED){ ART_PUSHED=false; history.back(); }
+  else if(location.search) history.replaceState({},'',location.pathname);
 }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeArticle(); });
+
+window.addEventListener('popstate',e=>{
+  ART_PUSHED=false;
+  const id=e.state&&e.state.art;
+  const i=id!=null?NEWS.findIndex(n=>String(n.id)===String(id)):-1;
+  if(i>=0){ openArticle(i,true); ART_PUSHED=true; }
+  else{
+    document.getElementById('art').classList.remove('open');
+    document.body.style.overflow='';
+    ART_OPEN=-1;
+  }
+});
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&ART_OPEN>=0) closeArticle(); });
+
+function toast(msg){
+  const t=document.getElementById('art-toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// Partage : feuille de partage natve sur telephone (Instagram,
+// WhatsApp, Messages…), copie du lien sur ordinateur.
+async function shareArticle(){
+  const n=NEWS[ART_OPEN]; if(!n) return;
+  const url = n.id!=null
+    ? location.origin+location.pathname.replace(/[^/]*$/,'news.html')+'?a='+encodeURIComponent(n.id)
+    : location.href;
+  const data={ title:n.title, text:n.summary||n.title, url };
+  if(navigator.share){
+    try{ await navigator.share(data); return; }
+    catch(err){ if(err&&err.name==='AbortError') return; }
+  }
+  try{
+    await navigator.clipboard.writeText(url);
+    toast('Link copied');
+  }catch(e){
+    window.prompt('Copy this link:',url);
+  }
+}
 
 async function load(){
   const box=document.getElementById('news-grid');
@@ -180,6 +251,16 @@ async function load(){
         </div>
       </a>`;
     }).join('');
+
+    // Arrivee par un lien partage : on ouvre l'article tout de suite.
+    const want=new URLSearchParams(location.search).get('a');
+    if(want){
+      const i=NEWS.findIndex(n=>String(n.id)===String(want));
+      if(i>=0 && NEWS[i].body && NEWS[i].body.trim()){
+        history.replaceState({art:NEWS[i].id},'',location.pathname+'?a='+encodeURIComponent(NEWS[i].id));
+        openArticle(i,true);
+      }
+    }
   }catch(e){
     box.innerHTML='<div class="state" style="grid-column:1/-1">Could not load news right now.</div>';
   }
