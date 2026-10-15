@@ -4,6 +4,19 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Galaxy Map — Ratchet Legacy</title>
+<meta name="description" content="An interactive galaxy map of every planet and location in the Ratchet &amp; Clank saga."/>
+<link rel="canonical" href="https://ratchetlegacy.com/map.html"/>
+<!-- Apercu quand un lien est colle dans Discord, WhatsApp, Twitter... -->
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Ratchet Legacy"/>
+<meta property="og:title" content="Galaxy Map — Ratchet Legacy"/>
+<meta property="og:description" content="An interactive galaxy map of every planet and location in the Ratchet &amp; Clank saga."/>
+<meta property="og:url" content="https://ratchetlegacy.com/map.html"/>
+<meta property="og:image" content="https://res.cloudinary.com/dmfq8hkvu/image/upload/c_pad,w_1200,h_630,b_rgb:0A0B14/v1788954181/Ratchet_Legacy_ikwdp6.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:locale" content="en_GB"/>
+<meta name="twitter:card" content="summary_large_image"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -43,10 +56,7 @@ a{color:inherit;text-decoration:none}
 .game-tab.active{background:rgba(123,79,212,.2);border-color:var(--purple);color:var(--text)}
 .map-stage{touch-action:none}
 @media(max-width:680px){
-  .planet-label{font-size:.6rem;max-width:80px;line-height:1.1}
-  .loc-label{font-size:.55rem;max-width:70px}
   .planet-dot{width:34px;height:34px}
-  .map-stage{min-height:78vh}
   .gal-tab{padding:7px 13px;font-size:.72rem}
 }
 .gal-tab{padding:9px 18px;border-radius:100px;border:1px solid var(--line);background:var(--bg2);color:var(--text-mid);font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:.16s}
@@ -54,6 +64,12 @@ a{color:inherit;text-decoration:none}
 
 /* The map canvas */
 .map-stage{position:relative;width:100%;aspect-ratio:16/10;max-height:620px;border-radius:20px;border:1px solid var(--line);overflow:hidden;background:radial-gradient(ellipse at 30% 30%,#1a1240,#0A0B14 70%)}
+/* Telephone : scene presque carree. L'ancien min-height:78vh passait
+   par-dessus l'aspect-ratio et donnait une boite 390x650, ce qui
+   etirait verticalement toutes les positions en pourcentage. */
+@media(max-width:680px){
+  .map-stage{aspect-ratio:3/4;max-height:none}
+}
 .map-world{position:absolute;inset:0;transition:transform .5s cubic-bezier(.3,.7,.3,1);transform-origin:center center}
 .map-stars{position:absolute;inset:0}
 .map-star{position:absolute;background:#fff;border-radius:50%;animation:tw 3s infinite ease-in-out}
@@ -100,6 +116,16 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 .foot-logo{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.06em;color:var(--text);margin-bottom:12px}
 .foot-small{font-size:.8rem}
 @media(max-width:820px){.nav-links{display:flex;overflow-x:auto;gap:2px;max-width:60vw}.nav-burger{display:none}}
+
+/* Etiquettes sur telephone. Ce bloc doit rester en fin de feuille :
+   les regles .planet-label / .loc-label plus haut posent un
+   white-space:nowrap qui, a specificite egale, l'emporterait sur une
+   declaration ecrite avant elles. Un nom long comme "Blackwater City"
+   restait alors sur une seule ligne et debordait de la scene. */
+@media(max-width:680px){
+  .planet-label{font-size:.6rem;line-height:1.1;max-width:74px;white-space:normal;word-break:break-word}
+  .loc-label{font-size:.55rem;line-height:1.1;max-width:66px;white-space:normal;word-break:break-word}
+}
 </style>
 </head>
 <body>
@@ -116,7 +142,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <a href="guides.html">Guides</a>
     <a href="trades.html">Trades</a>
     <a href="https://instagram.com/ratchetlegacy" target="_blank" class="nav-insta-btn" title="Instagram">📸</a>
-    <a href="https://ratchetlegacy.github.io/rc-tracker" target="_blank" class="nav-cta">Open the tracker</a>
+    <a href="https://tracker.ratchetlegacy.com" target="_blank" class="nav-cta">Open the tracker</a>
   </div>
   <button class="nav-burger" onclick="document.querySelector('.nav-links').style.display='flex';this.style.display='none'">☰</button>
 </nav>
@@ -189,6 +215,22 @@ function setSystem(g){ activeSystem=g; clearLocations(); renderSystemTabs(); ren
 // deterministic pseudo-random position from a string, so a planet always sits in the same spot
 // Un a trois anneaux selon le nombre de planetes, repartition
 // proportionnelle au rayon pour que l'interieur ne se tasse pas.
+// Les positions sont en pourcentage, mais 1% de largeur et 1% de
+// hauteur ne font pas la meme longueur a l'ecran. Une diagonale
+// calculee directement sur ces pourcentages est donc fausse des que
+// la scene n'est plus au format 16/10 — sur telephone les traits
+// partaient de travers et depassaient largement des planetes. On
+// repasse par les pixels reels de la scene.
+function placeLine(el, x1, y1, x2, y2){
+  const st=document.getElementById('map-stage');
+  const w=st.clientWidth||1, h=st.clientHeight||1;
+  const dx=(x2-x1)/100*w, dy=(y2-y1)/100*h;
+  el.style.left=x1+'%';
+  el.style.top=y1+'%';
+  el.style.width=Math.sqrt(dx*dx+dy*dy)+'px';
+  el.style.transform='rotate('+Math.atan2(dy,dx)+'rad)';
+}
+
 function posFor(str,i,total){
   // Sur telephone la scene est plus etroite : on resserre les anneaux
   // et on en ajoute un plus tot, sinon les etiquettes debordent.
@@ -211,8 +253,13 @@ function posFor(str,i,total){
   const rad=radii[ring];
   const shift=(ring%2) ? Math.PI/count : 0;
   const ang=(idx/count)*Math.PI*2 - Math.PI/2 + shift;
+  // Aplatissement vertical des anneaux. Sur un ecran large la scene
+  // est en paysage et il faut tasser (0.8) ; sur telephone elle est
+  // en portrait, alors on prend toute la hauteur disponible, ce qui
+  // ecarte les etiquettes les unes des autres.
+  const flat = narrow ? 1 : 0.8;
   const x=50+Math.cos(ang)*rad;
-  const y=50+Math.sin(ang)*rad*0.8;
+  const y=50+Math.sin(ang)*rad*flat;
   return {x:Math.max(7,Math.min(93,x)), y:Math.max(10,Math.min(88,y))};
 }
 
@@ -284,11 +331,7 @@ function renderMap(){
   const pts=list.map((p,i)=>({p,pos:posFor(p.name||('P'+i),i,list.length)}));
   pts.forEach(pt=>{
     const line=document.createElement('div'); line.className='map-line';
-    const x1=50,y1=50,x2=pt.pos.x,y2=pt.pos.y;
-    const dx=x2-x1,dy=y2-y1; const len=Math.sqrt(dx*dx+dy*dy);
-    line.style.left=x1+'%'; line.style.top=y1+'%';
-    line.style.width=len+'%';
-    line.style.transform='rotate('+Math.atan2(dy,dx)+'rad)';
+    placeLine(line, 50, 50, pt.pos.x, pt.pos.y);
     world.appendChild(line);
   });
   pts.forEach((pt,idx)=>{
@@ -425,9 +468,7 @@ function toggleLocations(pt){
     const lx=pt.pos.x+Math.cos(ang)*rad;
     const ly=pt.pos.y+Math.sin(ang)*rad*0.85;
     const line=document.createElement('div'); line.className='loc-line';
-    const dx=lx-pt.pos.x,dy=ly-pt.pos.y,len=Math.sqrt(dx*dx+dy*dy);
-    line.style.left=pt.pos.x+'%'; line.style.top=pt.pos.y+'%'; line.style.width=len+'%';
-    line.style.transform='rotate('+Math.atan2(dy,dx)+'rad)';
+    placeLine(line, pt.pos.x, pt.pos.y, lx, ly);
     world.appendChild(line);
     const lp=document.createElement('div'); lp.className='loc-point';
     lp.style.left=lx+'%'; lp.style.top=ly+'%';
@@ -461,10 +502,21 @@ function openP(p){
 function closeP(){ document.getElementById('pmodal').classList.remove('open'); document.body.style.overflow=''; }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeP(); });
 load();
-let _rsz;
+// On ne redessine que si la largeur change. Sur telephone la barre
+// d'adresse qui se retracte declenche un resize en hauteur a chaque
+// defilement : sans ce garde-fou, la carte se reinitialisait sans
+// arret et refermait les lieux ouverts.
+let _rsz, _rszW=window.innerWidth;
 window.addEventListener('resize', ()=>{
+  if(window.innerWidth===_rszW) return;
+  _rszW=window.innerWidth;
   clearTimeout(_rsz);
-  _rsz=setTimeout(()=>{ if(typeof renderMap==='function') renderMap(); }, 250);
+  _rsz=setTimeout(()=>{
+    if(typeof renderMap!=='function') return;
+    clearLocations();
+    resetMapView();
+    renderMap();
+  }, 250);
 });
 </script>
 <script src="site-enhance.js"></script>
