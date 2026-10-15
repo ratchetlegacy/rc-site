@@ -4,6 +4,19 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Ratchet Legacy — The R&C Collector's Hub</title>
+<meta name="description" content="The Ratchet &amp; Clank collector's hub — catalogue, wiki, galaxy map, guides and a collection tracker."/>
+<link rel="canonical" href="https://ratchetlegacy.com/"/>
+<!-- Apercu quand un lien est colle dans Discord, WhatsApp, Twitter... -->
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Ratchet Legacy"/>
+<meta property="og:title" content="Ratchet Legacy — The R&amp;C Collector's Hub"/>
+<meta property="og:description" content="The Ratchet &amp; Clank collector's hub — catalogue, wiki, galaxy map, guides and a collection tracker."/>
+<meta property="og:url" content="https://ratchetlegacy.com/"/>
+<meta property="og:image" content="https://res.cloudinary.com/dmfq8hkvu/image/upload/c_pad,w_1200,h_630,b_rgb:0A0B14/v1788954181/Ratchet_Legacy_ikwdp6.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:locale" content="en_GB"/>
+<meta name="twitter:card" content="summary_large_image"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
@@ -128,6 +141,11 @@ section{position:relative;z-index:2}
 
 /* Footer */
 footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;color:var(--text-dim)}
+/* Compteur de visiteurs : masque tant que le chiffre n'est pas
+   arrive, pour ne pas faire sauter la mise en page. */
+.visitor{margin-top:28px;font-size:.84rem;color:var(--text-dim);opacity:0;transition:opacity .7s ease}
+.visitor.show{opacity:1}
+.visitor b{font-family:'Orbitron',sans-serif;font-weight:700;color:var(--gold);font-size:.98rem;letter-spacing:.02em}
 .foot-logo{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.06em;color:var(--text);margin-bottom:14px}
 .foot-links{display:flex;gap:22px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
 .foot-links a{color:var(--text-dim);font-size:.9rem;transition:.15s}
@@ -165,7 +183,7 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
     <a href="#trades">Trades</a>
     <a href="#about">About</a>
     <a href="https://instagram.com/ratchetlegacy" target="_blank" class="nav-insta-btn" title="Instagram">📸</a>
-    <a href="https://ratchetlegacy.github.io/rc-tracker" target="_blank" class="nav-cta">Open the tracker</a>
+    <a href="https://tracker.ratchetlegacy.com" target="_blank" class="nav-cta">Open the tracker</a>
   </div>
   <button class="nav-burger" onclick="document.querySelector('.nav-links').style.display='flex';this.style.display='none'">☰</button>
 </nav>
@@ -179,9 +197,10 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
     <h1>Every corner of the<br><span class="grad">Ratchet &amp; Clank</span> galaxy</h1>
     <p>The home for collectors: explore the universe, track your collection, trade with fellow fans, and dive into everything R&amp;C.</p>
     <div class="hero-btns">
-      <a href="https://ratchetlegacy.github.io/rc-tracker" target="_blank" class="btn btn-primary">🚀 Open the tracker</a>
+      <a href="https://tracker.ratchetlegacy.com" target="_blank" class="btn btn-primary">🚀 Open the tracker</a>
       <a href="#universe" class="btn btn-ghost">Explore the universe</a>
     </div>
+    <div class="visitor" id="visitor"></div>
   </div>
   <div class="hero-scroll">▾</div>
 </header>
@@ -237,7 +256,7 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
           <li><span class="chk">✓</span> <span><b>Multiple collections</b> — Ratchet, Spyro, Jak, Sly and more</span></li>
           <li><span class="chk">✓</span> <span><b>Themes</b> from every R&amp;C game</span></li>
         </ul>
-        <a href="https://ratchetlegacy.github.io/rc-tracker" target="_blank" class="btn btn-primary">🚀 Open the tracker</a>
+        <a href="https://tracker.ratchetlegacy.com" target="_blank" class="btn btn-primary">🚀 Open the tracker</a>
       </div>
       <div class="app-visual">
         <div class="phone">
@@ -245,7 +264,7 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
             <span class="dot" style="background:#FF5F57"></span>
             <span class="dot" style="background:#FEBC2E"></span>
             <span class="dot" style="background:#28C840"></span>
-            <span class="url">ratchetlegacy.github.io/rc-tracker</span>
+            <span class="url">tracker.ratchetlegacy.com</span>
           </div>
           <div class="phone-screen" id="app-carousel-screen">
             <div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:.85rem;text-align:center;padding:20px">Screenshots of the tracker appear here.<br>Add them from the admin.</div>
@@ -339,7 +358,7 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
     <a href="#app">The App</a>
     <a href="#trades">Trades</a>
     <a href="#about">About</a>
-    <a href="https://ratchetlegacy.github.io/rc-tracker" target="_blank">Tracker</a>
+    <a href="https://tracker.ratchetlegacy.com" target="_blank">Tracker</a>
   </div>
   <div class="foot-small">Made with 💜 by Ratchet Legacy · Not affiliated with Insomniac Games or Sony. · <a href="legal.html" style="color:var(--text-dim)">Terms &amp; Legal</a></div>
   <div style="margin-top:14px"><a href="admin.html" style="color:var(--text-dim);font-size:.75rem;opacity:.6;text-decoration:none">⚙️ Admin</a></div>
@@ -360,6 +379,41 @@ for(let i=0;i<70;i++){
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── Compteur de visiteurs ────────────────────────────────────
+// Le numero attribue est garde en local : un habitue retrouve le
+// sien au lieu de gonfler le total a chaque rechargement.
+(function(){
+  const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
+  const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
+  const KEY='rc_visitor_no';
+  const el=document.getElementById('visitor');
+  if(!el||!window.supabase) return;
+
+  // 1er, 2e, 3e… a l'anglaise : 1st, 2nd, 3rd, 4th, et les
+  // exceptions 11th/12th/13th.
+  function ordinal(n){
+    const suf=['th','st','nd','rd'], v=n%100;
+    return n.toLocaleString('en-GB')+(suf[(v-20)%10]||suf[v]||suf[0]);
+  }
+  function show(n){
+    if(!isFinite(n)||n<1) return;
+    el.innerHTML='You are the <b>'+ordinal(n)+'</b> Lombax to visit the Legacy';
+    el.classList.add('show');
+  }
+
+  let mine=null;
+  try{ mine=localStorage.getItem(KEY); }catch(e){}
+  if(mine){ show(parseInt(mine,10)); return; }
+
+  const sb=window.supabase.createClient(SB_URL,SB_KEY);
+  sb.rpc('bump_visitor').then(({data,error})=>{
+    if(error||data==null) return;   // en cas de pepin, on n'affiche rien
+    try{ localStorage.setItem(KEY,String(data)); }catch(e){}
+    show(parseInt(data,10));
+  });
+})();
+</script>
 <script src="site-enhance.js"></script>
 </body>
 </html>
