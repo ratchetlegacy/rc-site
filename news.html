@@ -45,6 +45,19 @@ a{color:inherit;text-decoration:none}
 .news-date{font-size:.68rem;color:var(--orange-light);font-weight:600;letter-spacing:.03em}
 .news-body h3{font-size:1.02rem;font-weight:700;line-height:1.25}
 .news-body p{color:var(--text-mid);font-size:.86rem;flex:1}
+/* Lecteur d'article : un article ecrit sur le site s'ouvre ici
+   au lieu de renvoyer vers la source. */
+.art{position:fixed;inset:0;z-index:600;background:rgba(5,6,12,.96);display:none;overflow-y:auto;overscroll-behavior:contain}
+.art.open{display:block}
+.art-inner{max-width:720px;margin:0 auto;padding:28px 22px 80px}
+.art-close{position:sticky;top:14px;float:right;background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--text);width:42px;height:42px;border-radius:12px;font-size:1.1rem;cursor:pointer;z-index:2}
+.art-tag{font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:.2em;color:var(--gold);margin:10px 0 10px}
+.art h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.5rem,4.6vw,2.2rem);line-height:1.25;margin-bottom:12px}
+.art-meta{color:var(--text-dim);font-size:.82rem;margin-bottom:22px}
+.art-cover{width:100%;border-radius:16px;margin-bottom:26px;display:block}
+.art-body p{color:var(--text-mid);font-size:1.02rem;line-height:1.75;margin-bottom:18px}
+.art-src{margin-top:30px;padding-top:20px;border-top:1px solid var(--line);font-size:.84rem;color:var(--text-dim)}
+.art-src a{color:var(--purple-light);font-weight:600}
 .news-link{margin-top:6px;color:var(--purple-light);font-weight:700;font-size:.82rem}
 
 .state{text-align:center;padding:60px;color:var(--text-dim)}
@@ -95,6 +108,13 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <a href="index.html" class="back-home">← Back to home</a>
 </div>
 
+<div class="art" id="art">
+  <div class="art-inner">
+    <button class="art-close" onclick="closeArticle()">✕</button>
+    <div id="art-content"></div>
+  </div>
+</div>
+
 <footer>
   <div class="foot-logo">RATCHET LEGACY</div>
   <div class="foot-small">Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games or Sony.</div>
@@ -106,21 +126,57 @@ const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+let NEWS=[];
+
+// Ouvre un article ecrit sur le site. Le texte est decoupe en
+// paragraphes sur les lignes vides et echappe : rien d'HTML
+// saisi dans l'admin n'est execute.
+function openArticle(i){
+  const n=NEWS[i]; if(!n) return;
+  const box=document.getElementById('art');
+  const paras=String(n.body||'').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
+  document.getElementById('art-content').innerHTML =
+      (n.date_label?`<div class="art-tag">${esc(n.date_label)}</div>`:'<div class="art-tag">NEWS</div>')
+    + `<h1>${esc(n.title)}</h1>`
+    + (n.source?`<div class="art-meta">Source · ${esc(n.source)}</div>`:'')
+    + (n.image_url?`<img class="art-cover" src="${esc(n.image_url)}" onerror="this.remove()"/>`:'')
+    + '<div class="art-body">' + paras.map(p=>`<p>${esc(p)}</p>`).join('') + '</div>'
+    + ((n.source_url||n.url)
+        ? `<div class="art-src">Originally reported by <a href="${esc(n.source_url||n.url)}" target="_blank" rel="noopener">${esc(n.source||'the source')} →</a></div>`
+        : '');
+  box.classList.add('open');
+  box.scrollTop=0;
+  document.body.style.overflow='hidden';
+}
+function closeArticle(){
+  document.getElementById('art').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeArticle(); });
+
 async function load(){
   const box=document.getElementById('news-grid');
   try{
     const {data,error}=await sb.from('site_news').select('*').order('sort_order').order('created_at',{ascending:false});
     if(error) throw error;
     if(!data||!data.length){ box.innerHTML='<div class="state" style="grid-column:1/-1">No news yet — check back soon!</div>'; return; }
-    box.innerHTML=data.map(n=>{
+    NEWS=data;
+    box.innerHTML=data.map((n,i)=>{
       const img=n.image_url?`<img src="${esc(n.image_url)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ni-ph" style="display:none">📰</span>`:`<span class="ni-ph">📰</span>`;
-      return `<a class="news-card" href="${esc(n.url)}" target="_blank" rel="noopener">
+      const hasArticle = n.body && n.body.trim();
+      const open = hasArticle
+        ? `href="#" onclick="event.preventDefault();openArticle(${i})"`
+        : `href="${esc(n.url)}" target="_blank" rel="noopener"`;
+      const cta = hasArticle
+        ? 'Read the article →'
+        : `Read on ${esc(n.source||'source')} →`;
+      return `<a class="news-card" ${open}>
         <div class="news-img">${img}${n.source?`<span class="news-src">${esc(n.source)}</span>`:''}</div>
         <div class="news-body">
           ${n.date_label?`<div class="news-date">${esc(n.date_label)}</div>`:''}
           <h3>${esc(n.title)}</h3>
           ${n.summary?`<p>${esc(n.summary)}</p>`:'<p></p>'}
-          <span class="news-link">Read on ${esc(n.source||'source')} →</span>
+          <span class="news-link">${cta}</span>
         </div>
       </a>`;
     }).join('');
