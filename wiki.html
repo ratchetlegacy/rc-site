@@ -4,19 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Wiki — Ratchet Legacy</title>
-<meta name="description" content="Characters, weapons, gadgets and planets from across the Ratchet &amp; Clank saga."/>
-<link rel="canonical" href="https://ratchetlegacy.com/wiki.html"/>
-<!-- Apercu quand un lien est colle dans Discord, WhatsApp, Twitter... -->
-<meta property="og:type" content="website"/>
-<meta property="og:site_name" content="Ratchet Legacy"/>
-<meta property="og:title" content="Wiki — Ratchet Legacy"/>
-<meta property="og:description" content="Characters, weapons, gadgets and planets from across the Ratchet &amp; Clank saga."/>
-<meta property="og:url" content="https://ratchetlegacy.com/wiki.html"/>
-<meta property="og:image" content="https://res.cloudinary.com/dmfq8hkvu/image/upload/c_pad,w_1200,h_630,b_rgb:0A0B14/v1788954181/Ratchet_Legacy_ikwdp6.jpg"/>
-<meta property="og:image:width" content="1200"/>
-<meta property="og:image:height" content="630"/>
-<meta property="og:locale" content="en_GB"/>
-<meta name="twitter:card" content="summary_large_image"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
@@ -71,7 +58,7 @@ a{color:inherit;text-decoration:none}
 .game-head .chev{color:var(--text-dim);font-size:1.1rem;transition:transform .2s}
 .game.open .game-head .chev{transform:rotate(180deg)}
 .game-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
-.game.open .game-body{max-height:600px}
+.game.open .game-body{max-height:3000px}
 .game-body-inner{padding:0 20px 20px 20px;border-top:1px solid var(--line);margin:0 20px;padding-top:16px}
 .game-body p{color:var(--text-mid);font-size:.92rem;margin-bottom:14px}
 .game-anec{display:flex;gap:10px;background:rgba(255,200,90,.06);border:1px solid rgba(255,200,90,.18);border-radius:10px;padding:12px 14px;font-size:.86rem;color:var(--text-mid)}
@@ -173,7 +160,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <a href="trades.html">Trades</a>
     <a href="index.html#about">About</a>
     <a href="https://instagram.com/ratchetlegacy" target="_blank" class="nav-insta-btn" title="Instagram">📸</a>
-    <a href="https://tracker.ratchetlegacy.com" target="_blank" class="nav-cta">Open the tracker</a>
+    <a href="https://ratchetlegacy.github.io/rc-tracker/app.html" target="_blank" class="nav-cta">Open the tracker</a>
   </div>
   <button class="nav-burger" onclick="document.querySelector('.nav-links').style.display='flex';this.style.display='none'">☰</button>
 </nav>
@@ -398,8 +385,8 @@ function renderGames(){
   const sorted=[...GAMES].sort((a,b)=>(a[key]||0)-(b[key]||0));
   box.innerHTML='<div class="timeline">'+sorted.map(g=>{
     const thumb=g.image_url?`<div class="gthumb"><img src="${esc(g.image_url)}" onerror="this.parentNode.textContent='🎮'"/></div>`:`<div class="yr">${g.year||''}</div>`;
-    const bigImg=g.image_url?`<img class="gbig" src="${esc(g.image_url)}" onerror="this.style.display='none'"/>`:'';
-    return `<div class="tl-item"><div class="game" onclick="this.parentNode.classList.toggle('open');this.classList.toggle('open')">
+    const bigImg=g.image_url?`<img class="gbig" src="${esc(g.image_url)}" onerror="this.style.display='none'" onload="remeasureGameCard(this)"/>`:'';
+    return `<div class="tl-item"><div class="game" onclick="toggleGameCard(this)">
       <div class="game-head">${thumb}<div><h3>${esc(g.name)}</h3><div class="plat">${esc([g.platform,g.year].filter(Boolean).join(' · '))}</div></div><span class="chev">▾</span></div>
       <div class="game-body"><div class="game-body-inner">
         ${bigImg}
@@ -411,6 +398,48 @@ function renderGames(){
     </div></div>`;
   }).join('')+'</div>';
 }
+// Le volet s'ouvrait sur un plafond fixe de 600 px : sur telephone,
+// la jaquette plus le synopsis depassaient, et l'encadre "Did you
+// know ?" se retrouvait coupe net. On mesure la hauteur reelle du
+// contenu a l'ouverture, ce qui marche quelle que soit la longueur
+// du texte et la largeur de l'ecran.
+function toggleGameCard(el){
+  const ouvert = el.classList.toggle('open');
+  el.parentNode.classList.toggle('open', ouvert);
+  const body = el.querySelector('.game-body');
+  if(!body) return;
+
+  if(ouvert){
+    const h = body.scrollHeight;
+    // Mesure nulle (section encore masquee) : on laisse le plafond du
+    // CSS faire le travail plutot que de figer le volet ferme.
+    if(!h){ body.style.maxHeight=''; return; }
+    body.style.maxHeight = h + 'px';
+    // Une fois l'animation finie, on retire tout plafond. Sans ca, la
+    // hauteur reste figee sur la mesure du moment : une police qui
+    // arrive apres coup, une image, une rotation de l'ecran, et le bas
+    // du texte repasse sous la ligne de coupe.
+    body.addEventListener('transitionend', function fini(e){
+      if(e.propertyName!=='max-height') return;
+      body.removeEventListener('transitionend', fini);
+      if(el.classList.contains('open')) body.style.maxHeight='none';
+    });
+  }else{
+    // Pour refermer il faut repartir d'une valeur chiffree : on ne
+    // peut pas animer depuis 'none'.
+    body.style.maxHeight = body.scrollHeight + 'px';
+    requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ body.style.maxHeight=''; }); });
+  }
+}
+
+// Une image qui finit de charger allonge le contenu apres coup.
+function remeasureGameCard(img){
+  const body = img.closest('.game-body');
+  const carte = img.closest('.game');
+  if(!body || !carte || !carte.classList.contains('open')) return;
+  if(body.style.maxHeight !== 'none') body.style.maxHeight = body.scrollHeight + 'px';
+}
+
 loadGames();
 
 // ── Lore timeline ──
