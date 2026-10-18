@@ -337,3 +337,16 @@
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addButton);
   else addButton();
 })();
+
+
+/* ── Installation du site en application ───────────────────────
+   Chrome et Edge n'activent l'installation que si un service worker
+   est enregistre et gere l'evenement 'fetch'. On le fait ici parce
+   que ce fichier est charge par toutes les pages : une seule ligne
+   a maintenir au lieu de dix.
+   Un echec n'a aucune consequence : le site fonctionne sans. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js').catch(function () { /* sans gravite */ });
+  });
+}
