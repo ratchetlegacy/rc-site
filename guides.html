@@ -167,8 +167,22 @@ if(window.pdfjsLib){
 }
 let PDF_DOC=null, PDF_SCALE=1.3;
 
+// Certains hebergeurs ne peuvent pas etre lus par pdf.js : Google Drive
+// renvoie une page HTML (son visualiseur) et non le fichier, et n'envoie
+// aucun en-tete CORS. Pour ceux-la on ouvre simplement le lien dans un
+// nouvel onglet plutot que d'afficher un lecteur qui echouera.
+function lisibleParLeLecteur(url){
+  try{ const h = new URL(url, location.href).hostname;
+       return !/(^|\.)drive\.google\.com$|(^|\.)docs\.google\.com$|(^|\.)dropbox\.com$/.test(h);
+  }catch(e){ return false; }
+}
+
 async function openPdf(i){
   const g=GUIDES[i]; if(!g||!g.pdf_url) return;
+  if(!lisibleParLeLecteur(g.pdf_url)){
+    window.open(g.pdf_url, '_blank', 'noopener');
+    return;
+  }
   const v=document.getElementById('pdfv');
   const pages=document.getElementById('pdfv-pages');
   document.getElementById('pdfv-title').textContent=g.title||'Guide';
@@ -184,25 +198,20 @@ async function openPdf(i){
     PDF_SCALE=1.3;
     await renderPdf();
   }catch(e){
-    // L'ancien message disait seulement "could not be opened", ce qui
-    // ne permettait de diagnostiquer rien du tout. On interroge l'URL
-    // pour distinguer les causes : fichier introuvable, acces refuse
-    // (bucket prive), ou requete bloquee avant d'arriver (CORS absent).
     let diag;
     try{
       const r = await fetch(g.pdf_url, { method:'GET', headers:{ Range:'bytes=0-0' } });
       diag = r.ok
-        ? 'The file answers (HTTP ' + r.status + ') but pdf.js cannot read it — it may not be a valid PDF.'
-        : 'The server answers HTTP ' + r.status + ' ' + r.statusText + ' — wrong URL, or the file is not public.';
+        ? 'The file answers (HTTP ' + r.status + ') but pdf.js cannot read it \u2014 it may not be a valid PDF.'
+        : 'The server answers HTTP ' + r.status + ' ' + r.statusText + '.';
     }catch(netErr){
-      diag = 'The request was blocked before reaching the file. This is almost always a missing CORS header on the host serving the PDF.';
+      diag = 'The request was blocked before reaching the file (missing CORS header on the host).';
     }
     pages.innerHTML =
       '<div class="pdfv-state">'
       + '<div style="font-weight:700;margin-bottom:10px">This guide could not be opened.</div>'
       + '<div style="margin-bottom:14px">' + esc(diag) + '</div>'
-      + '<div style="font-size:.78rem;opacity:.65;margin-bottom:6px">' + esc(e && e.name ? e.name + ': ' + e.message : String(e)) + '</div>'
-      + '<a href="' + esc(g.pdf_url) + '" target="_blank" rel="noopener" style="color:var(--text);font-size:.78rem">Open the file directly &#8599;</a>'
+      + '<a href="' + esc(g.pdf_url) + '" target="_blank" rel="noopener" style="color:var(--text);font-size:.8rem">Open the file directly &#8599;</a>'
       + '</div>';
   }
 }
