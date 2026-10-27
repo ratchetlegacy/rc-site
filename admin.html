@@ -74,6 +74,41 @@ body.menu-only .card{display:none}
 .fmodal-head button{background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:8px;font-size:1rem;cursor:pointer}
 .note{font-size:.78rem;color:var(--text-dim);margin-top:-6px;margin-bottom:14px}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+
+/* ── Grand écran : la colonne de 640px laissait les deux tiers vides ── */
+@media (min-width:900px){
+  body{padding:32px}
+  .wrap{max-width:1080px}
+  .admin-menu{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+}
+/* Le bouton + Add héritait de width:100% et s'étirait sur toute la ligne */
+.card > div[style*="space-between"] > .btn-primary{width:auto;flex-shrink:0}
+
+/* ── Statistiques ── */
+.st-periode{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.st-periode button{font-family:Inter,sans-serif;font-size:.8rem;font-weight:600;color:var(--text-mid);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:8px 15px;cursor:pointer;transition:.15s}
+.st-periode button:hover{border-color:var(--purple);color:var(--text)}
+.st-periode button[aria-pressed="true"]{background:var(--purple);border-color:var(--purple);color:#fff}
+.st-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px}
+.st-kpi{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px}
+.st-kpi .v{font-family:Orbitron,sans-serif;font-weight:700;font-size:1.6rem;line-height:1;color:var(--gold)}
+.st-kpi .l{color:var(--text-dim);font-size:.72rem;margin-top:6px}
+.st-jours{display:flex;align-items:flex-end;gap:3px;height:120px;margin-bottom:6px}
+.st-jours .j{flex:1;min-width:3px;background:var(--purple);border-radius:3px 3px 0 0;position:relative}
+.st-jours .j:hover{background:var(--purple-light)}
+.st-jours .j::after{content:attr(data-info);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:.72rem;color:var(--text);opacity:0;pointer-events:none;transition:.12s;margin-bottom:6px;z-index:5}
+.st-jours .j:hover::after{opacity:1}
+.st-axe{display:flex;justify-content:space-between;color:var(--text-dim);font-size:.72rem;margin-bottom:20px}
+.st-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.st-bloc h3{font-family:Orbitron,sans-serif;font-weight:700;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-mid);margin-bottom:10px}
+.st-bloc ul{list-style:none;margin:0;padding:0}
+.st-bloc li{padding:7px 0;border-bottom:1px solid var(--line);position:relative}
+.st-bloc li:last-child{border-bottom:0}
+.st-bloc .fond{position:absolute;left:-6px;top:3px;bottom:3px;background:rgba(123,79,212,.18);border-radius:6px}
+.st-bloc .ligne{display:flex;justify-content:space-between;gap:12px;align-items:baseline;position:relative;z-index:1}
+.st-bloc .nom{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.84rem}
+.st-bloc .n{font-family:Orbitron,sans-serif;font-weight:700;font-size:.78rem;color:var(--gold);flex-shrink:0}
+.st-note{font-size:.72rem;color:var(--text-dim);margin-top:18px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -623,6 +658,31 @@ body.menu-only .card{display:none}
       </div>
     </div>
 
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📊 Statistiques</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadStats(window._stPeriode||30)">↻ Actualiser</button>
+      </div>
+      <div class="st-periode" id="st-periode">
+        <button data-j="7">7 jours</button>
+        <button data-j="30" aria-pressed="true">30 jours</button>
+        <button data-j="90">90 jours</button>
+        <button data-j="0">Tout</button>
+      </div>
+      <div id="st-erreur"></div>
+      <div class="st-kpis" id="st-kpis"></div>
+      <div class="st-jours" id="st-jours"></div>
+      <div class="st-axe"><span id="st-axeG"></span><span id="st-axeD"></span></div>
+      <div class="st-cols">
+        <div class="st-bloc"><h3>Pages</h3><ul id="st-pages"></ul></div>
+        <div class="st-bloc"><h3>D'où ils se connectent</h3><ul id="st-lieux"></ul></div>
+        <div class="st-bloc"><h3>Provenance</h3><ul id="st-referents"></ul></div>
+        <div class="st-bloc"><h3>Appareil</h3><ul id="st-appareils"></ul></div>
+      </div>
+      <div class="st-note">Aucune adresse IP, aucun cookie, aucun identifiant de visiteur n'est enregistré.
+      Le lieu est déduit du fuseau horaire du navigateur : c'est approximatif, un VPN ou un voyageur fausse la lecture.</div>
+    </div>
+
     <button class="btn btn-ghost" style="width:100%" onclick="signOut()">Sign out</button>
   </div>
 </div>
@@ -1144,7 +1204,8 @@ const ADMIN_SECTIONS=[
   {key:'catalog', ic:'🗃️', lbl:'Catalog', match:['Catalog objects']},
   {key:'media', ic:'📗', lbl:'Guides & News', match:['Guides','News']},
   {key:'trades', ic:'🤝', lbl:'Trades', match:['Trade listings']},
-  {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Vault category images','Page banners','Arcade Memory','App screenshots']}
+  {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Vault category images','Page banners','Arcade Memory','App screenshots']},
+  {key:'stats', ic:'📊', lbl:'Stats', match:['Statistiques']}
 ];
 function buildAdminMenu(){
   const menu=document.getElementById('admin-menu');
@@ -1179,6 +1240,11 @@ function showAdminSection(key){
     const b=document.createElement('button'); b.id='admin-back'; b.className='admin-back-menu';
     b.textContent='← All sections'; b.onclick=showAllSections;
     document.getElementById('admin-menu').insertAdjacentElement('afterend', b);
+  }
+  if(key==='stats'){
+    document.querySelectorAll('#admin-area .card[data-section="stats"]')
+            .forEach(c=>c.classList.remove('collapsed'));
+    loadStats(window._stPeriode||30);
   }
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -2143,6 +2209,101 @@ async function delGame(id){
   loadGamesAdmin();
 }
 checkSession();
+
+// ── Statistiques ───────────────────────────────────────────────────────
+// Le fuseau horaire du navigateur remplace la geolocalisation : il situe
+// le visiteur sans adresse IP, sans cookie et sans service exterieur.
+const ST_PAYS={
+ 'Europe/Paris':'France','Europe/Brussels':'Belgique','Europe/Zurich':'Suisse',
+ 'Europe/London':'Royaume-Uni','Europe/Madrid':'Espagne','Europe/Lisbon':'Portugal',
+ 'Europe/Berlin':'Allemagne','Europe/Rome':'Italie','Europe/Amsterdam':'Pays-Bas',
+ 'Europe/Warsaw':'Pologne','Europe/Stockholm':'Suede','Europe/Dublin':'Irlande',
+ 'Europe/Moscow':'Russie','Europe/Kyiv':'Ukraine','Europe/Athens':'Grece',
+ 'America/New_York':'Etats-Unis (Est)','America/Chicago':'Etats-Unis (Centre)',
+ 'America/Denver':'Etats-Unis (Montagnes)','America/Los_Angeles':'Etats-Unis (Ouest)',
+ 'America/Toronto':'Canada','America/Vancouver':'Canada (Ouest)',
+ 'America/Sao_Paulo':'Bresil','America/Mexico_City':'Mexique',
+ 'Asia/Tokyo':'Japon','Asia/Seoul':'Coree du Sud','Asia/Shanghai':'Chine',
+ 'Asia/Kolkata':'Inde','Asia/Dubai':'Emirats',
+ 'Australia/Sydney':'Australie','Pacific/Auckland':'Nouvelle-Zelande'
+};
+function stLieu(f){
+  if(!f) return 'inconnu';
+  if(ST_PAYS[f]) return ST_PAYS[f];
+  const v=f.split('/').pop().replace(/_/g,' ');
+  return v+' ('+f.split('/')[0]+')';
+}
+function stCompter(l,cle){
+  const m=new Map();
+  for(const x of l){ const k=cle(x); m.set(k,(m.get(k)||0)+1); }
+  return [...m.entries()].sort((a,b)=>b[1]-a[1]);
+}
+function stBarres(el,paires,limite){
+  if(!el) return;
+  limite=limite||8;
+  if(!paires.length){ el.innerHTML='<li style="color:var(--text-dim);font-size:.8rem">Aucune donnee.</li>'; return; }
+  const max=paires[0][1];
+  el.innerHTML=paires.slice(0,limite).map(function(p){
+    const w=Math.max(2,(p[1]/max)*100);
+    return '<li><span class="fond" style="width:'+w+'%"></span>'
+         + '<span class="ligne"><span class="nom">'+esc(p[0])+'</span>'
+         + '<span class="n">'+p[1]+'</span></span></li>';
+  }).join('');
+}
+function stHisto(l,jours){
+  const parJour=new Map();
+  for(const x of l){ const j=x.vu_le.slice(0,10); parJour.set(j,(parJour.get(j)||0)+1); }
+  let debut;
+  if(jours>0){ debut=new Date(Date.now()-(jours-1)*864e5); }
+  else{ const k=[...parJour.keys()].sort(); debut=k.length?new Date(k[0]):new Date(); }
+  const suite=[];
+  for(let d=new Date(debut); d<=new Date(); d.setDate(d.getDate()+1)){
+    const k=d.toISOString().slice(0,10);
+    suite.push([k,parJour.get(k)||0]);
+  }
+  const max=Math.max(1,...suite.map(s=>s[1]));
+  const fr=k=>new Date(k).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+  const box=document.getElementById('st-jours'); if(!box) return;
+  box.innerHTML=suite.map(function(s){
+    const hh=Math.max(2,(s[1]/max)*100);
+    return '<div class="j" style="height:'+hh+'%" data-info="'+fr(s[0])+' — '+s[1]+' visite'+(s[1]>1?'s':'')+'"></div>';
+  }).join('');
+  const g=document.getElementById('st-axeG'), dr=document.getElementById('st-axeD');
+  if(g) g.textContent=suite.length?fr(suite[0][0]):'';
+  if(dr) dr.textContent=suite.length?fr(suite[suite.length-1][0]):'';
+}
+async function loadStats(jours){
+  window._stPeriode=jours;
+  const err=document.getElementById('st-erreur'); if(err) err.innerHTML='';
+  let q=sb.from('site_visites').select('vu_le,page,referent,fuseau,appareil')
+         .order('vu_le',{ascending:false}).limit(50000);
+  if(jours>0) q=q.gte('vu_le',new Date(Date.now()-jours*864e5).toISOString());
+  const {data,error}=await q;
+  if(error){
+    if(err) err.innerHTML='<div class="msg err" style="display:block">'+esc(error.message)+'</div>';
+    return;
+  }
+  const l=data||[];
+  const auj=new Date().toISOString().slice(0,10);
+  const depuis=n=>l.filter(v=>v.vu_le>=new Date(Date.now()-n*864e5).toISOString()).length;
+  const k=document.getElementById('st-kpis');
+  if(k) k.innerHTML=
+     '<div class="st-kpi"><div class="v">'+l.filter(v=>v.vu_le.slice(0,10)===auj).length+'</div><div class="l">aujourd’hui</div></div>'
+    +'<div class="st-kpi"><div class="v">'+depuis(7)+'</div><div class="l">7 derniers jours</div></div>'
+    +'<div class="st-kpi"><div class="v">'+depuis(30)+'</div><div class="l">30 derniers jours</div></div>'
+    +'<div class="st-kpi"><div class="v">'+l.length+'</div><div class="l">sur la periode</div></div>';
+  stHisto(l,jours);
+  stBarres(document.getElementById('st-pages'),     stCompter(l,v=>v.page||'/'));
+  stBarres(document.getElementById('st-lieux'),     stCompter(l,v=>stLieu(v.fuseau)));
+  stBarres(document.getElementById('st-referents'), stCompter(l,v=>v.referent||'acces direct'));
+  stBarres(document.getElementById('st-appareils'), stCompter(l,v=>v.appareil||'inconnu'),4);
+}
+document.addEventListener('click',function(e){
+  const b=e.target.closest('#st-periode button'); if(!b) return;
+  document.querySelectorAll('#st-periode button').forEach(x=>x.removeAttribute('aria-pressed'));
+  b.setAttribute('aria-pressed','true');
+  loadStats(Number(b.dataset.j));
+});
 </script>
 </body>
 </html>
