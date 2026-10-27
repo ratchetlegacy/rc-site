@@ -1,0 +1,77 @@
+<!--
+  ============================================================
+  Ratchet Legacy — mesure d'audience
+  Depot : rc-site
+  A coller juste avant </body> sur CHAQUE page que tu veux mesurer
+  (index.html, database.html, wiki.html, guides.html, etc.).
+  Ne le mets PAS sur admin.html, sinon tu comptes tes propres visites.
+
+  Ce script n'enregistre NI adresse IP, NI cookie, NI identifiant.
+  Il envoie : la page visitée, le site d'où vient le visiteur, son
+  fuseau horaire, sa langue, et s'il est sur mobile ou ordinateur.
+  ============================================================
+-->
+<script>
+(function () {
+  // --- Remplace ces deux lignes par les valeurs de tes autres pages ---
+  var SUPABASE_URL  = 'https://TON-PROJET.supabase.co';
+  var SUPABASE_ANON = 'TA_CLE_ANON';
+
+  // Ne compte pas une visite quand tu travailles en local
+  var h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h === '') return;
+
+  // Une visite par page et par session : on ne compte pas les allers-retours
+  var cle = 'rl_vu_' + location.pathname;
+  try {
+    if (sessionStorage.getItem(cle)) return;
+    sessionStorage.setItem(cle, '1');
+  } catch (e) { /* navigation privée : on compte quand même */ }
+
+  function fuseau() {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || null; }
+    catch (e) { return null; }
+  }
+
+  function provenance() {
+    if (!document.referrer) return null;
+    try {
+      var r = new URL(document.referrer);
+      if (r.hostname === location.hostname) return null;  // navigation interne
+      return r.hostname;
+    } catch (e) { return null; }
+  }
+
+  function appareil() {
+    var ua = navigator.userAgent || '';
+    if (/iPad|Tablet|PlayBook|Silk/i.test(ua)) return 'tablette';
+    if (/Mobi|Android|iPhone|iPod/i.test(ua)) return 'mobile';
+    return 'ordinateur';
+  }
+
+  var visite = {
+    page:     location.pathname + location.search,
+    referent: provenance(),
+    fuseau:   fuseau(),
+    langue:   (navigator.language || '').slice(0, 5) || null,
+    appareil: appareil()
+  };
+
+  var corps = JSON.stringify(visite);
+  var url   = SUPABASE_URL + '/rest/v1/site_visites';
+
+  // sendBeacon survit à la fermeture de l'onglet, mais ne porte pas
+  // d'en-têtes : on garde fetch, en mode discret, et on ignore l'échec.
+  fetch(url, {
+    method: 'POST',
+    keepalive: true,
+    headers: {
+      'apikey': SUPABASE_ANON,
+      'Authorization': 'Bearer ' + SUPABASE_ANON,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: corps
+  }).catch(function () { /* la mesure ne doit jamais gêner le visiteur */ });
+})();
+</script>
