@@ -109,12 +109,52 @@ body.menu-only .card{display:none}
 .st-bloc .nom{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.84rem}
 .st-bloc .n{font-family:Orbitron,sans-serif;font-weight:700;font-size:.78rem;color:var(--gold);flex-shrink:0}
 .st-note{font-size:.72rem;color:var(--text-dim);margin-top:18px;line-height:1.5}
+
+/* ── Recherche globale ── */
+.rg-wrap{position:relative;flex:1;max-width:420px;margin:0 14px}
+.rg-wrap input{margin:0;padding-left:34px}
+.rg-wrap::before{content:'\1F50D';position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:.85rem;opacity:.6;pointer-events:none;z-index:2}
+.rg-res{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--line);border-radius:12px;max-height:60vh;overflow-y:auto;z-index:300;display:none;box-shadow:0 18px 50px -12px rgba(0,0,0,.8)}
+.rg-res.open{display:block}
+.rg-res .rg-grp{font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);padding:10px 14px 4px;font-weight:700}
+.rg-res .rg-it{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 14px;cursor:pointer;border-top:1px solid var(--line)}
+.rg-res .rg-it:hover{background:var(--bg3)}
+.rg-res .rg-nm{font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rg-res .rg-mt{font-size:.68rem;color:var(--text-dim);flex-shrink:0}
+.rg-res .rg-vide{padding:14px;color:var(--text-dim);font-size:.82rem}
+@media (max-width:720px){
+  .top{flex-wrap:wrap}
+  .rg-wrap{order:3;flex:0 0 100%;max-width:none;margin:12px 0 0}
+}
+
+/* ── Tableau de bord ── */
+.tb-grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:8px}
+.tb-case{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:left;cursor:default;transition:.15s;font-family:Inter,sans-serif}
+.tb-case.cliquable{cursor:pointer}
+.tb-case.cliquable:hover{border-color:var(--purple);transform:translateY(-2px)}
+.tb-case .v{font-family:Orbitron,sans-serif;font-weight:700;font-size:1.5rem;line-height:1;color:var(--gold)}
+.tb-case .v.zero{color:var(--green)}
+.tb-case .v.alerte{color:var(--orange)}
+.tb-case .l{color:var(--text-dim);font-size:.72rem;margin-top:6px;line-height:1.35}
+.tb-titre{font-family:Orbitron,sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-mid);margin:18px 0 10px}
+.tb-titre:first-of-type{margin-top:0}
+.tb-liste{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.tb-liste .tl-tete{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.tb-liste .tl-tete b{font-size:.86rem}
+.tb-liste .tl-row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.tb-liste .tl-row:last-child{border-bottom:0}
+.tb-liste .tl-nm{font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-liste .tl-mt{font-size:.68rem;color:var(--text-dim);margin-left:8px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
     <div><h1>🔧 Admin</h1><div class="sub">Manage your site content</div></div>
+    <div class="rg-wrap hidden" id="rg-wrap">
+      <input type="text" id="rg-q" placeholder="Rechercher une fiche, un jeu, une entrée…" autocomplete="off"/>
+      <div class="rg-res" id="rg-res"></div>
+    </div>
     <a href="index.html" class="btn btn-ghost" style="text-decoration:none">← Site</a>
   </div>
 
@@ -132,6 +172,15 @@ body.menu-only .card{display:none}
   <!-- MANAGERS -->
   <div id="admin-area" class="hidden">
     <div class="admin-menu" id="admin-menu"></div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">🏠 Tableau de bord</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadTableauBord()">↻ Actualiser</button>
+      </div>
+      <div id="tb-contenu"><div style="color:var(--text-dim);font-size:.85rem">Chargement…</div></div>
+      <div id="tb-liste"></div>
+    </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">📚 Wiki entries</h2>
@@ -1199,6 +1248,7 @@ async function delNews(id){
 }
 // ── Admin section menu ──
 const ADMIN_SECTIONS=[
+  {key:'accueil', ic:'🏠', lbl:'Accueil', match:['Tableau de bord']},
   {key:'wiki', ic:'📚', lbl:'Wiki', match:['Wiki entries','Planet locations','Lore','Characters']},
   {key:'games', ic:'🎮', lbl:'Games', match:['Games']},
   {key:'catalog', ic:'🗃️', lbl:'Catalog', match:['Catalog objects']},
@@ -1221,9 +1271,9 @@ function buildAdminMenu(){
   menu.innerHTML=ADMIN_SECTIONS.map(s=>
     `<div class="admin-menu-card" onclick="showAdminSection('${s.key}')"><span class="amc-ic">${s.ic}</span><span class="amc-lbl">${s.lbl}</span></div>`
   ).join('');
-  // start with only the menu visible (no section open)
-  document.body.classList.add('menu-only');
-  document.body.classList.remove('section-view');
+  // on ouvre directement le tableau de bord
+  document.getElementById('rg-wrap').classList.remove('hidden');
+  showAdminSection('accueil');
 }
 function showAdminSection(key){
   document.body.classList.remove('menu-only');
@@ -1231,21 +1281,18 @@ function showAdminSection(key){
   document.querySelectorAll('#admin-area .card').forEach(c=>{
     const inSec = c.dataset.section===key;
     c.classList.toggle('sec-visible', inSec);
-    if(inSec){ c.classList.add('collapsed'); setupCardToggle(c); }
+    if(inSec){ c.classList.remove('collapsed'); setupCardToggle(c); }
   });
   document.querySelectorAll('.admin-menu-card').forEach((el,i)=>{
     el.classList.toggle('active', ADMIN_SECTIONS[i] && ADMIN_SECTIONS[i].key===key);
   });
   if(!document.getElementById('admin-back')){
     const b=document.createElement('button'); b.id='admin-back'; b.className='admin-back-menu';
-    b.textContent='← All sections'; b.onclick=showAllSections;
+    b.textContent='← Accueil'; b.onclick=()=>showAdminSection('accueil');
     document.getElementById('admin-menu').insertAdjacentElement('afterend', b);
   }
-  if(key==='stats'){
-    document.querySelectorAll('#admin-area .card[data-section="stats"]')
-            .forEach(c=>c.classList.remove('collapsed'));
-    loadStats(window._stPeriode||30);
-  }
+  if(key==='stats')   loadStats(window._stPeriode||30);
+  if(key==='accueil') loadTableauBord();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function setupCardToggle(card){
@@ -2303,6 +2350,147 @@ document.addEventListener('click',function(e){
   document.querySelectorAll('#st-periode button').forEach(x=>x.removeAttribute('aria-pressed'));
   b.setAttribute('aria-pressed','true');
   loadStats(Number(b.dataset.j));
+});
+
+// ── Tableau de bord ────────────────────────────────────────────────────
+// Remplace les requetes SQL qu'il fallait lancer a la main pour savoir
+// ce qui manque dans le catalogue.
+const TB_MANQUES=[
+  {cle:'image',  col:'image_url',   lbl:'sans photo',      vide:true},
+  {cle:'code',   col:'barcode',     lbl:'sans code-barres',vide:true},
+  {cle:'desc',   col:'description', lbl:'sans description',vide:true},
+  {cle:'annee',  col:'year',        lbl:'sans annee',      vide:false}
+];
+// Un formulaire peut enregistrer une chaine vide au lieu d'un NULL :
+// pour les colonnes texte on cherche les deux.
+function tbFiltreManque(q, m){
+  return m.vide ? q.or(m.col+'.is.null,'+m.col+'.eq.') : q.is(m.col,null);
+}
+async function tbCompte(table, f){
+  let q=sb.from(table).select('id',{count:'exact',head:true});
+  if(f) q=f(q);
+  const {count,error}=await q;
+  return error?null:(count||0);
+}
+async function loadTableauBord(){
+  const box=document.getElementById('tb-contenu'); if(!box) return;
+  document.getElementById('tb-liste').innerHTML='';
+  const [total, manques, sugg, ventes, trades, jeux, we, guides, news, chars] = await Promise.all([
+    tbCompte('catalog'),
+    Promise.all(TB_MANQUES.map(m=>tbCompte('catalog', q=>tbFiltreManque(q,m)))),
+    tbCompte('catalog_suggestions', q=>q.eq('status','pending').eq('kind','edit')),
+    tbCompte('catalog_sales', q=>q.eq('status','pending')),
+    tbCompte('site_trades'),
+    tbCompte('site_games'), tbCompte('site_wiki_entries'),
+    tbCompte('site_guides'), tbCompte('site_news'), tbCompte('site_characters')
+  ]);
+  const caseHtml=(v,l,cls,onclick)=>{
+    if(v===null) return '';
+    const c=cls==='alerte'?(v>0?'alerte':'zero'):'';
+    const act=onclick?` class="tb-case cliquable" onclick="${onclick}"`:' class="tb-case"';
+    return `<div${act}><div class="v ${c}">${v}</div><div class="l">${l}</div></div>`;
+  };
+  let html='';
+  const aTraiter=[
+    caseHtml(sugg,  'corrections proposees par les visiteurs','alerte',"showAdminSection('catalog')"),
+    caseHtml(ventes,'ventes signalees a valider','alerte',"showAdminSection('catalog')"),
+    caseHtml(trades,'annonces d’echange','',"showAdminSection('trades')")
+  ].filter(Boolean).join('');
+  if(aTraiter) html+='<div class="tb-titre">À traiter</div><div class="tb-grille">'+aTraiter+'</div>';
+
+  html+='<div class="tb-titre">Catalogue — '+(total===null?'?':total)+' fiches</div><div class="tb-grille">';
+  TB_MANQUES.forEach((m,i)=>{
+    html+=caseHtml(manques[i], m.lbl, '', `tbListe('${m.cle}')`);
+  });
+  html+='</div>';
+
+  html+='<div class="tb-titre">Contenus</div><div class="tb-grille">'
+    + caseHtml(jeux,'jeux') + caseHtml(we,'entrees wiki') + caseHtml(guides,'guides')
+    + caseHtml(news,'actualites') + caseHtml(chars,'personnages')
+    + '</div>';
+  box.innerHTML=html;
+}
+async function tbListe(cle){
+  const m=TB_MANQUES.find(x=>x.cle===cle); if(!m) return;
+  const box=document.getElementById('tb-liste');
+  box.innerHTML='<div class="tb-liste"><div style="color:var(--text-dim);font-size:.82rem">Chargement…</div></div>';
+  const {data,error}=await tbFiltreManque(
+        sb.from('catalog').select('id,name,category,platform'), m)
+        .order('category').order('name').limit(400);
+  if(error){ box.innerHTML='<div class="tb-liste"><div class="msg err" style="display:block">'+esc(error.message)+'</div></div>'; return; }
+  const l=data||[];
+  box.innerHTML='<div class="tb-liste">'
+    +'<div class="tl-tete"><b>'+l.length+' fiche'+(l.length>1?'s':'')+' '+m.lbl+'</b>'
+    +'<button class="btn btn-ghost" style="padding:6px 12px;font-size:.75rem" onclick="document.getElementById(\'tb-liste\').innerHTML=\'\'">Fermer</button></div>'
+    +(l.length?l.map(o=>
+      '<div class="tl-row"><span class="tl-nm">'+esc(o.name)
+      +'<span class="tl-mt">'+esc(o.category||'')+(o.platform?' · '+esc(o.platform):'')+'</span></span>'
+      +'<button class="btn btn-ghost" style="padding:5px 11px;font-size:.74rem" onclick="tbEditer('+o.id+')">Éditer</button></div>'
+     ).join('')
+     :'<div style="color:var(--text-dim);font-size:.82rem">Rien à signaler.</div>')
+    +(l.length>=400?'<div style="color:var(--text-dim);font-size:.72rem;padding-top:8px">Les 400 premieres.</div>':'')
+    +'</div>';
+}
+function tbEditer(id){
+  showAdminSection('catalog');
+  setTimeout(()=>{ try{ editObjById(id); }catch(e){} }, 120);
+}
+
+// ── Recherche globale ──────────────────────────────────────────────────
+const RG_SOURCES=[
+  {table:'catalog',           grp:'Catalogue',   sel:'id,name,category,platform', meta:r=>[r.category,r.platform].filter(Boolean).join(' · '), sec:'catalog', ouvre:r=>editObjById(r.id)},
+  {table:'site_games',        grp:'Jeux',        sel:'*',                          meta:r=>r.platform||'',                                            sec:'games',   ouvre:r=>editGame(r)},
+  {table:'site_wiki_entries', grp:'Wiki',        sel:'id,name,type',               meta:r=>r.type||'',                                                sec:'wiki',    ouvre:r=>editWikiById(r.id)},
+  {table:'site_characters',   grp:'Personnages', sel:'*',                          meta:()=>'',                                                       sec:'wiki',    ouvre:r=>editChar(r)},
+  {table:'site_guides',       grp:'Guides',      sel:'*',                          meta:()=>'',                                                       sec:'media',   ouvre:r=>editGuide(r)},
+  {table:'site_news',         grp:'Actualites',  sel:'id,title',                   meta:()=>'',                                                       sec:'media',   ouvre:r=>editNewsById(r.id)}
+];
+let _rgTimer=null, _rgDernier={};
+async function rechercheGlobale(q){
+  const box=document.getElementById('rg-res');
+  if(!q || q.length<2){ box.classList.remove('open'); box.innerHTML=''; return; }
+  const lots=await Promise.all(RG_SOURCES.map(async s=>{
+    const champ = s.table==='site_news' ? 'title' : 'name';
+    const {data,error}=await sb.from(s.table).select(s.sel).ilike(champ,'%'+q+'%').limit(6);
+    return {s, rows:error?[]:(data||[]), champ};
+  }));
+  _rgDernier={};
+  let html='';
+  lots.forEach(({s,rows,champ})=>{
+    if(!rows.length) return;
+    html+='<div class="rg-grp">'+s.grp+'</div>';
+    rows.forEach(r=>{
+      const k=s.table+':'+r.id;
+      _rgDernier[k]={s,r};
+      const m=s.meta(r);
+      html+='<div class="rg-it" onclick="rgAller(\''+k+'\')">'
+          + '<span class="rg-nm">'+esc(r[champ]||'(sans nom)')+'</span>'
+          + (m?'<span class="rg-mt">'+esc(m)+'</span>':'')+'</div>';
+    });
+  });
+  box.innerHTML = html || '<div class="rg-vide">Aucun resultat pour « '+esc(q)+' ».</div>';
+  box.classList.add('open');
+}
+function rgAller(k){
+  const e=_rgDernier[k]; if(!e) return;
+  document.getElementById('rg-res').classList.remove('open');
+  document.getElementById('rg-q').value='';
+  showAdminSection(e.s.sec);
+  setTimeout(()=>{ try{ e.s.ouvre(e.r); }catch(err){ console.warn(err); } }, 150);
+}
+document.addEventListener('input',function(e){
+  if(e.target.id!=='rg-q') return;
+  clearTimeout(_rgTimer);
+  const v=e.target.value.trim();
+  _rgTimer=setTimeout(()=>rechercheGlobale(v),250);
+});
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#rg-wrap')){
+    const b=document.getElementById('rg-res'); if(b) b.classList.remove('open');
+  }
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){ const b=document.getElementById('rg-res'); if(b) b.classList.remove('open'); }
 });
 </script>
 </body>
