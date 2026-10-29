@@ -158,6 +158,37 @@ body.menu-only .card{display:none}
 .vf-actions .btn{width:auto;flex:0 0 auto}
 .vf-faitle{color:var(--green);font-size:.73rem;white-space:nowrap}
 .vf-vide{color:var(--text-dim);font-size:.85rem;padding:18px 0;text-align:center}
+
+/* ── Descriptions longues : zone de texte etirable ── */
+textarea.ta-auto{
+  width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;
+  padding:11px;color:var(--text);font-family:Inter,sans-serif;font-size:.88rem;
+  line-height:1.6;outline:none;min-height:116px;max-height:60vh;overflow-y:auto;
+  resize:vertical;margin-bottom:6px;transition:border-color .15s}
+textarea.ta-auto:focus{border-color:var(--purple)}
+.ta-pied{display:flex;justify-content:space-between;align-items:center;
+  gap:10px;margin:-2px 0 14px}
+.ta-compte{color:var(--text-dim);font-size:.72rem;font-variant-numeric:tabular-nums}
+.ta-plein{background:none;border:1px solid var(--line);border-radius:7px;
+  color:var(--text-dim);font-family:Inter,sans-serif;font-size:.72rem;
+  padding:4px 10px;cursor:pointer;transition:.15s}
+.ta-plein:hover{border-color:var(--purple);color:var(--text)}
+/* plein ecran : pour relire un texte long sans se battre avec le formulaire */
+textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
+  max-height:none;z-index:9999;font-size:.95rem;padding:22px;
+  box-shadow:0 24px 80px rgba(0,0,0,.6);border-color:var(--purple)}
+
+/* ── Descriptions a valider ── */
+.va-item{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:var(--bg2)}
+.va-tete{margin-bottom:10px}
+.va-nom{font-weight:700;font-size:.9rem;color:var(--text);line-height:1.35}
+.va-meta{display:block;color:var(--text-dim);font-weight:400;font-size:.73rem;margin-top:3px}
+.va-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.va-actions .btn{width:auto;flex:0 0 auto}
+.va-bandeau{background:rgba(255,200,90,.1);border:1px solid rgba(255,200,90,.35);
+  border-radius:9px;padding:10px 12px;margin-bottom:10px;color:var(--gold);
+  font-size:.78rem;line-height:1.5}
+.va-suite{display:block;width:100%;margin-top:4px}
 </style>
 </head>
 <body>
@@ -528,7 +559,7 @@ body.menu-only .card{display:none}
         <label>Role</label>
         <input type="text" id="c-role" placeholder="e.g. HERO · LOMBAX"/>
         <label>Description</label>
-        <input type="text" id="c-desc" placeholder="Short description"/>
+        <textarea id="c-desc" class="ta-auto" placeholder="Description…" rows="4"></textarea><div class="ta-pied"><span class="ta-compte" id="c-desc-n">0 caractère</span><button type="button" class="ta-plein" onclick="taPlein('c-desc')">⤢ Agrandir</button></div>
         <label>Photo URL (leave empty for emoji)</label>
         <input type="text" id="c-img" placeholder="https://... your figure photo"/>
         <label>Photo framing (position)</label>
@@ -670,7 +701,8 @@ body.menu-only .card{display:none}
           <button type="button" class="btn btn-ghost" style="flex:0 0 auto;padding:8px 14px;font-size:.75rem" onclick="addSale()">+ Add</button>
         </div>
         <label>Description</label>
-        <input type="text" id="o-desc" placeholder="Short description"/>
+        <div id="o-desc-attente" class="va-bandeau" style="display:none"></div>
+        <textarea id="o-desc" class="ta-auto" placeholder="Description…" rows="4"></textarea><div class="ta-pied"><span class="ta-compte" id="o-desc-n">0 caractère</span><button type="button" class="ta-plein" onclick="taPlein('o-desc')">⤢ Agrandir</button></div>
         <button class="btn btn-primary" onclick="saveObj()" style="width:100%;margin-top:6px">💾 Save object</button>
       </div>
     </div>
@@ -718,6 +750,15 @@ body.menu-only .card{display:none}
         <input type="text" id="ga-simg2" placeholder="https://..."/>
         <button class="btn btn-primary" style="width:100%" onclick="saveGame()">💾 Save game</button>
       </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">✅ Descriptions à valider</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadValid()">↻ Actualiser</button>
+      </div>
+      <p class="vf-intro">Aucun de ces textes n'est visible sur le site. Relis, corrige si besoin, puis publie — c'est la publication qui le met en ligne. <b>Rejeter</b> efface le texte sans rien publier.</p>
+      <div id="va-contenu"></div>
     </div>
 
     <div class="card">
@@ -1281,6 +1322,7 @@ const ADMIN_SECTIONS=[
   {key:'media', ic:'📗', lbl:'Guides & News', match:['Guides','News']},
   {key:'trades', ic:'🤝', lbl:'Trades', match:['Trade listings']},
   {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Vault category images','Page banners','Arcade Memory','App screenshots']},
+  {key:'valid', ic:'✅', lbl:'À valider', match:['Descriptions à valider']},
   {key:'verif', ic:'🔎', lbl:'À vérifier', match:['À vérifier']},
   {key:'stats', ic:'📊', lbl:'Stats', match:['Statistiques']}
 ];
@@ -1318,6 +1360,7 @@ function showAdminSection(key){
     b.textContent='← Accueil'; b.onclick=()=>showAdminSection('accueil');
     document.getElementById('admin-menu').insertAdjacentElement('afterend', b);
   }
+  if(key==='valid')   loadValid();
   if(key==='verif')   loadVerif();
   if(key==='stats')   loadStats(window._stPeriode||30);
   if(key==='accueil') loadTableauBord();
@@ -1477,6 +1520,7 @@ function editChar(c){
   document.getElementById('c-name').value=c.name||'';
   document.getElementById('c-role').value=c.role||'';
   document.getElementById('c-desc').value=c.description||'';
+  taMaj('c-desc');
   document.getElementById('c-img').value=c.image_url||'';
   document.getElementById('c-emoji').value=c.emoji||'';
   document.getElementById('c-category').value=c.category||'Hero';
@@ -1495,6 +1539,7 @@ function editChar(c){
 }
 function clearCharForm(){
   ['c-id','c-name','c-role','c-desc','c-img','c-emoji','c-species','c-height','c-age','c-homeworld','c-first','c-weapons','c-quote','c-voice'].forEach(id=>document.getElementById(id).value='');
+  taMaj('c-desc');
   document.getElementById('c-category').value='Hero';
   document.getElementById('c-imgpos').value='center';
 }
@@ -2105,7 +2150,9 @@ function editObj(o){
   document.getElementById('o-price-used').value=(o.price_used!=null?o.price_used:'');
   loadSales(o.id);
   document.getElementById('o-imageback').value=o.image_back||'';
-  document.getElementById('o-desc').value=o.description||'';
+  document.getElementById('o-desc').value=o.description||o.description_attente||'';
+  vaBandeau(o);
+  taMaj('o-desc');
   document.getElementById('obj-modal-title').textContent='✏️ Edit object';
   const _m=document.getElementById('obj-msg'); if(_m) _m.style.display='none';
   document.getElementById('obj-modal').style.display='flex';
@@ -2142,6 +2189,7 @@ function checkBarcode(){
 
 function clearObjForm(){
   ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition','o-region','o-price-new','o-price-used','o-game','o-reference','o-barcode'].forEach(id=>document.getElementById(id).value='');
+  taMaj('o-desc');
   checkBarcode();
   setLangs('');
   loadSales(null);
@@ -2165,7 +2213,8 @@ async function saveObj(){
     price_new:document.getElementById('o-price-new').value!==''?parseFloat(document.getElementById('o-price-new').value):null,
     price_used:document.getElementById('o-price-used').value!==''?parseFloat(document.getElementById('o-price-used').value):null,
     image_back:document.getElementById('o-imageback').value.trim()||null,
-    description:document.getElementById('o-desc').value.trim()||null
+    description:document.getElementById('o-desc').value.trim()||null,
+    description_attente:null   // enregistrer la fiche vaut validation du texte
   };
   if(!row.name){ showMsg('obj-msg','Name is required.',false); return; }
   let error;
@@ -2403,7 +2452,7 @@ async function tbCompte(table, f){
 async function loadTableauBord(){
   const box=document.getElementById('tb-contenu'); if(!box) return;
   document.getElementById('tb-liste').innerHTML='';
-  const [total, manques, sugg, ventes, trades, jeux, we, guides, news, chars, verif] = await Promise.all([
+  const [total, manques, sugg, ventes, trades, jeux, we, guides, news, chars, verif, attente] = await Promise.all([
     tbCompte('catalog'),
     Promise.all(TB_MANQUES.map(m=>tbCompte('catalog', q=>tbFiltreManque(q,m)))),
     tbCompte('catalog_suggestions', q=>q.eq('status','pending').eq('kind','edit')),
@@ -2411,7 +2460,8 @@ async function loadTableauBord(){
     tbCompte('site_trades'),
     tbCompte('site_games'), tbCompte('site_wiki_entries'),
     tbCompte('site_guides'), tbCompte('site_news'), tbCompte('site_characters'),
-    tbCompte('catalog_verif', q=>q.eq('verifie',false))
+    tbCompte('catalog_verif', q=>q.eq('verifie',false)),
+    tbCompte('catalog', q=>q.not('description_attente','is',null))
   ]);
   const caseHtml=(v,l,cls,onclick)=>{
     if(v===null) return '';
@@ -2424,6 +2474,7 @@ async function loadTableauBord(){
     caseHtml(sugg,  'corrections proposees par les visiteurs','alerte',"showAdminSection('catalog')"),
     caseHtml(ventes,'ventes signalees a valider','alerte',"showAdminSection('catalog')"),
     caseHtml(trades,'annonces d’echange','',"showAdminSection('trades')"),
+    caseHtml(attente,'descriptions à valider','alerte',"showAdminSection('valid')"),
     caseHtml(verif, 'points \u00e0 v\u00e9rifier sur tes bo\u00eetes','alerte',"showAdminSection('verif')")
   ].filter(Boolean).join('');
   if(aTraiter) html+='<div class="tb-titre">À traiter</div><div class="tb-grille">'+aTraiter+'</div>';
@@ -2523,6 +2574,131 @@ document.getElementById('vf-filtres')?.addEventListener('click',e=>{
   window._vfFait=Number(b.dataset.f);
   loadVerif();
 });
+
+// === Zones de texte etirables ========================================
+// Les descriptions du catalogue font plusieurs centaines de caracteres :
+// une ligne unique ne permet pas de les relire. La zone s'ouvre a la
+// hauteur de son contenu, se tire a la main, et s'ouvre en plein ecran.
+function taHaut(el){
+  if(!el || el.classList.contains('agrandi')) return;
+  el.style.height='auto';
+  el.style.height=Math.max(el.scrollHeight+2, 116)+'px';
+}
+function taCompte(el){
+  const c=document.getElementById(el.id+'-n'); if(!c) return;
+  const n=(el.value||'').length;
+  c.textContent = n+' caract\u00e8re'+(n>1?'s':'');
+}
+function taMaj(id){
+  const el=document.getElementById(id); if(!el) return;
+  taHaut(el); taCompte(el);
+}
+function taPlein(id){
+  const el=document.getElementById(id); if(!el) return;
+  const on=el.classList.toggle('agrandi');
+  const b=el.parentElement.querySelector('.ta-plein');
+  if(b) b.textContent = on ? '\u2715 R\u00e9duire' : '\u2922 Agrandir';
+  if(on){ el.style.height=''; el.focus(); } else taHaut(el);
+}
+document.addEventListener('input', e=>{
+  if(e.target.classList && e.target.classList.contains('ta-auto')){
+    taHaut(e.target); taCompte(e.target);
+  }
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){
+    const el=document.querySelector('textarea.ta-auto.agrandi');
+    if(el) taPlein(el.id);
+  }
+});
+
+// === Descriptions à valider ==========================================
+// « description » ne contient que du validé : c'est elle que lit le site
+// public. Tout texte nouveau atterrit dans « description_attente » et
+// n'en sort que par une validation explicite ici.
+window._vaPos = 0;
+const VA_PAS = 15;
+
+function vaBandeau(o){
+  const b=document.getElementById('o-desc-attente'); if(!b) return;
+  if(o && o.description_attente && !o.description){
+    b.style.display='block';
+    b.innerHTML='⚠️ Ce texte est <b>en attente de validation</b> : il n’est pas visible sur le site. '
+      +'Enregistrer la fiche le publiera tel qu’il est dans le champ ci-dessous.';
+  } else b.style.display='none';
+}
+
+async function loadValid(suite){
+  const box=document.getElementById('va-contenu'); if(!box) return;
+  if(!suite){ window._vaPos=0; box.innerHTML='<div class="vf-vide">Chargement…</div>'; }
+  const {data,error,count}=await sb.from('catalog')
+    .select('id,name,category,platform,region,edition,description_attente',{count:'exact'})
+    .not('description_attente','is',null)
+    .order('category').order('name')
+    .range(window._vaPos, window._vaPos+VA_PAS-1);
+  if(error){
+    box.innerHTML='<div class="msg err" style="display:block">'
+      + (/description_attente/.test(error.message||'')
+         ? 'La colonne <b>description_attente</b> n’existe pas encore. Lance le fichier <b>validation.sql</b> dans Supabase.'
+         : esc(error.message)) + '</div>';
+    return;
+  }
+  const l=data||[];
+  if(!suite && !l.length){
+    box.innerHTML='<div class="vf-vide">Rien en attente. Tout ce qui est écrit est publié.</div>';
+    return;
+  }
+  const html = (!suite ? '<div class="tl-tete" style="margin-bottom:12px"><b>'+(count||l.length)
+      +' fiche'+((count||1)>1?'s':'')+' en attente</b></div>' : '')
+    + l.map(o=>{
+    const meta=[o.category,o.platform,o.region,o.edition].filter(Boolean).join(' · ');
+    return '<div class="va-item" id="va-i-'+o.id+'">'
+      +'<div class="va-tete"><span class="va-nom">'+esc(o.name||('Fiche '+o.id))
+      +'<span class="va-meta">#'+o.id+(meta?' · '+esc(meta):'')+'</span></span></div>'
+      +'<textarea class="ta-auto" id="va-t-'+o.id+'">'+esc(o.description_attente)+'</textarea>'
+      +'<div class="va-actions">'
+      +'<button class="btn btn-primary" style="padding:7px 14px;font-size:.78rem" onclick="vaPublier('+o.id+')">✓ Publier</button>'
+      +'<button class="btn btn-ghost" style="padding:7px 14px;font-size:.78rem" onclick="vaRejeter('+o.id+')">Rejeter</button>'
+      +'<button class="btn btn-ghost" style="padding:7px 14px;font-size:.78rem" onclick="tbEditer('+o.id+')">Ouvrir la fiche</button>'
+      +'</div></div>';
+  }).join('');
+  const bas=document.getElementById('va-suite'); if(bas) bas.remove();
+  if(suite) box.insertAdjacentHTML('beforeend', html); else box.innerHTML=html;
+  l.forEach(o=>taMaj('va-t-'+o.id));
+  window._vaPos += l.length;
+  if(count && window._vaPos < count){
+    box.insertAdjacentHTML('beforeend',
+      '<button id="va-suite" class="btn btn-ghost va-suite" style="padding:9px;font-size:.8rem" onclick="loadValid(true)">'
+      +'Charger les '+Math.min(VA_PAS, count-window._vaPos)+' suivantes — '+(count-window._vaPos)+' restantes</button>');
+  }
+}
+
+async function vaPublier(id){
+  const t=document.getElementById('va-t-'+id); if(!t) return;
+  const v=t.value.trim();
+  if(!v){ alert('Le texte est vide : utilise Rejeter si tu n’en veux pas.'); return; }
+  const {error}=await sb.from('catalog')
+    .update({description:v, description_attente:null}).eq('id', id);
+  if(error){ alert(error.message); return; }
+  vaRetirer(id, true);
+}
+
+async function vaRejeter(id){
+  if(!confirm('Effacer ce texte sans le publier ? La fiche restera sans description.')) return;
+  const {error}=await sb.from('catalog').update({description_attente:null}).eq('id', id);
+  if(error){ alert(error.message); return; }
+  vaRetirer(id, false);
+}
+
+function vaRetirer(id, publiee){
+  const t=document.getElementById('va-t-'+id);
+  const o=ALL_OBJS.find(x=>x.id===id);
+  if(o){ if(publiee && t) o.description=t.value.trim(); o.description_attente=null; }
+  const el=document.getElementById('va-i-'+id);
+  if(el){ el.style.transition='.2s'; el.style.opacity='0'; setTimeout(()=>el.remove(),200); }
+  if(window._vaPos>0) window._vaPos--;
+  try{ showToast2('Description '+(publiee?'publiée':'rejetée')); }catch(e){}
+}
 
 // ── Recherche globale ──────────────────────────────────────────────────
 const RG_SOURCES=[
