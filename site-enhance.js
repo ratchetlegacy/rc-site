@@ -350,3 +350,65 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(function () { /* sans gravite */ });
   });
 }
+
+
+/* ============================================================
+   Mesure d'audience — ajoute le 29 octobre 2026
+   Ce fichier etant charge par les neuf pages publiques et PAS
+   par admin.html, la mesure couvre le site sans compter tes
+   propres visites.
+
+   Rien d'identifiant n'est enregistre : ni adresse IP, ni
+   cookie, ni identifiant de visiteur. On envoie la page vue, le
+   site d'ou vient le visiteur, son fuseau horaire, sa langue et
+   le type d'appareil.
+   ============================================================ */
+(function () {
+  var SUPABASE_URL  = 'https://ihucxnmqnhevfvlamgwc.supabase.co';
+  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
+
+  var h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h === '') return;
+
+  var cle = 'rl_vu_' + location.pathname;
+  try {
+    if (sessionStorage.getItem(cle)) return;
+    sessionStorage.setItem(cle, '1');
+  } catch (e) { /* navigation privee : on compte quand meme */ }
+
+  function fuseau() {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || null; }
+    catch (e) { return null; }
+  }
+  function provenance() {
+    if (!document.referrer) return null;
+    try {
+      var r = new URL(document.referrer);
+      return r.hostname === location.hostname ? null : r.hostname;
+    } catch (e) { return null; }
+  }
+  function appareil() {
+    var ua = navigator.userAgent || '';
+    if (/iPad|Tablet|PlayBook|Silk/i.test(ua)) return 'tablette';
+    if (/Mobi|Android|iPhone|iPod/i.test(ua)) return 'mobile';
+    return 'ordinateur';
+  }
+
+  fetch(SUPABASE_URL + '/rest/v1/site_visites', {
+    method: 'POST',
+    keepalive: true,
+    headers: {
+      'apikey': SUPABASE_ANON,
+      'Authorization': 'Bearer ' + SUPABASE_ANON,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({
+      page:     location.pathname + location.search,
+      referent: provenance(),
+      fuseau:   fuseau(),
+      langue:   (navigator.language || '').slice(0, 5) || null,
+      appareil: appareil()
+    })
+  }).catch(function () { /* la mesure ne doit jamais gener le visiteur */ });
+})();
