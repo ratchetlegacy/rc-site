@@ -754,6 +754,20 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
 
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">📡 Veille des sorties</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadVeille()">↻ Actualiser</button>
+      </div>
+      <p class="vf-intro">Ce qu'une passe hebdomadaire a repéré de nouveau chez les éditeurs et fabricants. Tu tries : ajouté au catalogue, ou écarté.</p>
+      <div class="st-periode" id="ve-filtres">
+        <button data-f="nouveau" aria-pressed="true">À traiter</button>
+        <button data-f="ajoute">Ajoutés</button>
+        <button data-f="ecarte">Écartés</button>
+      </div>
+      <div id="ve-contenu"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">✅ Descriptions à valider</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadValid()">↻ Actualiser</button>
       </div>
@@ -1322,6 +1336,7 @@ const ADMIN_SECTIONS=[
   {key:'media', ic:'📗', lbl:'Guides & News', match:['Guides','News']},
   {key:'trades', ic:'🤝', lbl:'Trades', match:['Trade listings']},
   {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Vault category images','Page banners','Arcade Memory','App screenshots']},
+  {key:'veille', ic:'📡', lbl:'Veille', match:['Veille des sorties']},
   {key:'valid', ic:'✅', lbl:'À valider', match:['Descriptions à valider']},
   {key:'verif', ic:'🔎', lbl:'À vérifier', match:['À vérifier']},
   {key:'stats', ic:'📊', lbl:'Stats', match:['Statistiques']}
@@ -1360,6 +1375,7 @@ function showAdminSection(key){
     b.textContent='← Accueil'; b.onclick=()=>showAdminSection('accueil');
     document.getElementById('admin-menu').insertAdjacentElement('afterend', b);
   }
+  if(key==='veille')  loadVeille();
   if(key==='valid')   loadValid();
   if(key==='verif')   loadVerif();
   if(key==='stats')   loadStats(window._stPeriode||30);
@@ -2435,13 +2451,17 @@ document.addEventListener('click',function(e){
 const TB_MANQUES=[
   {cle:'image',  col:'image_url',   lbl:'sans photo',      vide:true},
   {cle:'code',   col:'barcode',     lbl:'sans code-barres',vide:true},
-  {cle:'desc',   col:'description', lbl:'sans description',vide:true},
+  {cle:'desc',   col:'description', lbl:'sans description',vide:true, attente:true},
   {cle:'annee',  col:'year',        lbl:'sans annee',      vide:false}
 ];
 // Un formulaire peut enregistrer une chaine vide au lieu d'un NULL :
 // pour les colonnes texte on cherche les deux.
 function tbFiltreManque(q, m){
-  return m.vide ? q.or(m.col+'.is.null,'+m.col+'.eq.') : q.is(m.col,null);
+  let r = m.vide ? q.or(m.col+'.is.null,'+m.col+'.eq.') : q.is(m.col,null);
+  // « sans description » ne doit pas compter les textes en attente de
+  // validation : ils existent, ils ne sont simplement pas encore publies.
+  if(m.attente) r = r.is('description_attente', null);
+  return r;
 }
 async function tbCompte(table, f){
   let q=sb.from(table).select('id',{count:'exact',head:true});
@@ -2452,7 +2472,7 @@ async function tbCompte(table, f){
 async function loadTableauBord(){
   const box=document.getElementById('tb-contenu'); if(!box) return;
   document.getElementById('tb-liste').innerHTML='';
-  const [total, manques, sugg, ventes, trades, jeux, we, guides, news, chars, verif, attente] = await Promise.all([
+  const [total, manques, sugg, ventes, trades, jeux, we, guides, news, chars, verif, attente, veille] = await Promise.all([
     tbCompte('catalog'),
     Promise.all(TB_MANQUES.map(m=>tbCompte('catalog', q=>tbFiltreManque(q,m)))),
     tbCompte('catalog_suggestions', q=>q.eq('status','pending').eq('kind','edit')),
@@ -2461,7 +2481,8 @@ async function loadTableauBord(){
     tbCompte('site_games'), tbCompte('site_wiki_entries'),
     tbCompte('site_guides'), tbCompte('site_news'), tbCompte('site_characters'),
     tbCompte('catalog_verif', q=>q.eq('verifie',false)),
-    tbCompte('catalog', q=>q.not('description_attente','is',null))
+    tbCompte('catalog', q=>q.not('description_attente','is',null)),
+    tbCompte('veille', q=>q.eq('statut','nouveau'))
   ]);
   const caseHtml=(v,l,cls,onclick)=>{
     if(v===null) return '';
@@ -2474,6 +2495,7 @@ async function loadTableauBord(){
     caseHtml(sugg,  'corrections proposees par les visiteurs','alerte',"showAdminSection('catalog')"),
     caseHtml(ventes,'ventes signalees a valider','alerte',"showAdminSection('catalog')"),
     caseHtml(trades,'annonces d’echange','',"showAdminSection('trades')"),
+    caseHtml(veille,  'sorties repérées à trier','alerte',"showAdminSection('veille')"),
     caseHtml(attente,'descriptions à valider','alerte',"showAdminSection('valid')"),
     caseHtml(verif, 'points \u00e0 v\u00e9rifier sur tes bo\u00eetes','alerte',"showAdminSection('verif')")
   ].filter(Boolean).join('');
@@ -2699,6 +2721,68 @@ function vaRetirer(id, publiee){
   if(window._vaPos>0) window._vaPos--;
   try{ showToast2('Description '+(publiee?'publiée':'rejetée')); }catch(e){}
 }
+
+// === Veille des sorties ==============================================
+// Alimentee une fois par semaine par une tache planifiee. Elle depose
+// ce qu'elle trouve dans la table veille ; ici tu tries.
+window._veFiltre = 'nouveau';
+
+async function loadVeille(){
+  const box=document.getElementById('ve-contenu'); if(!box) return;
+  box.innerHTML='<div class="vf-vide">Chargement…</div>';
+  const {data,error}=await sb.from('veille')
+    .select('id,trouve_le,source,titre,url,resume,categorie,statut,traite_le')
+    .eq('statut', window._veFiltre)
+    .order('trouve_le',{ascending:false})
+    .limit(200);
+  if(error){
+    box.innerHTML='<div class="msg err" style="display:block">'
+      + (/veille/.test(error.message||'')
+         ? 'La table <b>veille</b> n’existe pas encore. Lance le fichier <b>veille.sql</b> dans Supabase.'
+         : esc(error.message)) + '</div>';
+    return;
+  }
+  const l=data||[];
+  if(!l.length){
+    const v={nouveau:'Rien de neuf depuis la dernière passe.',
+             ajoute:'Aucune trouvaille ajoutée au catalogue pour l’instant.',
+             ecarte:'Rien d’écarté.'};
+    box.innerHTML='<div class="vf-vide">'+v[window._veFiltre]+'</div>';
+    return;
+  }
+  box.innerHTML=l.map(v=>{
+    const d=new Date(v.trouve_le).toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+    const meta=[v.source, v.categorie, d].filter(Boolean).join(' · ');
+    return '<div class="va-item" id="ve-i-'+v.id+'">'
+      +'<div class="va-tete"><span class="va-nom">'+esc(v.titre)
+      +'<span class="va-meta">'+esc(meta)+'</span></span></div>'
+      +(v.resume?'<div class="vf-note">'+esc(v.resume)+'</div>':'')
+      +'<div class="va-actions">'
+      +(v.url?'<a class="btn btn-ghost" style="padding:7px 14px;font-size:.78rem;text-decoration:none" target="_blank" rel="noopener" href="'+esc(v.url)+'">Ouvrir la page</a>':'')
+      +(v.statut==='nouveau'
+        ? '<button class="btn btn-primary" style="padding:7px 14px;font-size:.78rem" onclick="veStatut('+v.id+',\'ajoute\')">✓ Ajouté au catalogue</button>'
+          +'<button class="btn btn-ghost" style="padding:7px 14px;font-size:.78rem" onclick="veStatut('+v.id+',\'ecarte\')">Écarter</button>'
+        : '<button class="btn btn-ghost" style="padding:7px 14px;font-size:.78rem" onclick="veStatut('+v.id+',\'nouveau\')">Remettre à traiter</button>')
+      +'</div></div>';
+  }).join('');
+}
+
+async function veStatut(id, statut){
+  const {error}=await sb.from('veille')
+    .update({statut, traite_le: statut==='nouveau'?null:new Date().toISOString()})
+    .eq('id', id);
+  if(error){ alert(error.message); return; }
+  const el=document.getElementById('ve-i-'+id);
+  if(el){ el.style.transition='.2s'; el.style.opacity='0'; setTimeout(()=>el.remove(),200); }
+  try{ showToast2(statut==='ajoute'?'Marqué comme ajouté':statut==='ecarte'?'Écarté':'Remis à traiter'); }catch(e){}
+}
+
+document.getElementById('ve-filtres')?.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#ve-filtres button').forEach(x=>x.setAttribute('aria-pressed', x===b?'true':'false'));
+  window._veFiltre=b.dataset.f;
+  loadVeille();
+});
 
 // ── Recherche globale ──────────────────────────────────────────────────
 const RG_SOURCES=[
