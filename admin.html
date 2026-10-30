@@ -2968,8 +2968,15 @@ async function ebMaj(id){
   const b=document.getElementById('eb-b-'+id); if(!b) return;
   const r=ebSel(id);
   const f=(await sb.from('catalog').select('price_new,price_used').eq('id',id).maybeSingle()).data||{};
-  b.innerHTML='<div>Neuf <b>'+ebFmt(r.neuf)+'</b> <span style="color:var(--text-dim)">('+r.nN+')</span>'+(f.price_new!=null?' <span style="color:var(--text-dim)">· actuel '+ebFmt(+f.price_new)+'</span>':'')+'</div>'
-    +'<div>Occasion <b>'+ebFmt(r.occ)+'</b> <span style="color:var(--text-dim)">('+r.nO+')</span>'+(f.price_used!=null?' <span style="color:var(--text-dim)">· actuel '+ebFmt(+f.price_used)+'</span>':'')+'</div>';
+  // écart de plus de 50 % avec l'estimation actuelle : en rouge, à vérifier
+  const alerte=(prop,act)=> prop!=null && act!=null && +act>0 && Math.abs(prop-act)/act>0.5;
+  const bloc=(lbl,prop,n,act)=>{
+    const al=alerte(prop,act);
+    return '<div'+(al?' style="background:rgba(255,77,106,.15);border:1px solid rgba(255,77,106,.5)" title="Plus de 50 % d\'écart avec l\'estimation actuelle : vérifie les annonces cochées"':'')+'>'
+      +(al?'⚠️ ':'')+lbl+' <b'+(al?' style="color:#ff4d6a"':'')+'>'+ebFmt(prop)+'</b> <span style="color:var(--text-dim)">('+n+')</span>'
+      +(act!=null?' <span style="color:var(--text-dim)">· actuel '+ebFmt(+act)+'</span>':'')+'</div>';
+  };
+  b.innerHTML=bloc('Neuf',r.neuf,r.nN,f.price_new)+bloc('Occasion',r.occ,r.nO,f.price_used);
 }
 async function ebValider(id){
   const r=ebSel(id);
