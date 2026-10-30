@@ -513,7 +513,7 @@ function showWikiHub(){
 // ── Wiki entries (weapons, creatures, planets, vehicles) ──
 async function loadWikiEntries(){
   try{
-    const {data,error}=await sb.from('site_wiki_entries').select('*').order('sort_order').order('name');
+    const {data,error}=await sb.from('site_wiki_entries').select('id,type,name,subtitle,description,image_url,img_pos,sort_order,galaxy,dimension,main_location,inhabitants,first_appearance,notable_locations,notable_events,system').order('sort_order').order('name');
     if(error) throw error;
     const byType={weapon:[],creature:[],planet:[],vehicle:[]};
     WIKI_ENTRIES=data||[];
@@ -561,11 +561,15 @@ function openEntry(i){
         ${stats?`<div class="cd-stats">${stats}</div>`:''}
       </div>
     </div>
-    <div class="cd-below">
-      ${e.description?`<p class="cd-desc">${esc(e.description)}</p>`:''}
+    <div id="en-tabs"></div><div id="en-pane"></div>`;
+  const over=`${e.description?`<p class="cd-desc">${esc(e.description)}</p>`:''}
       ${chips('📍 Notable locations', e.notable_locations, '📍')}
-      ${chips('⭐ Notable events', e.notable_events, '⭐')}
-    </div>`;
+      ${chips('⭐ Notable events', e.notable_events, '⭐')}`;
+  const bar=document.getElementById('en-tabs'), pane=document.getElementById('en-pane');
+  const first={key:'over',label:'📖 Overview',html:over||'<div class="rd-empty">No description yet.</div>'};
+  if(window.RCD && e.type==='weapon') RCD.weaponTabs(sb,e,bar,pane,first);
+  else if(window.RCD && e.type==='planet') RCD.planetTabs(sb,e,bar,pane,first);
+  else pane.innerHTML='<div class="cd-below">'+over+'</div>';
   document.getElementById('entry-modal').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -600,6 +604,7 @@ loadHubImages();
   </div>
 </div>
 
+<script src="details-tabs.js"></script>
 <script src="site-enhance.js"></script>
 <!-- ENTRY DETAIL MODAL -->
 <div class="char-modal" id="entry-modal" onclick="if(event.target===this)closeEntry()">

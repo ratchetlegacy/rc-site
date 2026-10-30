@@ -368,7 +368,7 @@ function locSkin(name, type){
 async function load(){
   try{
     const [planetsRes, locsRes] = await Promise.all([
-      sb.from('site_wiki_entries').select('*').eq('type','planet').order('sort_order').order('name'),
+      sb.from('site_wiki_entries').select('id,type,name,subtitle,description,image_url,img_pos,sort_order,galaxy,dimension,main_location,inhabitants,first_appearance,notable_locations,notable_events,system').eq('type','planet').order('sort_order').order('name'),
       sb.from('site_locations').select('*').order('sort_order').order('name')
     ]);
     PLANETS=planetsRes.data||[];
@@ -639,10 +639,11 @@ function renderSheet(p){
     +(p.description?'<p class="ps-desc">'+esc(p.description)+'</p>':'')
     +(facts?'<div class="ps-facts">'+facts+'</div>':'')
     +'</div></div>'
-    +'<div class="ps-section"><h3>Locations<span>'+locs.length+'</span></h3>'
-    +(locs.length?'<div class="ps-locs">'+cards+'</div>':'<div class="ps-empty">No named locations for this world yet.</div>')
-    +'</div></section>';
-  box.querySelectorAll('.ps-loc').forEach(b=>b.onclick=()=>openLoc(locs[+b.dataset.i], p));
+    +'<div id="ps-tabs"></div><div id="ps-pane"></div></section>';
+  const locHtml=locs.length?'<div class="ps-locs">'+cards+'</div>':'<div class="ps-empty">No named locations for this world yet.</div>';
+  const wire=(k,pane)=>{ if(k==='locs') pane.querySelectorAll('.ps-loc').forEach(b=>b.onclick=()=>openLoc(locs[+b.dataset.i], p)); };
+  if(window.RCD) RCD.planetTabs(sb,p,document.getElementById('ps-tabs'),document.getElementById('ps-pane'),{key:'locs',label:'📍 Locations',count:locs.length,html:locHtml},wire);
+  else { document.getElementById('ps-pane').innerHTML='<div class="ps-section">'+locHtml+'</div>'; wire('locs',document.getElementById('ps-pane')); }
 }
 // location detail sheet
 function openLoc(loc, planet){
@@ -683,6 +684,7 @@ window.addEventListener('resize', ()=>{
   }, 250);
 });
 </script>
+<script src="details-tabs.js"></script>
 <script src="site-enhance.js"></script>
 </body>
 </html>
