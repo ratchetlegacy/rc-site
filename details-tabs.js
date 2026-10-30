@@ -491,6 +491,7 @@ function gameTabs(sb,g,bar,pane){ SB=sb;
   tabs.push(fromWiki('weapon','weapon','🔫 Weapons','weapon'));
   tabs.push(fromWiki('weapon','gadget','🛠️ Gadgets','weapon'));
   tabs.push(fromWiki('planet',null,'🪐 Planets','planet'));
+  tabs.push(fromWiki('vehicle',null,'🚀 Vehicles','vehicle'));
   tabs.push({key:'chars',label:'👥 Characters',load:async()=>{
     const {data,error}=await sb.from('site_characters').select('name,role,image_url').contains('games',[key]).order('name');
     if(error) throw error;
