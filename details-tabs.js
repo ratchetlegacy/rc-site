@@ -129,6 +129,18 @@
 .fm-g{color:var(--text-mid);font-size:.76rem;margin-top:4px}
 .fm-g:hover{color:var(--gold)}
 .fm-k{color:var(--text-dim);font-size:.74rem;margin-top:2px}
+.tl-row{display:grid;grid-template-columns:48px 1fr;gap:12px;align-items:start;padding:10px 0;border-top:1px dashed var(--line);font-size:.86rem;color:var(--text-mid)}
+.tl-row img{width:48px;height:48px;object-fit:contain}
+.tl-row b{color:var(--text)}
+.tl-row small{display:block;color:var(--text-dim);margin-top:2px}
+.gm-row{display:grid;grid-template-columns:56px 1fr;gap:14px;padding:14px 0;border-top:1px dashed var(--line)}
+.gm-row:first-child{border-top:0;padding-top:2px}
+.gm-row img{width:56px;height:56px;object-fit:contain}
+.gm-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:4px}
+.gm-h b{font:700 .95rem Orbitron,sans-serif;color:var(--text)}
+.gm-h span{font-size:.74rem;color:var(--gold)}
+.gm-t{font-size:.86rem;color:var(--text-mid);line-height:1.5}
+.gm-m{font-size:.78rem;color:var(--text-dim);margin-top:6px}
 .rd-shop{width:100%;border-collapse:collapse;font-size:.84rem}
 .rd-shop th{text-align:left;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);padding:0 10px 8px;font-weight:700}
 .rd-shop td{padding:10px;border-top:1px solid var(--line);vertical-align:top;color:var(--text-mid)}
@@ -447,7 +459,26 @@ function charProfile(c,d){
   [['family','Family','👪'],['affiliation','Affiliation','🏢'],['residence','Residence','🏠']].forEach(r=>{
     const v=list(d&&d[r[0]]); if(v.length) h+='<div class="rd-sub"'+(h?'':' style="margin-top:0"')+'>'+r[1]+'</div><div class="rd-chips">'+v.map(x=>chip('',r[2],x)).join('')+'</div>';
   });
+  const tal=list(d&&d.talents);
+  if(tal.length) h+='<div class="rd-sub"'+(h?'':' style="margin-top:0"')+'>Talents (Ranger Rumble)</div>'+tal.map(t=>'<div class="tl-row"><img src="'+esc(t.icon)+'" alt="" loading="lazy" onerror="this.remove()"/><div><b>'+esc(t.name)+'</b><div>'+lk(t.text)+'</div>'+(t.effect?'<small>'+esc(t.effect)+'</small>':'')+'</div></div>').join('');
+  const sk=list(d&&d.skins);
+  if(sk.length) h+='<div class="rd-sub">Skins (Ranger Rumble)</div><div class="rd-covers">'+sk.map(x=>'<div class="rd-cv"><div class="ph" style="background:var(--bg3)"><img src="'+esc(x.icon)+'" alt="" loading="lazy" style="object-fit:contain" onerror="this.remove()"/></div><b>'+esc(x.name)+'</b></div>').join('')+'</div>';
   return h||empty('No profile information yet.');
+}
+// ── Fiche d'un jeu (modes, heros, economie) ──
+function gameTabs(sb,g,bar,pane){ SB=sb;
+  const d=g.details||{}, tabs=[];
+  const mapLk=m=>'<a class="rd-lk" data-k="location" data-n="'+esc(m)+'">'+esc(m)+'</a>';
+  if(list(d.modes).length) tabs.push({key:'modes',label:'🎮 Game modes',count:d.modes.length,html:d.modes.map(m=>'<div class="gm-row"><img src="'+esc(m.icon)+'" alt="" loading="lazy" onerror="this.remove()"/><div><div class="gm-h"><b>'+esc(m.name)+'</b><span>'+esc(m.info||'')+'</span></div><div class="gm-t">'+lk(m.text)+'</div>'+(list(m.maps).length?'<div class="gm-m">🗺️ '+m.maps.map(mapLk).join(' · ')+'</div>':'')+'</div></div>').join('')});
+  if(list(d.heroes).length) tabs.push({key:'heroes',label:'🦸 Heroes',count:d.heroes.length,load:async()=>{
+    const {data}=await sb.from('site_characters').select('name,role,image_url').in('name',d.heroes);
+    const by={}; (data||[]).forEach(c=>by[c.name]=c);
+    return '<div class="rd-covers">'+d.heroes.map(n=>{ const c=by[n]||{}; return '<div class="rd-cv" data-k="character" data-n="'+esc(n)+'" style="cursor:pointer"><div class="ph">'+(c.image_url?'<img src="'+esc(c.image_url)+'" alt="" loading="lazy" style="object-position:top" onerror="this.remove()"/>':'🦸')+'</div><b>'+esc(n.replace(' (Ranger Rumble)',''))+'</b>'+esc((c.role||'').split(' · ')[0])+'</div>'; }).join('')+'</div>';
+  }});
+  if(list(d.economy).length||list(d.progression).length) tabs.push({key:'eco',label:'💰 Economy',html:(list(d.economy).length?'<div class="rd-sub" style="margin-top:0">Currencies & rewards</div>'+d.economy.map(e=>'<div class="tl-row"><img src="'+esc(e.icon)+'" alt="" loading="lazy" onerror="this.remove()"/><div><b>'+esc(e.name)+'</b><div>'+esc(e.text)+'</div></div></div>').join(''):'')+(list(d.progression).length?'<div class="rd-sub">Progression</div><ol class="rd-tl">'+d.progression.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol>':'')});
+  if(d.source) tabs.forEach(t=>{ if(t.html!=null) t.html+='<div class="rd-sub" style="margin-top:18px;text-transform:none;letter-spacing:0;font-weight:500">Source: '+esc(d.source)+'.</div>'; });
+  if(!tabs.length){ pane.innerHTML='<div class="rd-pane">'+empty('No details yet.')+'</div>'; return; }
+  mount(bar,pane,tabs);
 }
 function charTabs(sb,c,bar,pane,first,onShown){ SB=sb;
   let p=null; const get=()=>p||(p=charDetails(sb,c.id));
@@ -457,5 +488,5 @@ function charTabs(sb,c,bar,pane,first,onShown){ SB=sb;
     {key:'profile',label:'🧬 Profile',load:async()=>charProfile(c,await get())}
   ],onShown);
 }
-window.RCD={openLink,autoLink,planetTabs,weaponTabs,creatureTabs:simpleTabs('creature'),vehicleTabs:simpleTabs('vehicle'),charTabs,mount};
+window.RCD={openLink,autoLink,planetTabs,weaponTabs,creatureTabs:simpleTabs('creature'),vehicleTabs:simpleTabs('vehicle'),charTabs,gameTabs,mount};
 })();
