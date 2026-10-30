@@ -46,6 +46,10 @@
 @keyframes rdSpin{to{transform:rotate(360deg)}}
 .rd-empty{color:var(--text-dim);font-size:.88rem;font-style:italic}
 .rd-game{display:grid;grid-template-columns:52px 1fr;gap:14px;padding:14px 0;border-top:1px dashed var(--line)}
+.rd-game.has-guide{grid-template-columns:52px 1fr auto}
+.rd-guide{align-self:center;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(123,79,212,.25),rgba(255,176,32,.18));border:1px solid rgba(255,176,32,.45);color:var(--text);text-decoration:none;font-size:1.4rem;transition:.18s;min-width:74px}
+.rd-guide span{font:700 .68rem Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.rd-guide:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 8px 20px -8px rgba(255,176,32,.55)}
 .rd-game:first-child{border-top:0;padding-top:4px}
 .rd-cover{width:52px;height:65px;border-radius:7px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.4);background:linear-gradient(135deg,#2a1d45,#3d2410)}
 .rd-cover img{width:100%;height:100%;object-fit:cover;display:block}
@@ -100,6 +104,8 @@
   .rd-shop td{display:block;border:0;padding:2px 0}
   .rd-evo{grid-template-columns:1fr;gap:6px}
   .rd-evo .im{height:120px}
+  .rd-game.has-guide{grid-template-columns:52px 1fr}
+  .rd-game.has-guide .rd-guide{grid-column:1/-1;flex-direction:row;justify-content:center;padding:9px;font-size:1.1rem}
   .rd-evo .arrow{transform:rotate(90deg);animation:none}
 }`;
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
@@ -195,7 +201,9 @@
     show(0);
   }
 
-  const gameBlock=(g,inner)=>'<div class="rd-game"><div data-k="game" data-n="'+esc(g.game)+'" title="Open the game sheet">'+cover(g.game)+'</div><div><div class="rd-gh" data-k="game" data-n="'+esc(g.game)+'">'+esc(gi(g.game)[0])+'<span>'+esc(gi(g.game)[1])+'</span></div>'+inner+'</div></div>';
+  const GUIDES=['Ratchet & Clank (2002)','Going Commando','Up Your Arsenal','Deadlocked','Size Matters','Tools of Destruction','Secret Agent Clank','Quest for Booty','A Crack in Time','All 4 One','Full Frontal Assault','Into the Nexus','Ratchet & Clank (2016)','Rift Apart'];
+  const guideBtn=g=>GUIDES.includes(g)?'<a class="rd-guide" href="guides.html#game='+encodeURIComponent(g)+'" title="Open the '+esc(gi(g)[0])+' guide">📗<span>Guide</span></a>':'';
+  const gameBlock=(g,inner,guide)=>'<div class="rd-game'+(guide&&GUIDES.includes(g.game)?' has-guide':'')+'"><div data-k="game" data-n="'+esc(g.game)+'" title="Open the game sheet">'+cover(g.game)+'</div><div><div class="rd-gh" data-k="game" data-n="'+esc(g.game)+'">'+esc(gi(g.game)[0])+'<span>'+esc(gi(g.game)[1])+'</span></div>'+inner+'</div>'+(guide?guideBtn(g.game):'')+'</div>';
   const empty=t=>'<div class="rd-empty">'+t+'</div>';
   const BOSS=/boss|king |giant|queen|courtney gears|shellshock|gleeman|klunk|dreadship|vorselon|leviathan king/i;
 
@@ -207,7 +215,7 @@
       let h='';
       if(list(g.missions).length) h+='<ol class="rd-tl">'+g.missions.map(m=>'<li>'+esc(m)+'</li>').join('')+'</ol>';
       if(list(g.challenges).length) h+=(h?'<div class="rd-sub">Challenges</div>':'')+'<ol class="rd-tl">'+g.challenges.map(m=>'<li>'+esc(m)+'</li>').join('')+'</ol>';
-      return gameBlock(g,h);
+      return gameBlock(g,h,true);
     }).join('');
   }
   function planetEnemies(d){

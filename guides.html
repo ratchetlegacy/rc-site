@@ -288,6 +288,12 @@ async function load(){
         + games.map(g=>`<button class="gfilter" data-g="${esc(g)}" onclick="setFilter('${esc(g).replace(/'/g,"&#39;")}')">${esc(g)}</button>`).join('');
     }
     render();
+    // guides.html#game=Deadlocked ouvre directement le guide de ce jeu
+    const h=decodeURIComponent((location.hash||'').slice(1));
+    if(h.startsWith('game=')){
+      const i=GUIDES.findIndex(x=>x.game===h.slice(5));
+      if(i>=0){ setFilter(GUIDES[i].game); openPdf(i); }
+    }
   }catch(e){
     box.innerHTML='<div class="state" style="grid-column:1/-1">Could not load the guides right now.</div>';
   }

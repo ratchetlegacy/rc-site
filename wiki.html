@@ -100,6 +100,15 @@ a{color:inherit;text-decoration:none}
 /* Characters */
 .chars{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
 .char-group{margin-bottom:34px}
+.gf-bar{display:flex;gap:8px;overflow-x:auto;scrollbar-width:thin;padding:2px 2px 12px;margin:-6px 0 20px;-webkit-overflow-scrolling:touch}
+.gf-bar:empty{display:none}
+.gf{flex:none;display:inline-flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--line);color:var(--text-mid);border-radius:100px;padding:5px 13px 5px 5px;font:600 .78rem Inter,sans-serif;cursor:pointer;transition:.15s;white-space:nowrap}
+.gf.all{padding:7px 14px}
+.gf img{width:24px;height:30px;object-fit:cover;border-radius:5px}
+.gf small{color:var(--text-dim);font-weight:500}
+.gf:hover{border-color:var(--purple);color:var(--text)}
+.gf.active{background:linear-gradient(135deg,rgba(123,79,212,.35),rgba(255,176,32,.22));border-color:var(--gold);color:var(--text)}
+.gf-empty{grid-column:1/-1;text-align:center;padding:24px;color:var(--text-dim);font-size:.9rem}
 .char-group-title{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:16px;color:var(--text);display:flex;align-items:center;gap:10px}
 .char-group-title::after{content:'';flex:1;height:1px;background:var(--line)}
 .char{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px 18px;text-align:center;transition:.2s;height:auto;overflow:visible}
@@ -227,6 +236,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <section class="sec" id="characters">
     <div class="sec-title"><span class="em">🦊</span> Characters</div>
     <div class="sec-sub">The heroes, villains and oddballs that make the galaxy worth saving.</div>
+    <div class="gf-bar" data-sec="characters"></div>
     <div class="chars" id="chars-grid">
       <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)"><span style="display:inline-block;animation:spin 1s linear infinite;font-size:1.4rem">⚙️</span><div style="margin-top:8px">Loading characters…</div></div>
     </div>
@@ -245,13 +255,18 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <section class="sec" id="weapons">
     <div class="sec-title"><span class="em">🔫</span> Weapons &amp; Gadgets</div>
     <div class="sec-sub">The wild, inventive arsenal that defines the series.</div>
-    <div class="chars" id="weapons-grid"><div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Loading…</div></div>
+    <div class="gf-bar" data-sec="weapons"></div>
+    <div class="char-group"><div class="char-group-title">🔫 Weapons</div>
+    <div class="chars" id="weapons-grid"><div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Loading…</div></div></div>
+    <div class="char-group"><div class="char-group-title">🧰 Gadgets</div>
+    <div class="chars" id="gadgets-grid"><div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Loading…</div></div></div>
   </section>
 
   <!-- CREATURES -->
   <section class="sec" id="creatures">
     <div class="sec-title"><span class="em">👽</span> Creatures &amp; Species</div>
     <div class="sec-sub">The races and beings that populate the galaxy.</div>
+    <div class="gf-bar" data-sec="creatures"></div>
     <div class="chars" id="creatures-grid"><div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Loading…</div></div>
   </section>
 
@@ -259,6 +274,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <section class="sec" id="planets">
     <div class="sec-title"><span class="em">🪐</span> Planets &amp; Locations</div>
     <div class="sec-sub">The worlds Ratchet and Clank explore.</div>
+    <div class="gf-bar" data-sec="planets"></div>
     <div class="chars" id="planets-grid"><div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Loading…</div></div>
   </section>
 
@@ -266,6 +282,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <section class="sec" id="vehicles">
     <div class="sec-title"><span class="em">🚀</span> Vehicles &amp; Ships</div>
     <div class="sec-sub">The rides that carry our heroes across the stars.</div>
+    <div class="gf-bar" data-sec="vehicles"></div>
     <div class="chars" id="vehicles-grid"><div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Loading…</div></div>
   </section>
 
@@ -306,10 +323,11 @@ async function loadChars(){
         const av = (c.image_url&&c.image_url.trim())
           ? `<div class="av"><img src="${esc(c.image_url)}" alt="" style="object-position:${pos}" onerror="this.parentNode.textContent='${esc(c.emoji||'🦊')}';this.parentNode.style.background='linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})'"/></div>`
           : `<div class="av" style="background:linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})">${esc(c.emoji||'🦊')}</div>`;
-        return `<div class="char" style="cursor:pointer" onclick="openChar(${i})">${av}<h3>${esc(c.name)}</h3>${c.role?`<div class="role">${esc(c.role)}</div>`:''}${c.description?`<p>${esc(c.description)}</p>`:''}</div>`;
+        return `<div class="char" data-games="${esc('|'+(c.games||[]).join('|')+'|')}" style="cursor:pointer" onclick="openChar(${i})">${av}<h3>${esc(c.name)}</h3>${c.role?`<div class="role">${esc(c.role)}</div>`:''}${c.description?`<p>${esc(c.description)}</p>`:''}</div>`;
       }).join('');
       return `<div class="char-group"><div class="char-group-title">${CAT_LABELS[cat]||('✨ '+esc(cat))}</div><div class="chars">${cards}</div></div>`;
     }).join('');
+    buildGameFilter('characters');
   }catch(e){
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Could not load characters.</div>';
   }
@@ -496,6 +514,32 @@ loadLore();
   }
 })();
 
+// ── Filtres par jeu (chaque carte porte data-games="|jeu1|jeu2|") ──
+const GF_GAMES=[['Ratchet & Clank (2002)','R&C 2002','v1781874919/images_ncvprf.jpg'],['Going Commando','Going Commando','v1781875151/images_muw3yf.jpg'],['Up Your Arsenal','Up Your Arsenal','v1781875160/images_xj3ydp.jpg'],['Deadlocked','Deadlocked','v1781875111/images_aeucu5.jpg'],['Going Mobile','Going Mobile','v1788965628/Ratchet__26_Clank_Going_Mobile_ic3uqq.webp'],['Clone Home','Clone Home',''],['Size Matters','Size Matters','v1781875165/images_t5trs9.jpg'],['Tools of Destruction','Tools of Destruction','v1788965701/Ratchet___Clank_Future_Tools_of_Destruction_North_American_cover_qpcdun.png'],['Secret Agent Clank','Secret Agent Clank','v1781792947/sackpp0f_ziehxu.webp'],['Quest for Booty','Quest for Booty','v1788965725/5076-jaquette-francaise-3342_y0yn5j.jpg'],['A Crack in Time','A Crack in Time','v1788965751/713akjTRMOS._AC_UF894_1000_QL80__nv3ngg.jpg'],['All 4 One','All 4 One','v1788965768/ratchet-et-clank-all-4-one-e47001_qabam8.jpg'],['Full Frontal Assault','Full Frontal Assault','v1788965795/91dpx_xFHDL_b95zqs.jpg'],['Into the Nexus','Into the Nexus','v1788965810/71jakIrUdIL._AC_UF894_1000_QL80__oloa5b.jpg'],['Ratchet & Clank (2016)','R&C 2016','v1781792915/download_mde7j2.jpg'],['Rift Apart','Rift Apart','v1781792931/71UTxBiOajL._AC_UF1000_1000_QL80__eowxn2.jpg'],['Ranger Rumble','Ranger Rumble','v1788965831/ratchet-clank-ranger-rumble_t8wp.600_dk5bk6.webp']];
+function buildGameFilter(sec){
+  const bar=document.querySelector('.gf-bar[data-sec="'+sec+'"]'); if(!bar) return;
+  const cards=[...document.querySelectorAll('#'+sec+' .char[data-games]')];
+  const count=g=>cards.filter(c=>c.dataset.games.includes('|'+g+'|')).length;
+  const used=GF_GAMES.filter(g=>count(g[0]));
+  if(used.length<2){ bar.innerHTML=''; return; }
+  bar.innerHTML='<button class="gf all active" data-g="">All <small>'+cards.length+'</small></button>'
+    +used.map(g=>'<button class="gf" data-g="'+esc(g[0])+'">'+(g[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+g[2]+'" alt="" loading="lazy" onerror="this.remove()"/>':'')+esc(g[1])+' <small>'+count(g[0])+'</small></button>').join('');
+  bar.querySelectorAll('.gf').forEach(b=>b.onclick=()=>applyGameFilter(sec,b.dataset.g));
+}
+function applyGameFilter(sec,g){
+  const root=document.getElementById(sec);
+  root.querySelectorAll('.gf').forEach(b=>b.classList.toggle('active',b.dataset.g===g));
+  root.querySelectorAll('.char[data-games]').forEach(c=>{ c.style.display=(!g||c.dataset.games.includes('|'+g+'|'))?'':'none'; });
+  root.querySelectorAll('.chars').forEach(grid=>{
+    const any=[...grid.querySelectorAll('.char[data-games]')].some(c=>c.style.display!=='none');
+    const grp=grid.closest('.char-group');
+    let msg=grid.querySelector('.gf-empty');
+    if(grp && grp.parentNode.id==='chars-grid'){ grp.style.display=any?'':'none'; return; }
+    if(!any){ if(!msg){ msg=document.createElement('div'); msg.className='gf-empty'; grid.appendChild(msg);} msg.textContent='Nothing from this game here yet.'; }
+    else if(msg) msg.remove();
+  });
+}
+
 // ── Wiki hub navigation ──
 function showWikiSection(id){
   document.getElementById('wiki-hub').style.display='none';
@@ -514,15 +558,17 @@ function showWikiHub(){
 // ── Wiki entries (weapons, creatures, planets, vehicles) ──
 async function loadWikiEntries(){
   try{
-    const {data,error}=await sb.from('site_wiki_entries').select('id,type,name,subtitle,description,image_url,img_pos,sort_order,galaxy,dimension,main_location,inhabitants,first_appearance,notable_locations,notable_events,system').order('sort_order').order('name');
+    const {data,error}=await sb.from('site_wiki_entries').select('id,type,name,subtitle,description,image_url,img_pos,sort_order,galaxy,dimension,main_location,inhabitants,first_appearance,notable_locations,notable_events,system,games,category').order('sort_order').order('name');
     if(error) throw error;
-    const byType={weapon:[],creature:[],planet:[],vehicle:[]};
+    const byType={weapon:[],gadget:[],creature:[],planet:[],vehicle:[]};
     WIKI_ENTRIES=data||[];
-    (data||[]).forEach(e=>{ if(byType[e.type]) byType[e.type].push(e); });
+    (data||[]).forEach(e=>{ const k=(e.type==='weapon'&&e.category==='gadget')?'gadget':e.type; if(byType[k]) byType[k].push(e); });
     renderEntries('weapons-grid', byType.weapon);
+    renderEntries('gadgets-grid', byType.gadget);
     renderEntries('creatures-grid', byType.creature);
     renderEntries('planets-grid', byType.planet);
     renderEntries('vehicles-grid', byType.vehicle);
+    ['weapons','creatures','planets','vehicles'].forEach(buildGameFilter);
   }catch(e){}
 }
 let WIKI_ENTRIES=[];
@@ -534,8 +580,8 @@ function renderEntries(gridId, list){
     const pos=esc(e.img_pos||'center');
     const av=(e.image_url&&e.image_url.trim())
       ? `<div class="av"><img src="${esc(e.image_url)}" alt="" style="object-position:${pos}" onerror="this.parentNode.textContent='📦'"/></div>`
-      : `<div class="av" style="background:linear-gradient(135deg,#7B4FD4,#FF6B1A);font-size:2rem">${gridId==='weapons-grid'?'🔫':gridId==='creatures-grid'?'👽':gridId==='planets-grid'?'🪐':'🚀'}</div>`;
-    return `<div class="char" style="cursor:pointer" onclick="openEntry(${idx})">${av}<h3>${esc(e.name)}</h3>${e.subtitle?`<div class="role">${esc(e.subtitle)}</div>`:''}${e.description?`<p>${esc(e.description)}</p>`:''}</div>`;
+      : `<div class="av" style="background:linear-gradient(135deg,#7B4FD4,#FF6B1A);font-size:2rem">${gridId==='weapons-grid'?'🔫':gridId==='gadgets-grid'?'🧰':gridId==='creatures-grid'?'👽':gridId==='planets-grid'?'🪐':'🚀'}</div>`;
+    return `<div class="char" data-games="${esc('|'+(e.games||[]).join('|')+'|')}" style="cursor:pointer" onclick="openEntry(${idx})">${av}<h3>${esc(e.name)}</h3>${e.subtitle?`<div class="role">${esc(e.subtitle)}</div>`:''}${e.description?`<p>${esc(e.description)}</p>`:''}</div>`;
   }).join('');
 }
 function openEntry(i){
@@ -649,7 +695,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(window.RCD) RCD.onOpen=openB
   </div>
 </div>
 
-<script src="details-tabs.js?v=5"></script>
+<script src="details-tabs.js?v=6"></script>
 <script src="site-enhance.js"></script>
 <!-- ENTRY DETAIL MODAL -->
 <div class="char-modal" id="entry-modal" onclick="if(event.target===this)closeEntry()">
