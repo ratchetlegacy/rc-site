@@ -196,6 +196,11 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
 .eb-bilan{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;font-size:.8rem}
 .eb-bilan div{background:var(--bg3);border-radius:8px;padding:6px 10px}
 .eb-bilan b{font-size:.95rem}
+.eb-pick{cursor:pointer;border:1px dashed rgba(251,191,36,.6);font-family:inherit}
+.eb-pick:hover{background:rgba(251,191,36,.28)}
+.eb-menu{position:absolute;z-index:50;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:6px;display:flex;flex-wrap:wrap;gap:4px;max-width:260px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.eb-menu button{font-size:.74rem;padding:5px 9px;border-radius:7px;border:1px solid var(--line);background:var(--bg3);color:var(--text);cursor:pointer}
+.eb-menu button:hover{background:var(--purple,#8b5cf6);color:#fff}
 .eb-plus{background:none;border:none;color:var(--text-dim);font-size:.75rem;cursor:pointer;padding:6px 0;text-decoration:underline}
 .va-item{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:var(--bg2)}
 .va-tete{margin-bottom:10px}
@@ -2825,7 +2830,7 @@ async function loadEbay(){
   box.innerHTML='<div class="vf-vide">Chargement…</div>';
   await ebTaux();
   const {data,error}=await sb.from('ebay_annonces')
-    .select('id,catalog_id,marketplace,titre,prix,devise,etat,neuf,type_vente,url,image,pays,langue,region,score,raisons,preselection')
+    .select('id,catalog_id,marketplace,titre,prix,devise,etat,neuf,type_vente,url,image,pays,langue,region,edition,score,raisons,preselection')
     .eq('statut','a_valider').order('score',{ascending:false}).limit(2000);
   if(error){ box.innerHTML='<div class="msg err" style="display:block">'+esc(error.message)+'</div>'; return; }
   const parFiche={}; (data||[]).forEach(a=>{ (parFiche[a.catalog_id]=parFiche[a.catalog_id]||[]).push(a); });
@@ -2833,7 +2838,7 @@ async function loadEbay(){
   if(!ids.length){ box.innerHTML='<div class="vf-vide">Aucune annonce à valider. Choisis une catégorie et lance une recherche.</div>'; return; }
   const {data:fiches}=await sb.from('catalog').select('id,name,category,platform,region,edition,languages,reference,barcode,image_url,price_new,price_used').in('id',ids);
   const F={}; (fiches||[]).forEach(f=>F[f.id]=f);
-  window._ebData=parFiche;
+  window._ebData=parFiche; window._ebF=F;
   // fiches avec le plus d'annonces présélectionnées d'abord
   ids.sort((a,b)=>parFiche[b].filter(x=>x.preselection).length-parFiche[a].filter(x=>x.preselection).length);
   box.innerHTML='<div class="vf-note" style="margin-bottom:10px">'+ids.length+' fiche'+(ids.length>1?'s':'')+' · '+(data||[]).length+' annonces</div>'
@@ -2848,10 +2853,18 @@ function ebFicheHtml(f, l){
     const chips=[];
     chips.push('<span class="eb-chip '+(a.neuf?'ok':'')+'">'+(a.neuf?'Neuf':'Occasion')+'</span>');
     if(a.etat && !a.neuf) chips.push('<span class="eb-chip">'+esc(a.etat)+'</span>');
+    const R=a.raisons||[];
+    const pick=(champ,txt)=>'<button type="button" class="eb-chip warn eb-pick" id="eb-pk-'+champ+'-'+a.id+'" onclick="ebPick(event,'+a.id+','+f.id+',\''+champ+'\')">'+txt+' ▾</button>';
     if(a.langue) chips.push('<span class="eb-chip ok">'+esc(a.langue)+'</span>');
+    else if(R.includes('langue non précisée')) chips.push(pick('langue','langue ?'));
+    const edVue=R.find(r=>/^édition (?!non)/.test(r));
+    if(a.edition) chips.push('<span class="eb-chip ok">'+esc(a.edition)+'</span>');
+    else if(edVue) chips.push('<span class="eb-chip ok">'+esc(edVue.replace('édition ',''))+'</span>');
+    else if(R.includes('édition non précisée')) chips.push(pick('edition','édition ?'));
     if(a.region) chips.push('<span class="eb-chip">'+esc(a.region)+'</span>');
+    else if(['Game','Console/Pack','Guide','Media'].includes(f.category)) chips.push(pick('region','zone ?'));
     if(a.pays) chips.push('<span class="eb-chip">vendeur '+esc(a.pays)+'</span>');
-    (a.raisons||[]).filter(r=>/non pr|atypique|incomplet/.test(r)).forEach(r=>chips.push('<span class="eb-chip warn">'+esc(r)+'</span>'));
+    (a.raisons||[]).filter(r=>/atypique|incomplet/.test(r)).forEach(r=>chips.push('<span class="eb-chip warn">'+esc(r)+'</span>'));
     if((a.raisons||[]).includes('référence identique')) chips.push('<span class="eb-chip ok">réf. identique</span>');
     if(/AUCTION/.test(a.type_vente||'') && !/FIXED/.test(a.type_vente||'')) chips.push('<span class="eb-chip warn">enchère en cours</span>');
     return '<label class="eb-ligne'+(a.preselection?'':' off')+'" data-f="'+f.id+'"'+(i>=EB_LIGNES?' style="display:none" data-cache="1"':'')+'>'
@@ -2872,6 +2885,71 @@ function ebFicheHtml(f, l){
     +'<button class="btn btn-ghost" style="padding:7px 14px;font-size:.78rem" onclick="ebEcarter('+f.id+')">Tout écarter</button>'
     +'</div></div>';
 }
+// Choisir soi-même ce que l'annonce ne précise pas (langue, édition, zone).
+// Le choix est enregistré, et la ligne se coche ou se décoche selon qu'il
+// correspond à la fiche.
+const EB_CHOIX = {
+  langue: ['FR','EN','DE','IT','ES','NL','PT','JA','Multi'],
+  edition:['Classique','Platinum','Greatest Hits','Essentials','The Best','PlayStation Hits','Collector'],
+  region: ['PAL','NTSC-U','NTSC-J']
+};
+const EB_PAYS_LANGUE={FR:'FR',UK:'EN',USA:'EN',DE:'DE',IT:'IT',ES:'ES',NL:'NL',PT:'PT',JAP:'JA',AU:'EN',MX:'ES',BR:'PT'};
+function ebAttendu(f, champ){
+  if(!f) return [];
+  if(champ==='langue'){
+    const l=String(f.languages||'').toUpperCase().split(/[,;/ ]+/).filter(Boolean);
+    if(l.length) return l.concat('MULTI');
+    const c=String(f.region||'').split('(')[0].trim().toUpperCase();
+    return EB_PAYS_LANGUE[c]?[EB_PAYS_LANGUE[c],'MULTI']:[];
+  }
+  if(champ==='region'){
+    const z=(String(f.region||'').match(/\(([^)]+)\)/)||[])[1]||'';
+    return [/NTSC-J/i.test(z)?'NTSC-J':/NTSC/i.test(z)?'NTSC-U':/PAL/i.test(z)?'PAL':''];
+  }
+  const e=String(f.edition||'').toLowerCase();
+  if(/platin/.test(e)) return ['PLATINUM'];
+  if(/greatest/.test(e)) return ['GREATEST HITS'];
+  if(/essential/.test(e)) return ['ESSENTIALS'];
+  if(/the best/.test(e)) return ['THE BEST'];
+  if(/hit/.test(e)) return ['PLAYSTATION HITS'];
+  if(/collector|limit|sp[ée]cial/.test(e)) return ['COLLECTOR'];
+  return ['CLASSIQUE'];
+}
+function ebFermerMenu(){ document.querySelectorAll('.eb-menu').forEach(m=>m.remove()); }
+document.addEventListener('click', e=>{ if(!e.target.closest('.eb-menu,.eb-pick')) ebFermerMenu(); });
+function ebPick(ev, aid, fid, champ){
+  ev.preventDefault(); ev.stopPropagation();   // le bouton est dans un <label> : ne pas cocher la case
+  ebFermerMenu();
+  const btn=ev.currentTarget, r=btn.getBoundingClientRect();
+  const m=document.createElement('div'); m.className='eb-menu';
+  m.style.left=(r.left+window.scrollX)+'px'; m.style.top=(r.bottom+window.scrollY+4)+'px';
+  m.innerHTML=EB_CHOIX[champ].map(v=>'<button type="button">'+esc(v)+'</button>').join('');
+  m.querySelectorAll('button').forEach(b=>b.onclick=x=>{ x.stopPropagation(); ebChoisir(aid,fid,champ,b.textContent); });
+  document.body.appendChild(m);
+}
+async function ebChoisir(aid, fid, champ, val){
+  ebFermerMenu();
+  const a=(window._ebData[fid]||[]).find(x=>x.id===aid); if(!a) return;
+  const libre={langue:'langue non précisée', edition:'édition non précisée', region:''}[champ];
+  const raisons=(a.raisons||[]).filter(r=>r!==libre);
+  const maj={[champ]:val, raisons};
+  const {error}=await sb.from('ebay_annonces').update(maj).eq('id',aid);
+  if(error){ alert(error.message); return; }
+  Object.assign(a, maj);
+  // la ligne suit le choix : conforme à la fiche -> cochée, sinon décochée
+  const attendu=ebAttendu(window._ebF[fid], champ).map(x=>x.toUpperCase());
+  const conforme=!attendu.length || !attendu[0] || attendu.includes(String(val).toUpperCase());
+  const btn=document.getElementById('eb-pk-'+champ+'-'+aid);
+  if(btn) btn.outerHTML='<span class="eb-chip '+(conforme?'ok':'warn')+'">'+esc(val)+(conforme?'':' ≠ fiche')+'</span>';
+  const cb=document.querySelector('#eb-f-'+fid+' input[data-id="'+aid+'"]');
+  if(cb){
+    const autresDoutes=(a.raisons||[]).some(r=>/atypique|incomplet|non pr/.test(r));
+    cb.checked = conforme && !autresDoutes ? true : (conforme ? cb.checked : false);
+    cb.closest('.eb-ligne').classList.toggle('off', !cb.checked);
+  }
+  ebMaj(fid);
+}
+
 function ebPlus(id,btn){ document.querySelectorAll('#eb-f-'+id+' [data-cache]').forEach(x=>x.style.display=''); btn.remove(); }
 function ebSel(id){
   const l=window._ebData[id]||[], coches=new Set([...document.querySelectorAll('#eb-f-'+id+' input:checked')].map(x=>+x.dataset.id));
