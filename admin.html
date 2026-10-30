@@ -215,6 +215,14 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
 .eb-nav{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;position:sticky;bottom:-18px;background:var(--bg2);padding:10px 0}
 .eb-plus{background:none;border:none;color:var(--text-dim);font-size:.75rem;cursor:pointer;padding:6px 0;text-decoration:underline}
 .va-item{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:var(--bg2)}
+.ve-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.ve-tuile{border:1px solid var(--line);border-radius:12px;background:var(--bg2);overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s}
+.ve-tuile:hover{transform:translateY(-2px);border-color:var(--accent,#9b5cff)}
+.ve-tuile img,.ve-sans{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:#fff}
+.ve-sans{display:flex;align-items:center;justify-content:center;font-size:.72rem;color:#666}
+.ve-txt{padding:7px 8px}
+.ve-t{font-size:.74rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ve-m{font-size:.66rem;color:var(--text-dim);margin-top:3px}
 .va-tete{margin-bottom:10px}
 .va-nom{font-weight:700;font-size:.9rem;color:var(--text);line-height:1.35}
 .va-meta{display:block;color:var(--text-dim);font-weight:400;font-size:.73rem;margin-top:3px}
@@ -2811,6 +2819,9 @@ function vaRetirer(id, publiee){
   if(o){ if(publiee && t) o.description=t.value.trim(); o.description_attente=null; }
   const el=document.getElementById('va-i-'+id);
   if(el){ el.style.transition='.2s'; el.style.opacity='0'; setTimeout(()=>el.remove(),200); }
+  const l=window._veData||[], k=l.findIndex(x=>x.id===id);
+  if(k>=0) l.splice(k,1);
+  if(depuisVue){ if(l.length) veVoir(Math.min(k,l.length-1)); else veFermer(); }
   if(window._vaPos>0) window._vaPos--;
   try{ showToast2('Description '+(publiee?'publiée':'rejetée')); }catch(e){}
 }
@@ -3147,10 +3158,10 @@ async function loadVeille(){
   const box=document.getElementById('ve-contenu'); if(!box) return;
   box.innerHTML='<div class="vf-vide">Chargement…</div>';
   const {data,error}=await sb.from('veille')
-    .select('id,trouve_le,source,titre,url,resume,categorie,statut,traite_le')
+    .select('id,trouve_le,source,titre,url,image,resume,categorie,statut,traite_le')
     .eq('statut', window._veFiltre)
     .order('trouve_le',{ascending:false})
-    .limit(200);
+    .limit(600);
   if(error){
     box.innerHTML='<div class="msg err" style="display:block">'
       + (/veille/.test(error.message||'')
@@ -3166,24 +3177,50 @@ async function loadVeille(){
     box.innerHTML='<div class="vf-vide">'+v[window._veFiltre]+'</div>';
     return;
   }
-  box.innerHTML=l.map(v=>{
-    const d=new Date(v.trouve_le).toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
-    const meta=[v.source, v.categorie, d].filter(Boolean).join(' · ');
-    return '<div class="va-item" id="ve-i-'+v.id+'">'
-      +'<div class="va-tete"><span class="va-nom">'+esc(v.titre)
-      +'<span class="va-meta">'+esc(meta)+'</span></span></div>'
-      +(v.resume?'<div class="vf-note">'+esc(v.resume)+'</div>':'')
-      +'<div class="va-actions">'
-      +(v.url?'<a class="btn btn-ghost" style="padding:7px 14px;font-size:.78rem;text-decoration:none" target="_blank" rel="noopener" href="'+esc(v.url)+'">Ouvrir la page</a>':'')
-      +(v.statut==='nouveau'
-        ? '<button class="btn btn-primary" style="padding:7px 14px;font-size:.78rem" onclick="veStatut('+v.id+',\'ajoute\')">✓ Ajouté au catalogue</button>'
-          +'<button class="btn btn-ghost" style="padding:7px 14px;font-size:.78rem" onclick="veStatut('+v.id+',\'ecarte\')">Écarter</button>'
-        : '<button class="btn btn-ghost" style="padding:7px 14px;font-size:.78rem" onclick="veStatut('+v.id+',\'nouveau\')">Remettre à traiter</button>')
-      +'</div></div>';
-  }).join('');
+  window._veData=l;
+  box.innerHTML='<div class="ve-grille">'+l.map((v,i)=>{
+    const prix=(String(v.resume||'').match(/Prix demandé : ([\d.,]+ [A-Z]{3})/)||[])[1]||'';
+    return '<div class="ve-tuile" id="ve-i-'+v.id+'" onclick="veVoir('+i+')" title="'+esc(v.titre)+'">'
+      +(v.image?'<img loading="lazy" src="'+esc(v.image)+'" alt="">':'<div class="ve-sans">Pas de photo</div>')
+      +'<div class="ve-txt"><div class="ve-t">'+esc(v.titre)+'</div>'
+      +'<div class="ve-m">'+esc([v.source, prix].filter(Boolean).join(' · '))+'</div></div></div>';
+  }).join('')+'</div>';
 }
 
-async function veStatut(id, statut){
+// grande vue d'une trouvaille, avec les boutons de tri
+function veVoir(i){
+  const l=window._veData||[], v=l[i]; if(!v) return;
+  veFermer();
+  const d=new Date(v.trouve_le).toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+  const ov=document.createElement('div'); ov.className='eb-ov'; ov.id='ve-ov';
+  ov.onclick=e=>{ if(e.target===ov) veFermer(); };
+  ov.innerHTML='<div class="eb-pop"><button class="eb-x" onclick="veFermer()" aria-label="Fermer">✕</button>'
+    +(v.image?'<img src="'+esc(v.image)+'" alt="" style="display:block;max-width:100%;max-height:52vh;margin:0 auto 12px;border-radius:10px;background:#fff">':'')
+    +'<div style="font-weight:700;margin-bottom:4px">'+esc(v.titre)+'</div>'
+    +'<div style="font-size:.75rem;color:var(--text-dim);margin-bottom:8px">'+esc([v.source, v.categorie, d].filter(Boolean).join(' · '))+'</div>'
+    +(v.resume?'<div class="vf-note">'+esc(v.resume)+'</div>':'')
+    +'<div class="eb-nav" style="margin-top:12px">'
+    +(v.url?'<a class="btn btn-ghost" style="width:auto;padding:8px 14px;font-size:.8rem;text-decoration:none" target="_blank" rel="noopener" href="'+esc(v.url)+'">Ouvrir la page ↗</a>':'')
+    +(v.statut==='nouveau'
+      ? '<button class="btn btn-primary" style="width:auto;padding:8px 14px;font-size:.8rem" onclick="veStatut('+v.id+',\'ajoute\',true)">✓ Ajouté au catalogue</button>'
+        +'<button class="btn btn-ghost" style="width:auto;padding:8px 14px;font-size:.8rem" onclick="veStatut('+v.id+',\'ecarte\',true)">Écarter</button>'
+      : '<button class="btn btn-ghost" style="width:auto;padding:8px 14px;font-size:.8rem" onclick="veStatut('+v.id+',\'nouveau\',true)">Remettre à traiter</button>')
+    +'<span style="flex:1"></span>'
+    +'<button class="btn btn-ghost" style="width:auto;padding:8px 12px;font-size:.8rem" id="ve-prec"'+(i>0?'':' disabled')+' onclick="veVoir('+(i-1)+')">‹ Préc.</button>'
+    +'<span style="font-size:.75rem;color:var(--text-dim)">'+(i+1)+' / '+l.length+'</span>'
+    +'<button class="btn btn-ghost" style="width:auto;padding:8px 12px;font-size:.8rem" id="ve-suiv"'+(i<l.length-1?'':' disabled')+' onclick="veVoir('+(i+1)+')">Suiv. ›</button>'
+    +'</div></div>';
+  document.body.appendChild(ov);
+  document.addEventListener('keydown', veTouche);
+}
+function veFermer(){ document.getElementById('ve-ov')?.remove(); document.removeEventListener('keydown', veTouche); }
+function veTouche(e){
+  if(e.key==='Escape') veFermer();
+  if(e.key==='ArrowRight') document.getElementById('ve-suiv')?.click();
+  if(e.key==='ArrowLeft') document.getElementById('ve-prec')?.click();
+}
+
+async function veStatut(id, statut, depuisVue){
   const {error}=await sb.from('veille')
     .update({statut, traite_le: statut==='nouveau'?null:new Date().toISOString()})
     .eq('id', id);
