@@ -180,6 +180,19 @@ a{color:inherit;text-decoration:none}
 .cd-inner{position:relative;max-width:760px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:20px;overflow:hidden;max-height:90vh;overflow-y:auto;display:block}
 .cd-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.5);border:none;color:#fff;width:36px;height:36px;border-radius:10px;font-size:1.1rem;cursor:pointer;z-index:3}
 .cd-top{display:grid;grid-template-columns:230px 1fr;gap:0}
+.cd-top.vh-top{grid-template-columns:1fr}
+.vh-bigbay{height:300px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:18px 18px 0 0;
+  background:radial-gradient(ellipse 55% 28% at 50% 88%,rgba(255,176,32,.38),transparent 70%),
+  repeating-linear-gradient(0deg,rgba(123,79,212,.14) 0 1px,transparent 1px 28px),
+  repeating-linear-gradient(90deg,rgba(123,79,212,.14) 0 1px,transparent 1px 28px),#0b0e1d}
+.vh-bigbay::after{content:'';position:absolute;left:15%;right:15%;bottom:22px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(255,176,32,.8),transparent)}
+.vh-bigbay img{max-width:80%;max-height:240px;object-fit:contain;filter:drop-shadow(0 16px 18px rgba(0,0,0,.7));animation:vhFloat 4s ease-in-out infinite}
+.vh-bigbay img.shot{max-width:100%;max-height:none;width:100%;height:100%;object-fit:cover;filter:none;animation:none}
+.vh-bigbay .ph{font-size:4rem;opacity:.7}
+.vh-bigbay .tag{position:absolute;top:14px;left:14px;z-index:1;background:rgba(10,12,24,.75);backdrop-filter:blur(4px);border:1px solid rgba(255,176,32,.45);color:var(--gold);font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-radius:100px;padding:5px 12px}
+@keyframes vhFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@media(max-width:680px){.vh-bigbay{height:210px}.vh-bigbay img{max-height:160px}}
+
 .cd-img{aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .cd-top-info{padding:26px 24px;display:flex;flex-direction:column;justify-content:center;gap:12px}
 .cd-top-info h2{font-family:'Orbitron',sans-serif;font-size:1.5rem;margin-bottom:2px}
@@ -641,6 +654,10 @@ function renderEntries(gridId, list){
     return `<div class="char" data-games="${esc('|'+(e.games||[]).join('|')+'|')}" style="cursor:pointer" onclick="openEntry(${idx})">${av}<h3>${esc(e.name)}</h3>${e.subtitle?`<div class="role">${esc(e.subtitle)}</div>`:''}${e.description?`<p>${esc(e.description)}</p>`:''}</div>`;
   }).join('');
 }
+function vhBay(e){
+  const im=(e.image_url&&e.image_url.trim())?'<img'+(VH_SHOT.test(e.name)?' class="shot"':'')+' src="'+esc(e.image_url)+'" alt="" onerror="this.outerHTML=\'<span class=ph>🚀</span>\'"/>':'<span class="ph">🚀</span>';
+  return '<div class="vh-bigbay">'+(e.subtitle?'<span class="tag">'+esc(e.subtitle)+'</span>':'')+im+'</div>';
+}
 function openEntry(i){
   const e=WIKI_ENTRIES[i]; if(!e) return;
   const img=(e.image_url&&e.image_url.trim())
@@ -658,8 +675,8 @@ function openEntry(i){
       <div style="display:flex;flex-wrap:wrap;gap:8px">${items.map(it=>`<span class="al-chip" style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--line);border-radius:100px;padding:6px 13px;font-size:.82rem;color:var(--text-mid)">${ic} <span data-al>${esc(it)}</span></span>`).join('')}</div></div>`;
   };
   document.getElementById('entry-body').innerHTML=`
-    <div class="cd-top">
-      <div class="cd-img" style="background:linear-gradient(135deg,#2a1d45,#3d2410)">${img}</div>
+    <div class="cd-top${e.type==='vehicle'?' vh-top':''}">
+      ${e.type==='vehicle'?vhBay(e):`<div class="cd-img" style="background:linear-gradient(135deg,#2a1d45,#3d2410)">${img}</div>`}
       <div class="cd-top-info">
         <div><h2>${esc(e.name)}</h2>${e.subtitle?`<div class="cd-role">${esc(e.subtitle)}</div>`:''}</div>
         ${stats?`<div class="cd-stats">${stats}</div>`:''}
