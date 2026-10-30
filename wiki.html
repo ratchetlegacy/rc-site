@@ -436,7 +436,7 @@ function renderGames(){
         ${g.synopsis?`<p>${esc(g.synopsis)}</p>`:''}
         ${g.anecdote?`<div class="game-anec"><span>💡</span><span><b>Did you know?</b> ${esc(g.anecdote)}</span></div>`:''}
         ${g.story&&g.story.trim()?`<a href="story.html" style="display:inline-block;margin-top:10px;color:var(--purple-light);font-weight:600;font-size:.85rem">📖 Read the full story →</a>`:''}
-        ${g.details?`<button class="gd-btn" onclick="event.stopPropagation();openGameDetails('${esc(g.id)}')">🎮 Modes, heroes &amp; economy →</button>`:''}
+        <button class="gd-btn" onclick="event.stopPropagation();openGameDetails('${esc(g.id)}')">🎮 Game sheet: modes, weapons, planets &amp; more →</button>
         ${completionHtml(g)}
       </div></div>
     </div></div>`;
@@ -712,7 +712,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(window.RCD) RCD.onOpen=openB
   </div>
 </div>
 
-<script src="details-tabs.js?v=14"></script>
+<script src="details-tabs.js?v=15"></script>
 <script src="site-enhance.js"></script>
 <!-- ENTRY DETAIL MODAL -->
 <div class="char-modal" id="entry-modal" onclick="if(event.target===this)closeEntry()">

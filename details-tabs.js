@@ -134,6 +134,7 @@
 .tl-row b{color:var(--text)}
 .tl-row small{display:block;color:var(--text-dim);margin-top:2px}
 .gm-row{display:grid;grid-template-columns:56px 1fr;gap:14px;padding:14px 0;border-top:1px dashed var(--line)}
+.gm-row.noi,.tl-row.noi{grid-template-columns:1fr}
 .gm-row:first-child{border-top:0;padding-top:2px}
 .gm-row img{width:56px;height:56px;object-fit:contain}
 .gm-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:4px}
@@ -465,19 +466,36 @@ function charProfile(c,d){
   if(sk.length) h+='<div class="rd-sub">Skins (Ranger Rumble)</div><div class="rd-covers">'+sk.map(x=>'<div class="rd-cv"><div class="ph" style="background:var(--bg3)"><img src="'+esc(x.icon)+'" alt="" loading="lazy" style="object-fit:contain" onerror="this.remove()"/></div><b>'+esc(x.name)+'</b></div>').join('')+'</div>';
   return h||empty('No profile information yet.');
 }
-// ── Fiche d'un jeu (modes, heros, economie) ──
+// ── Fiche d'un jeu (modes, heros, economie + armes, gadgets, planetes, persos) ──
+const GKEY=n=>{ n=String(n||''); if(n==='Ratchet & Clank') return 'Ratchet & Clank (2002)'; n=n.replace(/^Ratchet & Clank: /,''); return n; };
+const ico=u=>u?'<img src="'+esc(u)+'" alt="" loading="lazy" onerror="this.remove()"/>':'';
 function gameTabs(sb,g,bar,pane){ SB=sb;
-  const d=g.details||{}, tabs=[];
+  const d=g.details||{}, tabs=[], key=GKEY(g.name);
+  const src=d.source?'<div class="rd-sub" style="margin-top:18px;text-transform:none;letter-spacing:0;font-weight:500">Source: '+esc(d.source)+'.</div>':'';
   const mapLk=m=>'<a class="rd-lk" data-k="location" data-n="'+esc(m)+'">'+esc(m)+'</a>';
-  if(list(d.modes).length) tabs.push({key:'modes',label:'🎮 Game modes',count:d.modes.length,html:d.modes.map(m=>'<div class="gm-row"><img src="'+esc(m.icon)+'" alt="" loading="lazy" onerror="this.remove()"/><div><div class="gm-h"><b>'+esc(m.name)+'</b><span>'+esc(m.info||'')+'</span></div><div class="gm-t">'+lk(m.text)+'</div>'+(list(m.maps).length?'<div class="gm-m">🗺️ '+m.maps.map(mapLk).join(' · ')+'</div>':'')+'</div></div>').join('')});
-  if(list(d.heroes).length) tabs.push({key:'heroes',label:'🦸 Heroes',count:d.heroes.length,load:async()=>{
+  if(list(d.modes).length) tabs.push({key:'modes',label:'🎮 Game modes',count:d.modes.length,html:d.modes.map(m=>'<div class="gm-row'+(m.icon?'':' noi')+'">'+ico(m.icon)+'<div><div class="gm-h"><b>'+esc(m.name)+'</b><span>'+esc(m.info||'')+'</span></div><div class="gm-t">'+lk(m.text)+'</div>'+(list(m.maps).length?'<div class="gm-m">🗺️ '+m.maps.map(mapLk).join(' · ')+'</div>':'')+'</div></div>').join('')+src});
+  if(list(d.heroes).length) tabs.push({key:'heroes',label:'🦸 '+(d.heroes_label||'Heroes'),count:d.heroes.length,load:async()=>{
     const {data}=await sb.from('site_characters').select('name,role,image_url').in('name',d.heroes);
     const by={}; (data||[]).forEach(c=>by[c.name]=c);
-    return '<div class="rd-covers">'+d.heroes.map(n=>{ const c=by[n]||{}; return '<div class="rd-cv" data-k="character" data-n="'+esc(n)+'" style="cursor:pointer"><div class="ph">'+(c.image_url?'<img src="'+esc(c.image_url)+'" alt="" loading="lazy" style="object-position:top" onerror="this.remove()"/>':'🦸')+'</div><b>'+esc(n.replace(' (Ranger Rumble)',''))+'</b>'+esc((c.role||'').split(' · ')[0])+'</div>'; }).join('')+'</div>';
+    return '<div class="rd-covers">'+d.heroes.map(n=>{ const c=by[n]||{}; return '<div class="rd-cv" data-k="character" data-n="'+esc(n)+'" style="cursor:pointer"><div class="ph">'+(c.image_url?'<img src="'+esc(c.image_url)+'" alt="" loading="lazy" style="object-position:top" onerror="this.remove()"/>':'🦸')+'</div><b>'+esc(n.replace(/ \((Ranger Rumble|Quest for Booty)\)/,''))+'</b>'+esc((c.role||'').split(' · ')[0])+'</div>'; }).join('')+'</div>';
   }});
-  if(list(d.economy).length||list(d.progression).length) tabs.push({key:'eco',label:'💰 Economy',html:(list(d.economy).length?'<div class="rd-sub" style="margin-top:0">Currencies & rewards</div>'+d.economy.map(e=>'<div class="tl-row"><img src="'+esc(e.icon)+'" alt="" loading="lazy" onerror="this.remove()"/><div><b>'+esc(e.name)+'</b><div>'+esc(e.text)+'</div></div></div>').join(''):'')+(list(d.progression).length?'<div class="rd-sub">Progression</div><ol class="rd-tl">'+d.progression.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol>':'')});
-  if(d.source) tabs.forEach(t=>{ if(t.html!=null) t.html+='<div class="rd-sub" style="margin-top:18px;text-transform:none;letter-spacing:0;font-weight:500">Source: '+esc(d.source)+'.</div>'; });
-  if(!tabs.length){ pane.innerHTML='<div class="rd-pane">'+empty('No details yet.')+'</div>'; return; }
+  if(list(d.economy).length||list(d.progression).length) tabs.push({key:'eco',label:'💰 Economy',html:(list(d.economy).length?'<div class="rd-sub" style="margin-top:0">Currencies & collectibles</div>'+d.economy.map(e=>'<div class="tl-row'+(e.icon?'':' noi')+'">'+ico(e.icon)+'<div><b>'+esc(e.name)+'</b><div>'+lk(e.text)+'</div></div></div>').join(''):'')+(list(d.progression).length?'<div class="rd-sub">Progression</div><ol class="rd-tl">'+d.progression.map(t=>'<li>'+lk(t)+'</li>').join('')+'</ol>':'')+src});
+  // Listes tirees de la base : tout ce qui est rattache a ce jeu
+  const grid=(rows,k)=>'<div class="rd-covers">'+rows.map(r=>'<div class="rd-cv" data-k="'+k+'" data-n="'+esc(r.name)+'" style="cursor:pointer"><div class="ph" style="background:var(--bg3)">'+(r.image_url?'<img src="'+esc(r.image_url)+'" alt="" loading="lazy" style="object-fit:contain" onerror="this.remove()"/>':'')+'</div><b>'+esc(r.name)+'</b>'+esc(r.subtitle||'')+'</div>').join('')+'</div>';
+  const fromWiki=(type,cat,lbl,k)=>({key:type+(cat||''),label:lbl,load:async()=>{
+    let q=sb.from('site_wiki_entries').select('name,subtitle,image_url').eq('type',type).contains('games',[key]).order('sort_order').order('name');
+    if(cat) q=q.eq('category',cat);
+    const {data,error}=await q; if(error) throw error;
+    return (data&&data.length)?grid(data,k):empty('Nothing listed for this game yet.');
+  }});
+  tabs.push(fromWiki('weapon','weapon','🔫 Weapons','weapon'));
+  tabs.push(fromWiki('weapon','gadget','🛠️ Gadgets','weapon'));
+  tabs.push(fromWiki('planet',null,'🪐 Planets','planet'));
+  tabs.push({key:'chars',label:'👥 Characters',load:async()=>{
+    const {data,error}=await sb.from('site_characters').select('name,role,image_url').contains('games',[key]).order('name');
+    if(error) throw error;
+    return (data&&data.length)?'<div class="rd-covers">'+data.map(c=>'<div class="rd-cv" data-k="character" data-n="'+esc(c.name)+'" style="cursor:pointer"><div class="ph">'+(c.image_url?'<img src="'+esc(c.image_url)+'" alt="" loading="lazy" style="object-position:top" onerror="this.remove()"/>':'👤')+'</div><b>'+esc(c.name)+'</b>'+esc((c.role||'').split(' · ')[0])+'</div>').join('')+'</div>':empty('No characters listed for this game yet.');
+  }});
   mount(bar,pane,tabs);
 }
 function charTabs(sb,c,bar,pane,first,onShown){ SB=sb;
