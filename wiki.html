@@ -113,6 +113,32 @@ a{color:inherit;text-decoration:none}
 .gf-empty{grid-column:1/-1;text-align:center;padding:24px;color:var(--text-dim);font-size:.9rem}
 .char-group-title{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:16px;color:var(--text);display:flex;align-items:center;gap:10px}
 .char-group-title::after{content:'';flex:1;height:1px;background:var(--line)}
+/* Hangar des vehicules */
+.hangar-wrap{display:flex;flex-direction:column;gap:28px}
+.vh-head{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-family:'Orbitron',sans-serif;font-size:.95rem;letter-spacing:.04em}
+.vh-head .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(123,79,212,.45),rgba(255,107,26,.35));font-size:1.05rem}
+.vh-head small{font-family:Inter,sans-serif;color:var(--text-dim);font-weight:600;font-size:.72rem;margin-left:2px}
+.vh-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.chars.hangar{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.char.vh{padding:0;text-align:left;overflow:hidden;position:relative;background:linear-gradient(180deg,#151b36,#0d1020);border-color:rgba(123,79,212,.35)}
+.char.vh:hover{border-color:var(--gold);box-shadow:0 10px 30px -10px rgba(255,176,32,.45)}
+.vh .bay{height:156px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background:radial-gradient(ellipse 60% 30% at 50% 88%,rgba(255,176,32,.32),transparent 70%),
+  repeating-linear-gradient(0deg,rgba(123,79,212,.13) 0 1px,transparent 1px 24px),
+  repeating-linear-gradient(90deg,rgba(123,79,212,.13) 0 1px,transparent 1px 24px),#0b0e1d}
+.vh .bay::after{content:'';position:absolute;left:12%;right:12%;bottom:14px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(255,176,32,.7),transparent)}
+.vh .bay img{max-width:86%;max-height:124px;object-fit:contain;filter:drop-shadow(0 12px 14px rgba(0,0,0,.65));transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.vh .bay img.shot{max-width:100%;max-height:none;width:100%;height:100%;object-fit:cover;filter:none}
+.vh:hover .bay img{transform:translateY(-7px) scale(1.05)}
+.vh:hover .bay img.shot{transform:scale(1.06)}
+.vh .bay .ph{font-size:2.6rem;opacity:.7}
+.vh .tag{position:absolute;top:10px;left:10px;z-index:1;background:rgba(10,12,24,.75);backdrop-filter:blur(4px);border:1px solid rgba(255,176,32,.45);color:var(--gold);font-size:.66rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-radius:100px;padding:4px 10px}
+.vh .body{padding:14px 16px 16px}
+.vh h3{font-size:.95rem;margin-bottom:6px}
+.vh p{font-size:.8rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.vh .gms{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.vh .gms img{width:22px;height:30px;object-fit:cover;border-radius:4px;border:1px solid var(--line)}
+.vh .gms span{font-size:.68rem;color:var(--text-dim);align-self:center}
 .char{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px 18px;text-align:center;transition:.2s;height:auto;overflow:visible}
 .char:hover{transform:translateY(-5px);border-color:var(--orange)}
 .char .av{width:80px;height:80px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:2.1rem;overflow:hidden;position:relative}
@@ -538,7 +564,7 @@ function applyGameFilter(sec,g){
     const any=[...grid.querySelectorAll('.char[data-games]')].some(c=>c.style.display!=='none');
     const grp=grid.closest('.char-group');
     let msg=grid.querySelector('.gf-empty');
-    if(grp && grp.parentNode.id==='chars-grid'){ grp.style.display=any?'':'none'; return; }
+    if(grp && (grp.parentNode.id==='chars-grid'||grp.classList.contains('vh-group'))){ grp.style.display=any?'':'none'; return; }
     if(!any){ if(!msg){ msg=document.createElement('div'); msg.className='gf-empty'; grid.appendChild(msg);} msg.textContent='Nothing from this game here yet.'; }
     else if(msg) msg.remove();
   });
@@ -571,11 +597,38 @@ async function loadWikiEntries(){
     renderEntries('gadgets-grid', byType.gadget);
     renderEntries('creatures-grid', byType.creature);
     renderEntries('planets-grid', byType.planet);
-    renderEntries('vehicles-grid', byType.vehicle);
+    renderHangar(byType.vehicle);
     ['weapons','creatures','planets','vehicles'].forEach(buildGameFilter);
   }catch(e){}
 }
 let WIKI_ENTRIES=[];
+// Vehicules presentes comme un hangar, groupes par famille
+const VH_GROUPS=[
+  ['ships','🚀','Starships & aircraft',/aphelion|star explorer|star jumper|homemade ship|hovership|taxi|starship|cruiser|fighter/i],
+  ['ground','🏍️','Bikes & ground vehicles',/hoverbike|gyro|turbo ?slider|puma|landstalker|train|tank|buggy/i],
+  ['boards','🛹','Boards',/board/i],
+  ['enemy','☠️','Enemy machines & superweapons',/dropship|hydroharvester|biobliterator|dreadship|seekerpede/i]
+];
+const VH_SHOT=/taxi|hydroharvester/i;
+function renderHangar(list){
+  const grid=document.getElementById('vehicles-grid'); if(!grid) return;
+  if(!list.length){ grid.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-dim)">Coming soon!</div>'; return; }
+  grid.className='hangar-wrap';
+  const G={}; VH_GROUPS.forEach(g=>G[g[0]]=[]); G.other=[];
+  list.forEach(e=>{ const g=VH_GROUPS.find(g=>g[3].test(e.name)); (g?G[g[0]]:G.other).push(e); });
+  const cov=n=>{ const g=(typeof GF_GAMES!=='undefined'?GF_GAMES:[]).find(x=>x[0]===n); return g&&g[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+g[2]+'" alt="'+esc(g[1])+'" title="'+esc(g[1])+'" loading="lazy" onerror="this.remove()"/>':''; };
+  const card=e=>{
+    const idx=WIKI_ENTRIES.indexOf(e), gs=e.games||[];
+    const img=(e.image_url&&e.image_url.trim())?'<img'+(VH_SHOT.test(e.name)?' class="shot"':'')+' src="'+esc(e.image_url)+'" alt="" loading="lazy" onerror="this.outerHTML=\'<span class=ph>🚀</span>\'"/>':'<span class="ph">🚀</span>';
+    return '<div class="char vh" data-games="'+esc('|'+gs.join('|')+'|')+'" style="cursor:pointer" onclick="openEntry('+idx+')">'
+      +'<div class="bay">'+(e.subtitle?'<span class="tag">'+esc(e.subtitle)+'</span>':'')+img+'</div>'
+      +'<div class="body"><h3>'+esc(e.name)+'</h3>'+(e.description?'<p>'+esc(e.description)+'</p>':'')
+      +(gs.length?'<div class="gms">'+gs.slice(0,7).map(cov).join('')+(gs.length>7?'<span>+'+(gs.length-7)+'</span>':'')+'</div>':'')+'</div></div>';
+  };
+  grid.innerHTML=VH_GROUPS.concat([['other','✨','Other rides']]).filter(g=>G[g[0]].length).map(g=>
+    '<div class="char-group vh-group"><div class="vh-head"><span class="ic">'+g[1]+'</span>'+g[2]+'<small>'+G[g[0]].length+'</small></div><div class="chars hangar">'+G[g[0]].map(card).join('')+'</div></div>').join('');
+}
+
 function renderEntries(gridId, list){
   const grid=document.getElementById(gridId); if(!grid) return;
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Coming soon!</div>'; return; }
