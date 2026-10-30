@@ -79,6 +79,10 @@ a{color:inherit;text-decoration:none}
 .story-img.left{float:left;margin:6px 22px 12px 0}
 .chapter .story-text{color:var(--text-mid);font-size:1rem;white-space:normal;overflow-wrap:anywhere;word-break:normal;hyphens:auto}
 .chapter .story-text p{margin-bottom:16px}
+.chapter .story-text strong{color:var(--text);font-weight:600}
+.chapter .story-text .story-h{font-family:'Orbitron',sans-serif;font-size:1.02rem;letter-spacing:.04em;color:var(--text);margin:26px 0 12px}
+.chapter .story-text .story-list{margin:0 0 16px 20px}
+.chapter .story-text .story-list li{margin-bottom:6px}
 .chapter .no-story{color:var(--text-dim);font-style:italic;padding:20px;background:var(--bg3);border:1px solid var(--line);border-radius:12px;clear:both}
 @media(max-width:600px){
   .chapter-cover-main{float:none;width:100%;max-width:100%;margin:0 0 16px}
@@ -155,6 +159,28 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function paras(t){ return (t||'').split(/\n\s*\n/).map(p=>`<p>${esc(p)}</p>`).join(''); }
+// Light Markdown: ### headings, **bold**, *italic*, "- " lists. Text is escaped first.
+function inlineMd(s){
+  return esc(s)
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g,'$1<em>$2</em>');
+}
+function mdBlock(p){
+  const lines=p.split('\n').map(l=>l.trim()).filter(Boolean);
+  let html='', list=[], text=[];
+  const flushText=()=>{ if(text.length){ html+='<p>'+text.map(inlineMd).join('<br>')+'</p>'; text=[]; } };
+  const flushList=()=>{ if(list.length){ html+='<ul class="story-list">'+list.map(li=>'<li>'+inlineMd(li)+'</li>').join('')+'</ul>'; list=[]; } };
+  lines.forEach(l=>{
+    const h=l.match(/^(#{1,6})\s+(.*)$/);
+    const li=l.match(/^[-*•]\s+(.*)$/);
+    if(h){ flushText(); flushList(); html+='<h3 class="story-h">'+inlineMd(h[2])+'</h3>'; }
+    else if(li){ flushText(); list.push(li[1]); }
+    else { flushList(); text.push(l); }
+  });
+  flushText(); flushList();
+  return html;
+}
+function normName(s){ return String(s||'').toLowerCase().replace(/^ratchet\s*&\s*clank\s*:?\s*/,'').replace(/[^a-z0-9]/g,''); }
 
 async function load(){
   try{
@@ -178,13 +204,15 @@ async function load(){
         const raw = (g.story&&g.story.trim()) ? g.story : (g.synopsis||'');
         if(raw){
           const paraArr=raw.split(/\n\s*\n/).filter(p=>p.trim());
+          // drop a leading heading or line that only repeats the game title
+          if(paraArr.length && normName(paraArr[0].replace(/^#+\s*/,''))===normName(g.name)) paraArr.shift();
           const imgs=[];
           if(g.story_img1&&g.story_img1.trim()) imgs.push('<img class="story-img" src="'+esc(g.story_img1)+'" alt="" onerror="this.remove()"/>');
           if(g.story_img2&&g.story_img2.trim()) imgs.push('<img class="story-img left" src="'+esc(g.story_img2)+'" alt="" onerror="this.remove()"/>');
           // insert images after the 2nd and 4th paragraph if available
           const out=[];
           paraArr.forEach((p,idx)=>{
-            out.push('<p>'+esc(p)+'</p>');
+            out.push(mdBlock(p));
             if(idx===1 && imgs[0]) out.push(imgs[0]);
             if(idx===3 && imgs[1]) out.push(imgs[1]);
           });
