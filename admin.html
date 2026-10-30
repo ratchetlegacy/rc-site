@@ -201,6 +201,18 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
 .eb-menu{position:absolute;z-index:50;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:6px;display:flex;flex-wrap:wrap;gap:4px;max-width:260px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
 .eb-menu button{font-size:.74rem;padding:5px 9px;border-radius:7px;border:1px solid var(--line);background:var(--bg3);color:var(--text);cursor:pointer}
 .eb-menu button:hover{background:var(--purple,#8b5cf6);color:#fff}
+.eb-ov{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:900;display:flex;align-items:center;justify-content:center;padding:16px}
+.eb-pop{background:var(--bg2);border:1px solid var(--line);border-radius:14px;max-width:760px;width:100%;max-height:92vh;overflow:auto;position:relative;padding:18px}
+.eb-pop .eb-x{position:sticky;top:0;float:right;background:var(--bg3);border:1px solid var(--line);color:var(--text);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:1rem;z-index:2}
+.eb-gal{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:12px}
+.eb-gal .main{width:100%;max-height:380px;object-fit:contain;background:#000;border-radius:10px}
+.eb-thumbs{display:flex;gap:6px;overflow-x:auto}
+.eb-thumbs img{width:58px;height:58px;object-fit:cover;border-radius:6px;cursor:pointer;opacity:.6;flex:0 0 auto;border:2px solid transparent}
+.eb-thumbs img.on{opacity:1;border-color:var(--purple,#8b5cf6)}
+.eb-aspects{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:.78rem;margin:10px 0}
+.eb-aspects dt{color:var(--text-dim)} .eb-aspects dd{margin:0;color:var(--text)}
+.eb-desc{white-space:pre-line;font-size:.78rem;color:var(--text-mid);max-height:180px;overflow:auto;background:var(--bg3);border-radius:8px;padding:10px;margin-top:8px}
+.eb-nav{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;position:sticky;bottom:-18px;background:var(--bg2);padding:10px 0}
 .eb-plus{background:none;border:none;color:var(--text-dim);font-size:.75rem;cursor:pointer;padding:6px 0;text-decoration:underline}
 .va-item{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:var(--bg2)}
 .va-tete{margin-bottom:10px}
@@ -2836,7 +2848,7 @@ async function loadEbay(){
   box.innerHTML='<div class="vf-vide">Chargement…</div>';
   await ebTaux();
   const {data,error}=await sb.from('ebay_annonces')
-    .select('id,catalog_id,marketplace,titre,prix,devise,etat,neuf,type_vente,url,image,pays,langue,region,edition,score,raisons,preselection')
+    .select('id,item_id,catalog_id,marketplace,titre,prix,devise,etat,neuf,type_vente,url,image,pays,langue,region,edition,score,raisons,preselection')
     .eq('statut','a_valider').order('score',{ascending:false}).limit(2000);
   if(error){ box.innerHTML='<div class="msg err" style="display:block">'+esc(error.message)+'</div>'; return; }
   const parFiche={}; (data||[]).forEach(a=>{ (parFiche[a.catalog_id]=parFiche[a.catalog_id]||[]).push(a); });
@@ -2875,7 +2887,7 @@ function ebFicheHtml(f, l){
     if(/AUCTION/.test(a.type_vente||'') && !/FIXED/.test(a.type_vente||'')) chips.push('<span class="eb-chip warn">enchère en cours</span>');
     return '<label class="eb-ligne'+(a.preselection?'':' off')+'" data-f="'+f.id+'"'+(i>=EB_LIGNES?' style="display:none" data-cache="1"':'')+'>'
       +'<input type="checkbox" data-id="'+a.id+'"'+(a.preselection?' checked':'')+' onchange="this.parentNode.classList.toggle(\'off\',!this.checked);ebMaj('+f.id+')">'
-      +'<div class="eb-t"><a href="'+esc(a.url)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+esc(a.titre)+'</a><div class="eb-chips">'+chips.join('')+'</div></div>'
+      +'<div class="eb-t"><a href="'+esc(a.url)+'" target="_blank" rel="noopener" onclick="ebLien(event,'+a.id+','+f.id+')">'+esc(a.titre)+'</a><div class="eb-chips">'+chips.join('')+'</div></div>'
       +'<div class="eb-p">'+ebFmt(eur)+(a.devise&&a.devise!=='EUR'?'<div style="font-size:.66rem;font-weight:400;color:var(--text-dim)">'+a.prix+' '+esc(a.devise)+'</div>':'')+'</div>'
       +'</label>';
   };
@@ -2954,6 +2966,88 @@ async function ebChoisir(aid, fid, champ, val){
     cb.closest('.eb-ligne').classList.toggle('off', !cb.checked);
   }
   ebMaj(fid);
+}
+
+// Fenêtre « détail d'une annonce » : on reste dans l'admin. eBay interdit
+// l'affichage de sa page dans un cadre, donc on va chercher le détail via
+// l'API (fonction ebay-detail) et on l'affiche nous-mêmes.
+// Ctrl / Cmd / clic molette ouvrent toujours la vraie page eBay.
+function ebLien(ev, aid, fid){
+  ev.stopPropagation();
+  if(ev.ctrlKey||ev.metaKey||ev.shiftKey||ev.button===1) return;
+  ev.preventDefault();
+  ebVoir(aid, fid);
+}
+function ebFermerPop(){ const o=document.getElementById('eb-ov'); if(o) o.remove(); document.removeEventListener('keydown', ebTouchePop); }
+function ebTouchePop(e){
+  if(e.key==='Escape') ebFermerPop();
+  if(e.key==='ArrowRight') document.getElementById('eb-suiv')?.click();
+  if(e.key==='ArrowLeft') document.getElementById('eb-prec')?.click();
+}
+async function ebVoir(aid, fid){
+  const l=(window._ebData[fid]||[]).slice().sort((a,b)=>(b.preselection-a.preselection)||(b.score-a.score));
+  const i=l.findIndex(x=>x.id===aid), a=l[i]; if(!a) return;
+  ebFermerPop();
+  const ov=document.createElement('div'); ov.className='eb-ov'; ov.id='eb-ov';
+  ov.onclick=e=>{ if(e.target===ov) ebFermerPop(); };
+  ov.innerHTML='<div class="eb-pop"><button class="eb-x" onclick="ebFermerPop()" aria-label="Fermer">✕</button><div id="eb-pop-c"><div class="vf-vide">Chargement de l\'annonce…</div></div></div>';
+  document.body.appendChild(ov);
+  document.addEventListener('keydown', ebTouchePop);
+
+  const cb=()=>document.querySelector('#eb-f-'+fid+' input[data-id="'+aid+'"]');
+  const coche=()=>!!(cb()&&cb().checked);
+  const f=(window._ebF||{})[fid]||{};
+  const nav=()=> '<div class="eb-nav">'
+    +'<button class="btn '+(coche()?'btn-ghost':'btn-primary')+'" style="width:auto;padding:8px 14px;font-size:.8rem" id="eb-tog">'+(coche()?'✗ Décocher':'✓ Cocher')+'</button>'
+    +'<a class="btn btn-ghost" style="width:auto;padding:8px 14px;font-size:.8rem;text-decoration:none" href="'+esc(a.url)+'" target="_blank" rel="noopener">Ouvrir sur eBay ↗</a>'
+    +'<span style="flex:1"></span>'
+    +'<button class="btn btn-ghost" style="width:auto;padding:8px 12px;font-size:.8rem" id="eb-prec"'+(i>0?'':' disabled')+'>‹ Préc.</button>'
+    +'<span style="font-size:.75rem;color:var(--text-dim)">'+(i+1)+' / '+l.length+'</span>'
+    +'<button class="btn btn-ghost" style="width:auto;padding:8px 12px;font-size:.8rem" id="eb-suiv"'+(i<l.length-1?'':' disabled')+'>Suiv. ›</button>'
+    +'</div>';
+  const brancher=()=>{
+    const t=document.getElementById('eb-tog');
+    if(t) t.onclick=()=>{ const c=cb(); if(!c) return; c.checked=!c.checked; c.closest('.eb-ligne').classList.toggle('off',!c.checked); ebMaj(fid);
+      t.textContent=c.checked?'✗ Décocher':'✓ Cocher'; t.className='btn '+(c.checked?'btn-ghost':'btn-primary'); };
+    const p=document.getElementById('eb-prec'); if(p&&i>0) p.onclick=()=>ebVoir(l[i-1].id,fid);
+    const n=document.getElementById('eb-suiv'); if(n&&i<l.length-1) n.onclick=()=>ebVoir(l[i+1].id,fid);
+  };
+  const entete='<div style="font-size:.72rem;color:var(--text-dim);margin-bottom:6px">Pour la fiche : <b style="color:var(--text)">'+esc(f.name||'')+'</b> · '+esc([f.platform,f.region,f.edition].filter(Boolean).join(' · '))+'</div>';
+
+  const {data:d,error}=await sb.functions.invoke('ebay-detail',{body:{item_id:a.item_id, marketplace:a.marketplace}});
+  if(!document.getElementById('eb-ov')) return;   // fermée entre-temps
+  const box=document.getElementById('eb-pop-c');
+  if(error||!d||d.error){
+    let msg=(d&&d.error)||(error&&error.message)||'Erreur';
+    try{ if(error&&error.context){ const j=await error.context.json(); msg=j.error||msg; } }catch(e){}
+    box.innerHTML=entete+'<h3 style="margin:6px 0 10px;font-size:1rem">'+esc(a.titre)+'</h3>'
+      +(a.image?'<img src="'+esc(a.image)+'" style="max-width:100%;max-height:300px;border-radius:10px">':'')
+      +'<div class="msg err" style="display:block;margin-top:10px">'+esc(msg)+'</div>'+nav();
+    brancher(); return;
+  }
+  const eur=ebEur(d.prix,d.devise), portEur=d.port?ebEur(d.port.prix,d.port.devise):null;
+  const imgs=d.images&&d.images.length?d.images:(a.image?[a.image]:[]);
+  box.innerHTML=entete
+    +'<h3 style="margin:6px 0 12px;font-size:1rem;line-height:1.35">'+esc(d.titre)+'</h3>'
+    +(imgs.length?'<div class="eb-gal"><img class="main" id="eb-main" src="'+esc(imgs[0])+'" alt="">'
+      +(imgs.length>1?'<div class="eb-thumbs">'+imgs.map((u,k)=>'<img src="'+esc(u)+'" class="'+(k?'':'on')+'" onclick="document.getElementById(\'eb-main\').src=this.src;this.parentNode.querySelectorAll(\'img\').forEach(x=>x.classList.remove(\'on\'));this.classList.add(\'on\')">').join('')+'</div>':'')
+      +'</div>':'')
+    +'<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline;margin-bottom:6px">'
+    +'<span style="font-size:1.3rem;font-weight:800">'+ebFmt(eur)+'</span>'
+    +(d.devise&&d.devise!=='EUR'?'<span style="color:var(--text-dim);font-size:.8rem">'+d.prix+' '+esc(d.devise)+'</span>':'')
+    +(d.port?'<span style="color:var(--text-dim);font-size:.8rem">+ port '+(d.port.prix?ebFmt(portEur):'gratuit')+'</span>':'')
+    +(/AUCTION/.test(d.type_vente||'')?'<span class="eb-chip warn">enchère'+(d.encheres!=null?' · '+d.encheres+' offre(s)':'')+'</span>':'')
+    +'</div>'
+    +'<div class="eb-chips" style="margin-bottom:6px">'
+    +'<span class="eb-chip '+(a.neuf?'ok':'')+'">'+esc(d.etat||a.etat||'')+'</span>'
+    +(d.lieu?'<span class="eb-chip">📍 '+esc(d.lieu)+'</span>':'')
+    +(d.vendeur?'<span class="eb-chip">👤 '+esc(d.vendeur.nom)+(d.vendeur.avis?' · '+esc(d.vendeur.avis)+' % positifs':'')+'</span>':'')
+    +'</div>'
+    +(d.etat_detail?'<div class="vf-note" style="margin:6px 0"><b>État selon le vendeur :</b> '+esc(d.etat_detail)+'</div>':'')
+    +(d.caracteristiques&&d.caracteristiques.length?'<dl class="eb-aspects">'+d.caracteristiques.map(c=>'<dt>'+esc(c.nom)+'</dt><dd>'+esc(c.valeur)+'</dd>').join('')+'</dl>':'')
+    +(d.description?'<div class="eb-desc">'+esc(d.description)+'</div>':'')
+    +nav();
+  brancher();
 }
 
 function ebPlus(id,btn){ document.querySelectorAll('#eb-f-'+id+' [data-cache]').forEach(x=>x.style.display=''); btn.remove(); }
