@@ -84,6 +84,40 @@
 .rd-evo figcaption small{display:block;color:var(--text-dim);font-weight:500;font-size:.72rem}
 .rd-evo .arrow{font-size:1.8rem;color:var(--gold);animation:rdPulse 1.6s ease-in-out infinite}
 @keyframes rdPulse{50%{transform:translateX(4px);opacity:.6}}
+.rd-lvl{margin-bottom:22px}
+.lv-games{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.lv-g{background:var(--bg3);border:1px solid var(--line);color:var(--text-mid);border-radius:100px;padding:5px 12px;font:600 .76rem Inter,sans-serif;cursor:pointer}
+.lv-g.on{border-color:var(--gold);color:var(--text);background:rgba(255,176,32,.12)}
+.lv-one{font-size:.78rem;color:var(--text-dim);margin-bottom:10px}
+.lv-stage{display:grid;grid-template-columns:190px 1fr;gap:20px;align-items:center;background:radial-gradient(circle at 20% 30%,rgba(123,79,212,.22),transparent 60%),var(--bg3);border:1px solid var(--line);border-radius:18px;padding:18px;position:relative;overflow:hidden;transition:border-color .3s}
+.lv-stage.evo{border-color:rgba(255,176,32,.6);background:radial-gradient(circle at 20% 30%,rgba(255,176,32,.25),transparent 60%),var(--bg3)}
+.lv-img{position:relative;height:170px;display:flex;align-items:center;justify-content:center;font-size:3rem}
+.lv-img img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 10px 20px rgba(0,0,0,.5));transition:transform .3s}
+.lv-badge{position:absolute;right:-4px;bottom:-4px;font:800 1.1rem Orbitron,sans-serif;background:linear-gradient(135deg,var(--purple,#7B4FD4),var(--gold,#FFB020));color:#fff;border-radius:12px;padding:6px 11px;box-shadow:0 6px 16px rgba(0,0,0,.45)}
+.lv-name{font:700 1.15rem Orbitron,sans-serif;margin-bottom:12px}
+.lv-tag{display:inline-block;vertical-align:middle;font:700 .62rem Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#1a1200;background:var(--gold);border-radius:100px;padding:3px 8px;margin-left:6px}
+.lv-stat{display:grid;grid-template-columns:90px 1fr 70px;align-items:center;gap:10px;font-size:.8rem;color:var(--text-mid);margin-bottom:8px}
+.lv-stat b{text-align:right;color:var(--text);font-variant-numeric:tabular-nums}
+.lv-bar{height:9px;background:rgba(255,255,255,.07);border-radius:9px;overflow:hidden}
+.lv-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--purple,#7B4FD4),var(--gold,#FFB020));border-radius:9px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.lv-xp{font-size:.78rem;color:var(--text-dim);margin-top:4px}
+.lv-dots{display:flex;gap:6px;margin:14px 0 12px;flex-wrap:wrap}
+.lv-dot{width:22px;height:8px;border-radius:5px;border:0;background:rgba(255,255,255,.12);cursor:pointer;padding:0}
+.lv-dot.on{background:var(--purple-light,#a07ef0)}
+.lv-dot.up.on{background:var(--gold)}
+.lv-ctrl{display:flex;gap:8px}
+.lv-ctrl button{border:1px solid var(--gold);background:linear-gradient(135deg,rgba(123,79,212,.35),rgba(255,176,32,.25));color:var(--text);font:700 .8rem Inter,sans-serif;border-radius:10px;padding:8px 16px;cursor:pointer}
+.lv-ctrl .lv-step{background:var(--bg2);border-color:var(--line)}
+.lv-ctrl button:disabled{opacity:.4;cursor:default}
+.lv-stage.pulse .lv-badge{animation:lvPop .45s ease}
+.lv-stage.pulse .lv-img img{animation:lvBump .45s ease}
+.lv-stage.boom:after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 25% 45%,rgba(255,220,120,.85),transparent 55%);animation:lvFlash .9s ease forwards;pointer-events:none}
+.lv-stage.boom .lv-img img{animation:lvEvo .9s ease}
+@keyframes lvPop{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes lvBump{40%{transform:translateY(-6px) scale(1.04)}}
+@keyframes lvFlash{0%{opacity:1}100%{opacity:0}}
+@keyframes lvEvo{0%{transform:scale(.6) rotate(-8deg);filter:brightness(3)}60%{transform:scale(1.12)}100%{transform:none}}
+@media(max-width:640px){.lv-stage{grid-template-columns:1fr;gap:10px}.lv-img{height:130px}.lv-stat{grid-template-columns:76px 1fr 56px}}
 .rd-shop{width:100%;border-collapse:collapse;font-size:.84rem}
 .rd-shop th{text-align:left;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);padding:0 10px 8px;font-weight:700}
 .rd-shop td{padding:10px;border-top:1px solid var(--line);vertical-align:top;color:var(--text-mid)}
@@ -117,6 +151,51 @@
     const {data,error}=await sb.from('site_wiki_entries').select('details').eq('id',id).maybeSingle();
     if(error) throw error;
     return CACHE[id]=(data&&data.details)||null;
+  }
+
+  // ── Widget « Level up » ──
+  const LVL={}; let LVN=0;
+  function initWidgets(root){ root.querySelectorAll('.rd-lvl[data-lvl]').forEach(el=>{ const d=LVL[el.dataset.lvl]; if(d&&!el.dataset.on){ el.dataset.on='1'; levelUp(el,d); } }); }
+  function levelUp(el,D){
+    let gi_=Math.max(0,D.games.findIndex(x=>list(x.levels).length>1)), lv=0, timer=null;
+    const fmt=v=>v==null?'—':Number(v).toLocaleString('en-US');
+    function steps(g){
+      // Avec donnees : un pas par niveau. Sans : forme de base puis forme amelioree.
+      if(list(g.levels).length>1) return g.levels.map(x=>Object.assign({},x,{evo:!!(g.evolve_at&&x.lv>=g.evolve_at&&g.upgrade)}));
+      return [{lv:null,evo:false},{lv:null,evo:true}];
+    }
+    function render(){
+      const g=D.games[gi_], S=steps(g), st=S[lv], evo=st.evo;
+      const maxP=Math.max(1,...S.map(x=>x.power||0)), maxA=Math.max(1,...S.map(x=>x.ammo||0));
+      const img=(evo&&D.ev.image&&(!g.upgrade||g.upgrade===D.ev.to))?D.ev.image:D.entry.image_url;
+      const name=evo?(g.upgrade||D.ev.to||D.entry.name):D.entry.name;
+      const label=st.lv!=null?'V'+st.lv:(evo?'MAX':'BASE');
+      const bar=(k,ic,lab,max)=>st[k]!=null?'<div class="lv-stat"><span>'+ic+' '+lab+'</span><div class="lv-bar"><i style="width:'+Math.round(st[k]/max*100)+'%"></i></div><b>'+fmt(st[k])+'</b></div>':'';
+      el.innerHTML='<div class="rd-sub" style="margin-top:0">⬆️ Level up</div>'
+        +(D.games.length>1?'<div class="lv-games">'+D.games.map((x,i)=>'<button class="lv-g'+(i===gi_?' on':'')+'" data-i="'+i+'">'+esc(gi(x.game)[0])+'</button>').join('')+'</div>':'<div class="lv-one">'+esc(gi(g.game)[0])+'</div>')
+        +'<div class="lv-stage'+(evo?' evo':'')+'"><div class="lv-img">'+(img?'<img src="'+esc(img)+'" alt="" onerror="this.remove()"/>':'🔫')+'<span class="lv-badge">'+label+'</span></div>'
+        +'<div class="lv-info"><div class="lv-name">'+esc(name)+(evo?' <span class="lv-tag">Upgraded</span>':'')+'</div>'
+        +bar('power','💥','Damage',maxP)+bar('ammo','🎯','Ammo',maxA)
+        +(st.exp!=null?'<div class="lv-xp">XP to next level: <b>'+fmt(st.exp)+'</b></div>':'')
+        +(st.mod?'<div class="lv-xp">Mod at this level: <b>'+esc(st.mod)+'</b></div>':'')
+        +(evo&&g.upgrade_price&&!(list(g.levels).length>1)?'<div class="lv-xp">Upgrade price: <b style="color:var(--gold)">'+fmt(String(g.upgrade_price).replace(/\D/g,''))+' bolts</b></div>':'')
+        +'<div class="lv-dots">'+S.map((x,i)=>'<button class="lv-dot'+(i<=lv?' on':'')+(x.evo?' up':'')+'" data-s="'+i+'" title="'+(x.lv!=null?'V'+x.lv:(x.evo?'Upgraded':'Base'))+'"></button>').join('')+'</div>'
+        +'<div class="lv-ctrl"><button class="lv-play">'+(timer?'⏸ Pause':(lv>=S.length-1?'↺ Replay':'▶ Level up'))+'</button><button class="lv-step" '+(lv>=S.length-1?'disabled':'')+'>+1</button></div>'
+        +'</div></div>';
+      el.querySelectorAll('.lv-g').forEach(b=>b.onclick=()=>{ stop(); gi_=+b.dataset.i; lv=0; render(); });
+      el.querySelectorAll('.lv-dot').forEach(b=>b.onclick=()=>{ stop(); go(+b.dataset.s); });
+      el.querySelector('.lv-play').onclick=()=>{ if(timer){ stop(); render(); return; } if(lv>=S.length-1) lv=0; play(); };
+      el.querySelector('.lv-step').onclick=()=>{ stop(); go(lv+1); };
+    }
+    function go(n){
+      const S=steps(D.games[gi_]); n=Math.max(0,Math.min(S.length-1,n));
+      const wasEvo=S[lv].evo; lv=n; render();
+      const stg=el.querySelector('.lv-stage'); if(!stg) return;
+      stg.classList.add(S[lv].evo&&!wasEvo?'boom':'pulse');
+    }
+    function play(){ timer=setInterval(()=>{ const S=steps(D.games[gi_]); if(lv>=S.length-1){ stop(); render(); return; } go(lv+1); },900); go(lv); }
+    function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+    render();
   }
 
   // ── Liens : chaque nom connu (fiche, personnage, lieu, jeu) devient cliquable ──
@@ -191,11 +270,11 @@
     const show=async i=>{
       bar.querySelectorAll('.rd-tab').forEach((b,j)=>b.classList.toggle('on',j===i));
       const t=tabs[i];
-      if(t.html!=null){ pane.innerHTML='<div class="rd-pane">'+t.html+'</div>'; onShown&&onShown(t.key,pane); return; }
+      if(t.html!=null){ pane.innerHTML='<div class="rd-pane">'+t.html+'</div>'; initWidgets(pane); onShown&&onShown(t.key,pane); return; }
       pane.innerHTML='<div class="rd-pane"><div class="rd-load"><i></i>Loading…</div></div>';
       try{ await loadIndex(); t.html=await t.load(); }catch(e){ pane.innerHTML='<div class="rd-pane"><div class="rd-empty">Could not load this tab. Try again.</div></div>'; return; }
       if(bar.querySelector('.rd-tab.on')!==bar.children[i]) return;
-      pane.innerHTML='<div class="rd-pane">'+t.html+'</div>'; onShown&&onShown(t.key,pane);
+      pane.innerHTML='<div class="rd-pane">'+t.html+'</div>'; initWidgets(pane); onShown&&onShown(t.key,pane);
     };
     bar.querySelectorAll('.rd-tab').forEach(b=>b.onclick=()=>show(+b.dataset.i));
     show(0);
@@ -274,11 +353,12 @@
       h+='<div class="rd-sub" style="margin-top:0">One model per game</div><ol class="rd-tl">'+fam.map(x=>'<li><b>'+esc(x.name)+'</b> <span style="color:var(--text-dim);font-size:.8rem">· '+esc(gi(x.game)[0])+' ('+esc(gi(x.game)[1])+')</span>'+(x.kind?'<div style="color:var(--text-mid);font-size:.8rem">'+esc(x.kind)+(x.upgrade?' — upgrades to <b style="color:var(--gold)">'+esc(x.upgrade)+'</b>':'')+'</div>':'')+'</li>').join('')+'</ol>';
       return h;
     }
-    if(ev){
-      const a=entry.image_url?'<img src="'+esc(entry.image_url)+'" alt="" onerror="this.remove()"/>':'🔫';
-      const b=ev.image?'<img src="'+esc(ev.image)+'" alt="" onerror="this.parentNode.textContent=\'✨\'"/>':'✨';
-      h+='<div class="rd-evo"><figure><div class="im">'+a+'</div><figcaption>'+esc(entry.name)+'<small>Base form</small></figcaption></figure>'
-        +'<div class="arrow">➜</div><figure><div class="im">'+b+'</div><figcaption>'+esc(ev.to)+'<small>Upgraded form</small></figcaption></figure></div>';
+    // Animation de montee de niveau : un jeu a la fois
+    const lvGames=list(d&&d.games).filter(g=>list(g.levels).length>1||g.upgrade);
+    if(lvGames.length){
+      const id='lv'+(++LVN);
+      LVL[id]={entry,ev:ev||{},games:lvGames};
+      h+='<div class="rd-lvl" data-lvl="'+id+'"></div>';
     }
     if(ups.length){
       h+='<div class="rd-sub" style="margin-top:20px">Upgrade in each game</div><table class="rd-shop"><thead><tr><th>Game</th><th>Becomes</th><th>Upgrade price</th></tr></thead><tbody>'
