@@ -178,8 +178,8 @@
     function render(){
       const g=D.games[gi_], S=steps(g), st=S[lv], evo=st.evo;
       const maxP=Math.max(1,...S.map(x=>x.power||0)), maxA=Math.max(1,...S.map(x=>x.ammo||0));
-      const img=evo?(g.upgrade_image||((D.ev.image&&(!g.upgrade||g.upgrade===D.ev.to))?D.ev.image:null)||D.entry.image_url):D.entry.image_url;
-      const name=evo?(g.upgrade||D.ev.to||D.entry.name):D.entry.name;
+      const base=g.base_image||D.entry.image_url, img=evo?(g.upgrade_image||((D.ev.image&&(!g.upgrade||g.upgrade===D.ev.to))?D.ev.image:null)||base):base;
+      const name=evo?(g.upgrade||D.ev.to||g.base_name||D.entry.name):(g.base_name||D.entry.name);
       const label=st.lv!=null?'V'+st.lv:(evo?'MAX':'BASE');
       const bar=(k,ic,lab,max)=>st[k]!=null?'<div class="lv-stat"><span>'+ic+' '+lab+'</span><div class="lv-bar"><i style="width:'+Math.round(st[k]/max*100)+'%"></i></div><b>'+fmt(st[k])+'</b></div>':'';
       el.innerHTML='<div class="rd-sub" style="margin-top:0">⬆️ Level up</div>'
@@ -206,7 +206,7 @@
     }
     function play(){ timer=setInterval(()=>{ const S=steps(D.games[gi_]); if(lv>=S.length-1){ stop(); render(); return; } go(lv+1); },900); go(lv); }
     function stop(){ if(timer){ clearInterval(timer); timer=null; } }
-    D.games.forEach(x=>{ if(x.upgrade_image){ const im=new Image(); im.src=x.upgrade_image; } });
+    D.games.forEach(x=>[x.upgrade_image,x.base_image].forEach(u=>{ if(u){ const im=new Image(); im.src=u; } }));
     render();
   }
 
@@ -363,7 +363,9 @@
     let h='';
     if(fam.length){
       const pic=(u,alt)=>'<div class="fm-im">'+(u?'<img src="'+esc(u)+'" alt="'+esc(alt)+'" loading="lazy" onerror="this.remove()"/>':'🔫')+'</div>';
-    h+='<div class="rd-sub" style="margin-top:0">One model per game</div><div class="fm-grid">'+fam.map(x=>'<div class="fm-card"><div class="fm-row">'+pic(x.image,x.name)+(x.upgrade?'<span class="fm-arr">➜</span>'+pic(x.upgrade_image||x.image,x.upgrade):'')+'</div><b>'+esc(x.name)+'</b>'+(x.upgrade?'<div class="fm-up">⬆️ '+esc(x.upgrade)+'</div>':'')+'<div class="fm-g" data-k="game" data-n="'+esc(x.game)+'">'+esc(gi(x.game)[0])+' · '+esc(gi(x.game)[1])+'</div>'+(x.kind?'<div class="fm-k">'+esc(x.kind)+'</div>':'')+'</div>').join('')+'</div>';
+      const fg=list(d&&d.games).filter(g=>list(g.levels).length>1||g.upgrade).map(g=>{ const f=fam.find(x=>x.name===g.model)||fam.find(x=>x.game===g.game)||{}; return Object.assign({},g,{base_image:f.image,base_name:g.model||f.name,upgrade_image:g.upgrade_image||f.upgrade_image}); });
+      if(fg.length){ const id='lv'+(++LVN); LVL[id]={entry,ev:{},games:fg}; h+='<div class="rd-lvl" data-lvl="'+id+'"></div>'; }
+      h+='<div class="rd-sub" style="margin-top:'+(fg.length?'20px':'0')+'">One model per game</div><div class="fm-grid">'+fam.map(x=>'<div class="fm-card"><div class="fm-row">'+pic(x.image,x.name)+(x.upgrade?'<span class="fm-arr">➜</span>'+pic(x.upgrade_image||x.image,x.upgrade):'')+'</div><b>'+esc(x.name)+'</b>'+(x.upgrade?'<div class="fm-up">⬆️ '+esc(x.upgrade)+'</div>':'')+'<div class="fm-g" data-k="game" data-n="'+esc(x.game)+'">'+esc(gi(x.game)[0])+' · '+esc(gi(x.game)[1])+'</div>'+(x.kind?'<div class="fm-k">'+esc(x.kind)+'</div>':'')+'</div>').join('')+'</div>';
       return h;
     }
     // Animation de montee de niveau : un jeu a la fois
