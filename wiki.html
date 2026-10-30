@@ -306,7 +306,7 @@ const CAT_SORT=['Hero','Ally','Villain','Robot','Creature','Other'];
 async function loadChars(){
   const grid=document.getElementById('chars-grid');
   try{
-    const {data,error}=await sb.from('site_characters').select('*').order('sort_order').order('name');
+    const {data,error}=await sb.from('site_characters').select('id,name,role,description,image_url,emoji,color1,color2,sort_order,species,height,age,homeworld,first_appearance,weapons,quote,voice_actor,category,img_pos,games').order('sort_order').order('name');
     if(error) throw error;
     if(!data||!data.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">No characters yet.</div>'; return; }
     CHARS=data;
@@ -353,10 +353,11 @@ function openChar(i){
         ${stats?`<div class="cd-stats">${stats}</div>`:''}
       </div>
     </div>
-    ${(c.quote||c.description)?`<div class="cd-below">
-      ${c.quote?`<div class="cd-quote">“${esc(c.quote)}”</div>`:''}
-      ${c.description?`<p class="cd-desc">${esc(c.description)}</p>`:''}
-    </div>`:''}`;
+    <div id="cd-tabs"></div><div id="cd-pane"></div>`;
+  const cOver=`${c.quote?`<div class="cd-quote" style="margin-top:0">“${esc(c.quote)}”</div>`:''}${c.description?`<p class="cd-desc">${esc(c.description)}</p>`:''}`;
+  const cFirst={key:'over',label:'📖 Overview',html:cOver||'<div class="rd-empty">No description yet.</div>'};
+  if(window.RCD&&RCD.charTabs) RCD.charTabs(sb,c,document.getElementById('cd-tabs'),document.getElementById('cd-pane'),cFirst);
+  else document.getElementById('cd-pane').innerHTML='<div class="cd-below">'+cOver+'</div>';
   if(window.RCD) RCD.autoLink(document.getElementById('cd-body'),sb);
   document.getElementById('char-modal').classList.add('open');
   document.body.style.overflow='hidden';
@@ -695,7 +696,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(window.RCD) RCD.onOpen=openB
   </div>
 </div>
 
-<script src="details-tabs.js?v=12"></script>
+<script src="details-tabs.js?v=13"></script>
 <script src="site-enhance.js"></script>
 <!-- ENTRY DETAIL MODAL -->
 <div class="char-modal" id="entry-modal" onclick="if(event.target===this)closeEntry()">

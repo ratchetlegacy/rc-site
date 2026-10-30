@@ -424,5 +424,38 @@
                       :{key:'specs',label:'⚙️ Specs',load:async()=>profile(await get(),VEHICLE)}
     ],onShown);
   }; }
-  window.RCD={openLink,autoLink,planetTabs,weaponTabs,creatureTabs:simpleTabs('creature'),vehicleTabs:simpleTabs('vehicle'),mount};
+  // ── Personnages ──
+async function charDetails(sb,id){
+  if(('c'+id) in CACHE) return CACHE['c'+id];
+  const {data,error}=await sb.from('site_characters').select('details').eq('id',id).maybeSingle();
+  if(error) throw error;
+  return CACHE['c'+id]=(data&&data.details)||null;
+}
+const ORDER_G=Object.keys(GAMES);
+function charGames(c,d){
+  const all=[...new Set([].concat(list(c.games),list(d&&d.games)))].filter(g=>GAMES[g]);
+  return all.sort((a,b)=>ORDER_G.indexOf(a)-ORDER_G.indexOf(b));
+}
+const SRC='<div class="rd-sub" style="margin-top:18px;text-transform:none;letter-spacing:0;font-weight:500">Source: Ratchet &amp; Clank Wiki (Fandom), CC BY-SA.</div>';
+function charStory(c,d){
+  const st=list(d&&d.story);
+  if(!st.length) return (c.description?'<p class="cd-desc" style="margin-top:0">'+lk(c.description)+'</p>':'')+empty('No game-by-game story for this character yet.');
+  return st.map(x=>gameBlock({game:x.game},'<div style="font-size:.88rem;color:var(--text-mid);line-height:1.55">'+lk(x.text)+'</div>')).join('')+SRC;
+}
+function charProfile(c,d){
+  let h='';
+  [['family','Family','👪'],['affiliation','Affiliation','🏢'],['residence','Residence','🏠']].forEach(r=>{
+    const v=list(d&&d[r[0]]); if(v.length) h+='<div class="rd-sub"'+(h?'':' style="margin-top:0"')+'>'+r[1]+'</div><div class="rd-chips">'+v.map(x=>chip('',r[2],x)).join('')+'</div>';
+  });
+  return h||empty('No profile information yet.');
+}
+function charTabs(sb,c,bar,pane,first,onShown){ SB=sb;
+  let p=null; const get=()=>p||(p=charDetails(sb,c.id));
+  mount(bar,pane,[first,
+    {key:'games',label:'🎮 Games',load:async()=>{ const g=charGames(c,await get()); return g.length?weaponGames({appears_in:g}):empty('No game list yet.'); }},
+    {key:'story',label:'📜 Story',load:async()=>charStory(c,await get())},
+    {key:'profile',label:'🧬 Profile',load:async()=>charProfile(c,await get())}
+  ],onShown);
+}
+window.RCD={openLink,autoLink,planetTabs,weaponTabs,creatureTabs:simpleTabs('creature'),vehicleTabs:simpleTabs('vehicle'),charTabs,mount};
 })();
