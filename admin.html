@@ -179,6 +179,24 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
   box-shadow:0 24px 80px rgba(0,0,0,.6);border-color:var(--purple)}
 
 /* ── Descriptions a valider ── */
+.eb-fiche{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px;background:var(--bg2)}
+.eb-tete{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.eb-tete img{width:52px;height:52px;object-fit:cover;border-radius:8px;flex:0 0 auto;background:var(--bg3)}
+.eb-chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.eb-chip{font-size:.66rem;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.07);color:var(--text-mid)}
+.eb-chip.ok{background:rgba(52,211,153,.15);color:#34d399}
+.eb-chip.warn{background:rgba(251,191,36,.15);color:#fbbf24}
+.eb-ligne{display:flex;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:.8rem}
+.eb-ligne input{width:18px;height:18px;flex:0 0 auto;accent-color:var(--purple,#8b5cf6)}
+.eb-ligne .eb-t{flex:1;min-width:0;color:var(--text)}
+.eb-ligne .eb-t a{color:inherit;text-decoration:none}
+.eb-ligne .eb-t a:hover{text-decoration:underline}
+.eb-ligne .eb-p{font-weight:700;white-space:nowrap;min-width:72px;text-align:right}
+.eb-ligne.off{opacity:.45}
+.eb-bilan{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;font-size:.8rem}
+.eb-bilan div{background:var(--bg3);border-radius:8px;padding:6px 10px}
+.eb-bilan b{font-size:.95rem}
+.eb-plus{background:none;border:none;color:var(--text-dim);font-size:.75rem;cursor:pointer;padding:6px 0;text-decoration:underline}
 .va-item{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:var(--bg2)}
 .va-tete{margin-bottom:10px}
 .va-nom{font-weight:700;font-size:.9rem;color:var(--text);line-height:1.35}
@@ -782,6 +800,25 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
 
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">🛒 Annonces eBay à valider</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadEbay()">↻ Actualiser</button>
+      </div>
+      <p class="vf-intro">Les annonces <b>en cours</b> sur eBay, déjà triées pour chaque fiche : pièces seules, boîtes vides, lots, démos, objets gradés, autre plateforme, autre édition, autre zone et autre langue sont écartés d'office. Les annonces cochées sont celles qui collent à la fiche ; décoche ce qui ne va pas, puis <b>Valider</b> : la médiane neuf / occasion de ta sélection devient l'estimation de repli de la fiche. Ce sont des prix demandés, jamais des ventes.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+        <select id="eb-cat" style="width:auto;padding:8px 10px">
+          <option value="Game">Jeux</option><option value="Console/Pack">Packs console</option>
+          <option value="Figure">Figurines</option><option value="Plush">Peluches</option>
+          <option value="Media">Médias</option><option value="Book">Livres</option><option value="Guide">Guides</option>
+          <option value="Goodie">Goodies</option><option value="Clothing">Vêtements</option><option value="">Tout</option>
+        </select>
+        <button class="btn btn-primary" style="width:auto;padding:8px 14px;font-size:.82rem" onclick="ebLancer()">🔍 Chercher les annonces</button>
+        <span id="eb-progres" style="font-size:.78rem;color:var(--text-dim)"></span>
+      </div>
+      <div id="eb-contenu"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">✅ Descriptions à valider</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadValid()">↻ Actualiser</button>
       </div>
@@ -1352,6 +1389,7 @@ const ADMIN_SECTIONS=[
   {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Vault category images','Page banners','Arcade Memory','App screenshots']},
   {key:'corbeille', ic:'🗑️', lbl:'Corbeille', match:['Corbeille']},
   {key:'veille', ic:'📡', lbl:'Veille', match:['Veille des sorties']},
+  {key:'ebay', ic:'🛒', lbl:'eBay', match:['Annonces eBay']},
   {key:'valid', ic:'✅', lbl:'À valider', match:['Descriptions à valider']},
   {key:'verif', ic:'🔎', lbl:'À vérifier', match:['À vérifier']},
   {key:'stats', ic:'📊', lbl:'Stats', match:['Statistiques']}
@@ -1392,6 +1430,7 @@ function showAdminSection(key){
   }
   if(key==='corbeille') loadCorbeille();
   if(key==='veille')  loadVeille();
+  if(key==='ebay')    loadEbay();
   if(key==='valid')   loadValid();
   if(key==='verif')   loadVerif();
   if(key==='stats')   loadStats(window._stPeriode||30);
@@ -2502,7 +2541,7 @@ async function tbCompte(table, f){
 async function loadTableauBord(){
   const box=document.getElementById('tb-contenu'); if(!box) return;
   document.getElementById('tb-liste').innerHTML='';
-  const [total, manques, sugg, ventes, trades, jeux, we, guides, news, chars, verif, attente, veille, corbeille] = await Promise.all([
+  const [total, manques, sugg, ventes, trades, jeux, we, guides, news, chars, verif, attente, veille, corbeille, ebay] = await Promise.all([
     tbCompte('catalog'),
     Promise.all(TB_MANQUES.map(m=>tbCompte('catalog', q=>tbFiltreManque(q,m)))),
     tbCompte('catalog_suggestions', q=>q.eq('status','pending').eq('kind','edit')),
@@ -2513,7 +2552,8 @@ async function loadTableauBord(){
     tbCompte('catalog_verif', q=>q.eq('verifie',false)),
     tbCompte('catalog', q=>q.not('description_attente','is',null)),
     tbCompte('veille', q=>q.eq('statut','nouveau')),
-    tbCompte('catalog_corbeille')
+    tbCompte('catalog_corbeille'),
+    tbCompte('ebay_annonces', q=>q.eq('statut','a_valider'))
   ]);
   const caseHtml=(v,l,cls,onclick)=>{
     if(v===null) return '';
@@ -2527,6 +2567,7 @@ async function loadTableauBord(){
     caseHtml(ventes,'ventes signalees a valider','alerte',"showAdminSection('catalog')"),
     caseHtml(trades,'annonces d’echange','',"showAdminSection('trades')"),
     caseHtml(veille,  'sorties repérées à trier','alerte',"showAdminSection('veille')"),
+    caseHtml(ebay,  'annonces eBay à valider','alerte',"showAdminSection('ebay')"),
     caseHtml(attente,'descriptions à valider','alerte',"showAdminSection('valid')"),
     caseHtml(verif, 'points \u00e0 v\u00e9rifier sur tes bo\u00eetes','alerte',"showAdminSection('verif')")
   ].filter(Boolean).join('');
@@ -2755,6 +2796,148 @@ function vaRetirer(id, publiee){
   if(el){ el.style.transition='.2s'; el.style.opacity='0'; setTimeout(()=>el.remove(),200); }
   if(window._vaPos>0) window._vaPos--;
   try{ showToast2('Description '+(publiee?'publiée':'rejetée')); }catch(e){}
+}
+
+// === Annonces eBay à valider ===========================================
+// La fonction Supabase « ebay-annonces » interroge eBay (Browse API) pour
+// chaque fiche et fait le gros du tri. Ici : tu coches, tu valides. La
+// médiane de ta sélection va dans price_new / price_used (estimation de
+// repli). Ce sont des prix DEMANDÉS : rien ne va dans catalog_sales.
+const EB_HORS = /press|d[ée]mo|promo|non comm|employ|impression exclusive/i;
+const EB_LIGNES = 8;          // annonces visibles avant « voir plus »
+window._ebTaux = {EUR:1};
+
+async function ebTaux(){
+  if(window._ebTaux.USD) return window._ebTaux;
+  try{
+    const r=await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,GBP');
+    const d=await r.json();
+    if(d && d.rates){ window._ebTaux={EUR:1, USD:1/d.rates.USD, GBP:1/d.rates.GBP}; }
+  }catch(e){}
+  return window._ebTaux;
+}
+const ebEur=(prix,devise)=>{ const t=window._ebTaux[devise||'EUR']; return (prix==null||!t)?null:Math.round(prix*t*100)/100; };
+const ebMed=a=>{ if(!a.length) return null; const s=[...a].sort((x,y)=>x-y), m=Math.floor(s.length/2); return s.length%2?s[m]:Math.round((s[m-1]+s[m])/2*100)/100; };
+const ebFmt=v=>v==null?'—':v.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+
+async function loadEbay(){
+  const box=document.getElementById('eb-contenu'); if(!box) return;
+  box.innerHTML='<div class="vf-vide">Chargement…</div>';
+  await ebTaux();
+  const {data,error}=await sb.from('ebay_annonces')
+    .select('id,catalog_id,marketplace,titre,prix,devise,etat,neuf,type_vente,url,image,pays,langue,region,score,raisons,preselection')
+    .eq('statut','a_valider').order('score',{ascending:false}).limit(2000);
+  if(error){ box.innerHTML='<div class="msg err" style="display:block">'+esc(error.message)+'</div>'; return; }
+  const parFiche={}; (data||[]).forEach(a=>{ (parFiche[a.catalog_id]=parFiche[a.catalog_id]||[]).push(a); });
+  const ids=Object.keys(parFiche).map(Number);
+  if(!ids.length){ box.innerHTML='<div class="vf-vide">Aucune annonce à valider. Choisis une catégorie et lance une recherche.</div>'; return; }
+  const {data:fiches}=await sb.from('catalog').select('id,name,category,platform,region,edition,languages,reference,barcode,image_url,price_new,price_used').in('id',ids);
+  const F={}; (fiches||[]).forEach(f=>F[f.id]=f);
+  window._ebData=parFiche;
+  // fiches avec le plus d'annonces présélectionnées d'abord
+  ids.sort((a,b)=>parFiche[b].filter(x=>x.preselection).length-parFiche[a].filter(x=>x.preselection).length);
+  box.innerHTML='<div class="vf-note" style="margin-bottom:10px">'+ids.length+' fiche'+(ids.length>1?'s':'')+' · '+(data||[]).length+' annonces</div>'
+    + ids.map(id=>ebFicheHtml(F[id]||{id,name:'Fiche '+id}, parFiche[id])).join('');
+  ids.forEach(ebMaj);
+}
+
+function ebFicheHtml(f, l){
+  const meta=[f.platform&&f.platform!=='-'?f.platform:'', f.region, f.edition, f.languages?('langues : '+f.languages):''].filter(Boolean).join(' · ');
+  const ligne=(a,i)=>{
+    const eur=ebEur(a.prix,a.devise);
+    const chips=[];
+    chips.push('<span class="eb-chip '+(a.neuf?'ok':'')+'">'+(a.neuf?'Neuf':'Occasion')+'</span>');
+    if(a.etat && !a.neuf) chips.push('<span class="eb-chip">'+esc(a.etat)+'</span>');
+    if(a.langue) chips.push('<span class="eb-chip ok">'+esc(a.langue)+'</span>');
+    if(a.region) chips.push('<span class="eb-chip">'+esc(a.region)+'</span>');
+    if(a.pays) chips.push('<span class="eb-chip">vendeur '+esc(a.pays)+'</span>');
+    (a.raisons||[]).filter(r=>/non pr|atypique|incomplet/.test(r)).forEach(r=>chips.push('<span class="eb-chip warn">'+esc(r)+'</span>'));
+    if((a.raisons||[]).includes('référence identique')) chips.push('<span class="eb-chip ok">réf. identique</span>');
+    if(/AUCTION/.test(a.type_vente||'') && !/FIXED/.test(a.type_vente||'')) chips.push('<span class="eb-chip warn">enchère en cours</span>');
+    return '<label class="eb-ligne'+(a.preselection?'':' off')+'" data-f="'+f.id+'"'+(i>=EB_LIGNES?' style="display:none" data-cache="1"':'')+'>'
+      +'<input type="checkbox" data-id="'+a.id+'"'+(a.preselection?' checked':'')+' onchange="this.parentNode.classList.toggle(\'off\',!this.checked);ebMaj('+f.id+')">'
+      +'<div class="eb-t"><a href="'+esc(a.url)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+esc(a.titre)+'</a><div class="eb-chips">'+chips.join('')+'</div></div>'
+      +'<div class="eb-p">'+ebFmt(eur)+(a.devise&&a.devise!=='EUR'?'<div style="font-size:.66rem;font-weight:400;color:var(--text-dim)">'+a.prix+' '+esc(a.devise)+'</div>':'')+'</div>'
+      +'</label>';
+  };
+  const tri=[...l].sort((a,b)=>(b.preselection-a.preselection)||(b.score-a.score));
+  return '<div class="eb-fiche" id="eb-f-'+f.id+'">'
+    +'<div class="eb-tete">'+(f.image_url?'<img src="'+esc(f.image_url)+'" alt="" loading="lazy">':'')
+    +'<div><div class="va-nom">'+esc(f.name)+'</div><span class="va-meta">'+esc(meta)+' · '+esc(l[0].marketplace.replace('EBAY_','eBay '))+'</span></div></div>'
+    +'<div class="eb-bilan" id="eb-b-'+f.id+'"></div>'
+    + tri.map(ligne).join('')
+    +(tri.length>EB_LIGNES?'<button class="eb-plus" onclick="ebPlus('+f.id+',this)">Voir les '+(tri.length-EB_LIGNES)+' autres</button>':'')
+    +'<div class="va-actions" style="margin-top:10px">'
+    +'<button class="btn btn-primary" style="padding:7px 14px;font-size:.78rem" onclick="ebValider('+f.id+')">✓ Valider la sélection</button>'
+    +'<button class="btn btn-ghost" style="padding:7px 14px;font-size:.78rem" onclick="ebEcarter('+f.id+')">Tout écarter</button>'
+    +'</div></div>';
+}
+function ebPlus(id,btn){ document.querySelectorAll('#eb-f-'+id+' [data-cache]').forEach(x=>x.style.display=''); btn.remove(); }
+function ebSel(id){
+  const l=window._ebData[id]||[], coches=new Set([...document.querySelectorAll('#eb-f-'+id+' input:checked')].map(x=>+x.dataset.id));
+  const sel=l.filter(a=>coches.has(a.id));
+  const neuf=ebMed(sel.filter(a=>a.neuf).map(a=>ebEur(a.prix,a.devise)).filter(v=>v!=null));
+  const occ=ebMed(sel.filter(a=>!a.neuf).map(a=>ebEur(a.prix,a.devise)).filter(v=>v!=null));
+  return {sel, neuf, occ, nN:sel.filter(a=>a.neuf).length, nO:sel.filter(a=>!a.neuf).length};
+}
+async function ebMaj(id){
+  const b=document.getElementById('eb-b-'+id); if(!b) return;
+  const r=ebSel(id);
+  const f=(await sb.from('catalog').select('price_new,price_used').eq('id',id).maybeSingle()).data||{};
+  b.innerHTML='<div>Neuf <b>'+ebFmt(r.neuf)+'</b> <span style="color:var(--text-dim)">('+r.nN+')</span>'+(f.price_new!=null?' <span style="color:var(--text-dim)">· actuel '+ebFmt(+f.price_new)+'</span>':'')+'</div>'
+    +'<div>Occasion <b>'+ebFmt(r.occ)+'</b> <span style="color:var(--text-dim)">('+r.nO+')</span>'+(f.price_used!=null?' <span style="color:var(--text-dim)">· actuel '+ebFmt(+f.price_used)+'</span>':'')+'</div>';
+}
+async function ebValider(id){
+  const r=ebSel(id);
+  if(!r.sel.length){ alert('Aucune annonce cochée. Utilise « Tout écarter » si rien ne correspond.'); return; }
+  const maj={};
+  if(r.neuf!=null) maj.price_new=r.neuf;
+  if(r.occ!=null) maj.price_used=r.occ;
+  if(Object.keys(maj).length){
+    const {error}=await sb.from('catalog').update(maj).eq('id',id);
+    if(error){ alert(error.message); return; }
+  }
+  const garde=r.sel.map(a=>a.id), tous=(window._ebData[id]||[]).map(a=>a.id), ecart=tous.filter(x=>!garde.includes(x));
+  const now=new Date().toISOString();
+  await sb.from('ebay_annonces').update({statut:'retenue',traite_le:now}).in('id',garde);
+  if(ecart.length) await sb.from('ebay_annonces').update({statut:'ecartee',traite_le:now}).in('id',ecart);
+  ebRetirer(id, 'Estimation mise à jour'+(maj.price_new!=null?' · neuf '+ebFmt(maj.price_new):'')+(maj.price_used!=null?' · occasion '+ebFmt(maj.price_used):''));
+}
+async function ebEcarter(id){
+  const tous=(window._ebData[id]||[]).map(a=>a.id);
+  await sb.from('ebay_annonces').update({statut:'ecartee',traite_le:new Date().toISOString()}).in('id',tous);
+  ebRetirer(id,'Annonces écartées');
+}
+function ebRetirer(id,msg){
+  const el=document.getElementById('eb-f-'+id);
+  if(el){ el.style.transition='.2s'; el.style.opacity='0'; setTimeout(()=>el.remove(),200); }
+  try{ showToast2(msg); }catch(e){}
+}
+
+// Lance la recherche sur les fiches de la catégorie choisie qui n'ont pas
+// été passées depuis 30 jours. Les objets hors commerce (presse, démo,
+// promo, employés, tirages uniques) sont sautés : eBay n'a rien à en dire.
+async function ebLancer(){
+  const cat=document.getElementById('eb-cat').value, pr=document.getElementById('eb-progres');
+  pr.textContent='Préparation…';
+  let q=sb.from('catalog').select('id,edition,category').order('id');
+  if(cat) q=q.eq('category',cat);
+  const {data:fiches,error}=await q;
+  if(error){ pr.textContent=error.message; return; }
+  const depuis=new Date(Date.now()-30*864e5).toISOString();
+  const {data:passes}=await sb.from('ebay_passes').select('catalog_id').gte('passe_le',depuis);
+  const faites=new Set((passes||[]).map(p=>p.catalog_id));
+  const ids=(fiches||[]).filter(f=>!EB_HORS.test(f.edition||'') && !faites.has(f.id)).map(f=>f.id);
+  if(!ids.length){ pr.textContent='Tout est à jour pour cette catégorie (passée il y a moins de 30 jours).'; return; }
+  let fait=0, gardees=0, err=0;
+  for(let i=0;i<ids.length;i+=8){
+    pr.textContent='Recherche… '+fait+' / '+ids.length+' fiches';
+    const {data,error:e}=await sb.functions.invoke('ebay-annonces',{body:{catalog_ids:ids.slice(i,i+8)}});
+    if(e){ err++; if(err>2){ pr.textContent='Arrêt : '+e.message; break; } continue; }
+    (data.bilan||[]).forEach(b=>{ fait++; gardees+=b.gardees||0; if(b.erreur) err++; });
+  }
+  pr.textContent='Terminé : '+fait+' fiches, '+gardees+' annonces gardées'+(err?' · '+err+' erreur(s)':'');
+  loadEbay();
 }
 
 // === Veille des sorties ==============================================
