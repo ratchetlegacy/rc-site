@@ -189,6 +189,11 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
   border-radius:9px;padding:10px 12px;margin-bottom:10px;color:var(--gold);
   font-size:.78rem;line-height:1.5}
 .va-suite{display:block;width:100%;margin-top:4px}
+
+/* ── Corbeille ── */
+.cb-vignette{width:52px;height:52px;object-fit:cover;border-radius:8px;
+  border:1px solid var(--line);flex:0 0 auto;margin-right:12px;background:var(--bg)}
+.va-tete{align-items:center}
 </style>
 </head>
 <body>
@@ -750,6 +755,15 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
         <input type="text" id="ga-simg2" placeholder="https://..."/>
         <button class="btn btn-primary" style="width:100%" onclick="saveGame()">💾 Save game</button>
       </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">🗑️ Corbeille</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadCorbeille()">↻ Actualiser</button>
+      </div>
+      <p class="vf-intro">Tout objet supprimé du catalogue atterrit ici avant d'être effacé. Rien n'est perdu tant que tu ne vides pas. <b>Restaurer</b> remet la fiche au catalogue avec ses photos, ses prix et ses codes.</p>
+      <div id="cb-contenu"></div>
     </div>
 
     <div class="card">
@@ -1336,6 +1350,7 @@ const ADMIN_SECTIONS=[
   {key:'media', ic:'📗', lbl:'Guides & News', match:['Guides','News']},
   {key:'trades', ic:'🤝', lbl:'Trades', match:['Trade listings']},
   {key:'images', ic:'🖼️', lbl:'Images', match:['Homepage images','Wiki hub images','Vault category images','Page banners','Arcade Memory','App screenshots']},
+  {key:'corbeille', ic:'🗑️', lbl:'Corbeille', match:['Corbeille']},
   {key:'veille', ic:'📡', lbl:'Veille', match:['Veille des sorties']},
   {key:'valid', ic:'✅', lbl:'À valider', match:['Descriptions à valider']},
   {key:'verif', ic:'🔎', lbl:'À vérifier', match:['À vérifier']},
@@ -1375,6 +1390,7 @@ function showAdminSection(key){
     b.textContent='← Accueil'; b.onclick=()=>showAdminSection('accueil');
     document.getElementById('admin-menu').insertAdjacentElement('afterend', b);
   }
+  if(key==='corbeille') loadCorbeille();
   if(key==='veille')  loadVeille();
   if(key==='valid')   loadValid();
   if(key==='verif')   loadVerif();
@@ -2450,10 +2466,18 @@ document.addEventListener('click',function(e){
 // ce qui manque dans le catalogue.
 const TB_MANQUES=[
   {cle:'image',  col:'image_url',   lbl:'sans photo',      vide:true},
-  {cle:'code',   col:'barcode',     lbl:'sans code-barres',vide:true},
+  {cle:'code',   col:'barcode',     lbl:'sans code-barres',vide:true, horsCaisse:true},
   {cle:'desc',   col:'description', lbl:'sans description',vide:true, attente:true},
   {cle:'annee',  col:'year',        lbl:'sans annee',      vide:false}
 ];
+// Ces editions ne sont jamais passees en caisse : copies presse, demos,
+// objets promotionnels, cadeaux employes, impressions exclusives,
+// figurines vendues en direct par le studio, jeux dematerialises. Aucune
+// des 159 fiches concernees ne porte de code-barres, et aucune n'en aura
+// jamais. Les compter comme un manque donnait un chiffre faux, qui
+// laissait croire a un travail restant alors qu'il n'y a rien a trouver.
+const TB_HORS_CAISSE=['Press Only','Promo Only','Employés Only',
+  'Non Commercialisé','Dématérialisé','Impression Exclusive','ESC-Toy'];
 // Un formulaire peut enregistrer une chaine vide au lieu d'un NULL :
 // pour les colonnes texte on cherche les deux.
 function tbFiltreManque(q, m){
@@ -2461,6 +2485,12 @@ function tbFiltreManque(q, m){
   // « sans description » ne doit pas compter les textes en attente de
   // validation : ils existent, ils ne sont simplement pas encore publies.
   if(m.attente) r = r.is('description_attente', null);
+  // Les fiches sans edition renseignee restent comptees : on ne sait pas
+  // si elles ont eu un code, donc on ne prejuge pas.
+  if(m.horsCaisse){
+    const l=TB_HORS_CAISSE.map(e=>'"'+e+'"').join(',');
+    r = r.or('edition.is.null,edition.not.in.('+l+')');
+  }
   return r;
 }
 async function tbCompte(table, f){
@@ -2472,7 +2502,7 @@ async function tbCompte(table, f){
 async function loadTableauBord(){
   const box=document.getElementById('tb-contenu'); if(!box) return;
   document.getElementById('tb-liste').innerHTML='';
-  const [total, manques, sugg, ventes, trades, jeux, we, guides, news, chars, verif, attente, veille] = await Promise.all([
+  const [total, manques, sugg, ventes, trades, jeux, we, guides, news, chars, verif, attente, veille, corbeille] = await Promise.all([
     tbCompte('catalog'),
     Promise.all(TB_MANQUES.map(m=>tbCompte('catalog', q=>tbFiltreManque(q,m)))),
     tbCompte('catalog_suggestions', q=>q.eq('status','pending').eq('kind','edit')),
@@ -2482,7 +2512,8 @@ async function loadTableauBord(){
     tbCompte('site_guides'), tbCompte('site_news'), tbCompte('site_characters'),
     tbCompte('catalog_verif', q=>q.eq('verifie',false)),
     tbCompte('catalog', q=>q.not('description_attente','is',null)),
-    tbCompte('veille', q=>q.eq('statut','nouveau'))
+    tbCompte('veille', q=>q.eq('statut','nouveau')),
+    tbCompte('catalog_corbeille')
   ]);
   const caseHtml=(v,l,cls,onclick)=>{
     if(v===null) return '';
@@ -2506,6 +2537,10 @@ async function loadTableauBord(){
     html+=caseHtml(manques[i], m.lbl, '', `tbListe('${m.cle}')`);
   });
   html+='</div>';
+
+  html+='<div class="tb-titre">Corbeille</div><div class="tb-grille">'
+    + caseHtml(corbeille,'objets supprimés, récupérables','',"showAdminSection('corbeille')")
+    + '</div>';
 
   html+='<div class="tb-titre">Contenus</div><div class="tb-grille">'
     + caseHtml(jeux,'jeux') + caseHtml(we,'entrees wiki') + caseHtml(guides,'guides')
@@ -2783,6 +2818,94 @@ document.getElementById('ve-filtres')?.addEventListener('click',e=>{
   window._veFiltre=b.dataset.f;
   loadVeille();
 });
+
+// === Corbeille ========================================================
+// Tout objet supprimé du catalogue est recopié ici par un déclencheur,
+// avant d'être effacé. Rien n'est perdu tant que tu ne vides pas.
+// La table est réservée aux comptes connectés : le site public ne la
+// voit pas.
+const CB_COLS = ['id','name','category','platform','year','region','image_url',
+  'description','sort_order','price_new','price_used','image_back','edition',
+  'game_id','languages','reference','barcode','barcode_supplement',
+  'description_attente'];
+
+async function loadCorbeille(){
+  const box=document.getElementById('cb-contenu'); if(!box) return;
+  box.innerHTML='<div class="vf-vide">Chargement…</div>';
+  const {data,error}=await sb.from('catalog_corbeille')
+    .select('*').order('supprime_le',{ascending:false}).limit(300);
+  if(error){
+    box.innerHTML='<div class="msg err" style="display:block">'
+      + (/corbeille_id|catalog_corbeille/.test(error.message||'')
+         ? 'La corbeille n’est pas à jour. Lance le fichier <b>corbeille_fix.sql</b> dans Supabase.'
+         : esc(error.message)) + '</div>';
+    return;
+  }
+  const l=data||[];
+  if(!l.length){ box.innerHTML='<div class="vf-vide">La corbeille est vide.</div>'; return; }
+  box.innerHTML='<div class="tl-tete" style="margin-bottom:12px"><b>'+l.length
+    +' objet'+(l.length>1?'s':'')+' supprimé'+(l.length>1?'s':'')+'</b>'
+    +'<button class="btn btn-ghost" style="padding:6px 12px;font-size:.75rem" onclick="cbVider()">Vider la corbeille</button></div>'
+    + l.map(o=>{
+    const d=new Date(o.supprime_le).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+    const meta=[o.category,o.platform,o.region,o.edition].filter(Boolean).join(' · ');
+    return '<div class="va-item" id="cb-i-'+o.corbeille_id+'">'
+      +'<div class="va-tete">'
+      +(o.image_url?'<img src="'+esc(o.image_url)+'" alt="" class="cb-vignette">':'')
+      +'<span class="va-nom">'+esc(o.name||('Fiche '+o.id))
+      +'<span class="va-meta">fiche #'+o.id+(meta?' · '+esc(meta):'')+' · supprimé le '+d+'</span></span></div>'
+      +'<div class="va-actions">'
+      +'<button class="btn btn-primary" style="padding:7px 14px;font-size:.78rem" onclick="cbRestaurer('+o.corbeille_id+')">↩ Restaurer</button>'
+      +'<button class="btn btn-ghost" style="padding:7px 14px;font-size:.78rem" onclick="cbSupprimer('+o.corbeille_id+','+o.id+')">Supprimer définitivement</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+async function cbRestaurer(cid){
+  const {data:row,error:e1}=await sb.from('catalog_corbeille')
+    .select('*').eq('corbeille_id',cid).single();
+  if(e1){ alert(e1.message); return; }
+
+  // La fiche existe-t-elle déjà ? On ne veut pas écraser l'actuelle.
+  const {data:deja}=await sb.from('catalog').select('id').eq('id',row.id).maybeSingle();
+  if(deja && !confirm('La fiche '+row.id+' existe déjà au catalogue. '
+      + 'Restaurer créera un doublon sous un nouvel identifiant. Continuer ?')) return;
+
+  const neuf={};
+  CB_COLS.forEach(c=>{ if(row[c]!==undefined) neuf[c]=row[c]; });
+  if(deja) delete neuf.id;   // on laisse la base attribuer un identifiant libre
+
+  const {error:e2}=await sb.from('catalog').insert([neuf]);
+  if(e2){ alert('Restauration impossible : '+e2.message); return; }
+
+  const {error:e3}=await sb.from('catalog_corbeille').delete().eq('corbeille_id',cid);
+  if(e3){ alert('Fiche restaurée, mais elle est restée dans la corbeille : '+e3.message); }
+
+  const el=document.getElementById('cb-i-'+cid);
+  if(el){ el.style.transition='.2s'; el.style.opacity='0'; setTimeout(()=>el.remove(),200); }
+  try{ showToast2('Fiche restaurée'); }catch(e){}
+  try{ loadObjs(); }catch(e){}
+}
+
+async function cbSupprimer(cid, id){
+  if(!confirm('Effacer définitivement la fiche '+id+' ? Cette fois, elle ne sera plus récupérable.')) return;
+  const {error}=await sb.from('catalog_corbeille').delete().eq('corbeille_id',cid);
+  if(error){ alert(error.message); return; }
+  const el=document.getElementById('cb-i-'+cid);
+  if(el){ el.style.transition='.2s'; el.style.opacity='0'; setTimeout(()=>el.remove(),200); }
+  try{ showToast2('Effacé définitivement'); }catch(e){}
+}
+
+async function cbVider(){
+  const {count}=await sb.from('catalog_corbeille').select('corbeille_id',{count:'exact',head:true});
+  if(!confirm('Vider la corbeille effacera définitivement '+(count||0)+' objet(s). '
+      + 'Aucun ne sera récupérable. Confirmer ?')) return;
+  if(!confirm('Dernière vérification : es-tu sûr ?')) return;
+  const {error}=await sb.from('catalog_corbeille').delete().neq('corbeille_id',0);
+  if(error){ alert(error.message); return; }
+  try{ showToast2('Corbeille vidée'); }catch(e){}
+  loadCorbeille();
+}
 
 // ── Recherche globale ──────────────────────────────────────────────────
 const RG_SOURCES=[
