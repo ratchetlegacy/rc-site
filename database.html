@@ -109,6 +109,17 @@ a{color:inherit;text-decoration:none}
 @keyframes sp{to{transform:rotate(360deg)}}
 
 /* lightbox */
+.px-btn{display:inline-flex;align-items:center;gap:6px;margin-top:16px;background:rgba(123,79,212,.15);border:1px solid rgba(155,111,244,.45);color:var(--purple-light);border-radius:999px;padding:7px 14px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit}
+.px-btn:hover{background:rgba(123,79,212,.3)}
+.px-ov{display:none;position:fixed;inset:0;z-index:300;background:rgba(5,6,12,.88);align-items:center;justify-content:center;padding:16px}
+.px-ov.open{display:flex}
+.px-box{background:#12131f;border:1px solid rgba(255,255,255,.1);border-radius:16px;max-width:620px;width:100%;max-height:90vh;overflow:auto;padding:22px 22px 18px;position:relative;color:#d9dbe8;font-size:.86rem;line-height:1.6}
+.px-box h2{font-family:Orbitron,sans-serif;font-size:1rem;margin:0 0 12px;color:#fff}
+.px-box h3{font-size:.86rem;margin:16px 0 4px;color:#fff}
+.px-box ul{margin:4px 0 0;padding-left:18px}
+.px-box .px-x{position:sticky;top:0;float:right;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:8px;width:32px;height:32px;cursor:pointer}
+.px-real{color:var(--green);font-weight:700}.px-est{color:#F5B941;font-weight:700}
+.px-link{background:none;border:none;color:var(--purple-light);font-size:.62rem;cursor:pointer;text-decoration:underline;padding:0;margin-top:6px;font-family:inherit}
 .lb{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,6,12,.92);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px}
 .lb.open{display:flex}
 .lb-inner{max-width:420px;width:100%;max-height:calc(100vh - 48px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--bg2);border:1px solid var(--line);border-radius:18px}
@@ -155,7 +166,35 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <h1>The <span class="grad">Megacorp</span> Vault</h1>
   <p>Every known Ratchet &amp; Clank collectible — games, figures, plush, guides and more. The most complete reference for collectors.</p>
   <div class="vault-stats" id="vault-stats"></div>
+  <button class="px-btn" onclick="openPrix()">ⓘ How are prices &amp; estimates calculated?</button>
 </header>
+
+<div class="px-ov" id="px-ov" onclick="if(event.target===this)closePrix()">
+  <div class="px-box" role="dialog" aria-labelledby="px-t">
+    <button class="px-x" onclick="closePrix()" aria-label="Close">✕</button>
+    <h2 id="px-t">💰 How prices work in the Vault</h2>
+    <p>Every item shows a <b>market rating</b>: the <b>median</b> price — the middle value once all known prices are sorted. A median ignores the odd crazy listing or bargain, so one extreme price can't distort it.</p>
+    <p>There are always two ratings, kept separate: <b>new / sealed</b> and <b>pre-owned</b>. For pre-owned items, when at least one sale is known to be <b>complete</b> (box, manual, disc), sales declared <b>incomplete</b> (disc only, no manual) are left out, so a loose copy never drags down the price of a complete one.</p>
+
+    <h3><span class="px-real">● Real rating</span> — shown in green</h3>
+    <p>Built only from <b>real prices</b>:</p>
+    <ul>
+      <li><b>Completed sales</b> — items that actually sold, with their source: <b>eBay</b>, <b>Mercari JP</b> (Japan), <b>Vinted</b>…</li>
+      <li><b>Collectors' purchase prices</b> — what users of the Ratchet Legacy Tracker paid for their copy (gifts excluded).</li>
+    </ul>
+    <p>Under the price you see how many real prices it is based on, and where they come from (e.g. <i>eBay 4 · Mercari JP 2 · collectors 1</i>).</p>
+
+    <h3><span class="px-est">● Estimate (≈)</span> — shown in amber</h3>
+    <p>When no real price exists yet, we show an <b>estimate</b> based on items <b>currently for sale</b> (asking prices on eBay), checked one by one: only listings matching the exact item are kept — same platform, edition, region and language — and loose parts, empty cases, lots, demos and graded items are discarded. Listings are sorted by condition (new / pre-owned, complete or not) before the median is taken.</p>
+    <p>An estimate is only a placeholder: <b>as soon as a single real price comes in, the estimate stops counting</b> and the rating is computed from real prices only.</p>
+
+    <h3>Prices in other currencies</h3>
+    <p>Dollar, pound and yen prices are converted to euros (European Central Bank rate, or the marketplace's own conversion for Mercari). Japanese prices usually include domestic shipping.</p>
+
+    <h3>Help us be accurate</h3>
+    <p>Saw an item sell? Use <b>“Report a sale”</b> on its page. Every report is checked before it counts.</p>
+  </div>
+</div>
 
 <div class="wrap">
   <div class="controls">
@@ -360,12 +399,18 @@ async function loadRating(){
       if(!RATING[k]) RATING[k]={};
       RATING[k][r.cond]={
         median: r.median_price!=null?parseFloat(r.median_price):null,
-        count:  (r.user_count||0) + (r.sale_count||0)   // collectionneurs + ventes relevees
+        count:  (r.user_count||0) + (r.sale_count||0),  // collectionneurs + ventes relevees
+        sources: r.source==='reelle' ? (r.sources||'').replace(/collectionneurs/g,'collectors') : ''
       };
     });
   }catch(e){ RATING={}; }
 }
 let activeCat='';
+function openPrix(){ document.getElementById('px-ov').classList.add('open'); document.addEventListener('keydown',prixEsc); }
+function closePrix(){ document.getElementById('px-ov').classList.remove('open'); document.removeEventListener('keydown',prixEsc); }
+function prixEsc(e){ if(e.key==='Escape') closePrix(); }
+// lien direct depuis le tracker : database.html#prix ouvre l'explication
+window.addEventListener('load',()=>{ if(location.hash==='#prix') openPrix(); });
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
@@ -643,12 +688,14 @@ function openLb(i){
         <div style="font-size:.58rem;color:var(--text-dim);letter-spacing:.08em">${lbl}</div>
         <div style="font-family:Orbitron,sans-serif;font-weight:700;font-size:1.15rem;color:${r.count?'var(--green)':'#F5B941'}">${r.count?'':'≈ '}${parseFloat(r.median).toFixed(2).replace(/\.00$/,'')} €</div>
         <div style="font-size:.56rem;color:var(--text-dim)">${r.count?`based on ${r.count} real price${r.count>1?'s':''}`:'estimate from current listings · no sale yet'}</div>
+        ${r.count&&r.sources?`<div style="font-size:.54rem;color:var(--text-dim);margin-top:2px">${esc(r.sources)}</div>`:''}
       </div>` : '';
   const rNew=rLine('NEW / SEALED',rr.neuf), rUsed=rLine('PRE-OWNED',rr.occasion);
   const ratingHtml = (rNew||rUsed)
     ? `<div style="margin:12px 0;padding:12px 14px;background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.3);border-radius:10px;text-align:center">
         <div style="font-size:.6rem;color:var(--text-dim);letter-spacing:.1em;margin-bottom:6px">💰 MARKET RATING (median)</div>
         <div style="display:flex;gap:10px">${rNew}${rUsed}</div>
+        <button class="px-link" onclick="openPrix()">How is this calculated?</button>
       </div>` : '';
   const dbox=document.getElementById('lb-desc');
   dbox.innerHTML = extraRows + ratingHtml + completionHtml(c) + '<div id="lb-trend"></div>' + (c.description?esc(c.description):'');

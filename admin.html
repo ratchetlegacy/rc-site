@@ -3063,8 +3063,12 @@ function ebSel(id){
   const l=window._ebData[id]||[], coches=new Set([...document.querySelectorAll('#eb-f-'+id+' input:checked')].map(x=>+x.dataset.id));
   const sel=l.filter(a=>coches.has(a.id));
   const neuf=ebMed(sel.filter(a=>a.neuf).map(a=>ebEur(a.prix,a.devise)).filter(v=>v!=null));
-  const occ=ebMed(sel.filter(a=>!a.neuf).map(a=>ebEur(a.prix,a.devise)).filter(v=>v!=null));
-  return {sel, neuf, occ, nN:sel.filter(a=>a.neuf).length, nO:sel.filter(a=>!a.neuf).length};
+  const inc=a=>(a.raisons||[]).includes('incomplet');
+  const occC=sel.filter(a=>!a.neuf && !inc(a)), occI=sel.filter(a=>!a.neuf && inc(a));
+  const med=l=>ebMed(l.map(a=>ebEur(a.prix,a.devise)).filter(v=>v!=null));
+  // occasion = exemplaires complets ; s'il n'y en a aucun, on se rabat sur les incomplets
+  const occ = occC.length ? med(occC) : med(occI);
+  return {sel, neuf, occ, occInc: med(occI), nN:sel.filter(a=>a.neuf).length, nO:(occC.length?occC:occI).length, nI:occI.length, occSurInc:!occC.length&&occI.length>0};
 }
 async function ebMaj(id){
   const b=document.getElementById('eb-b-'+id); if(!b) return;
@@ -3078,7 +3082,8 @@ async function ebMaj(id){
       +(al?'⚠️ ':'')+lbl+' <b'+(al?' style="color:#ff4d6a"':'')+'>'+ebFmt(prop)+'</b> <span style="color:var(--text-dim)">('+n+')</span>'
       +(act!=null?' <span style="color:var(--text-dim)">· actuel '+ebFmt(+act)+'</span>':'')+'</div>';
   };
-  b.innerHTML=bloc('Neuf',r.neuf,r.nN,f.price_new)+bloc('Occasion',r.occ,r.nO,f.price_used);
+  b.innerHTML=bloc('Neuf',r.neuf,r.nN,f.price_new)+bloc(r.occSurInc?'Occasion (incomplets seulement)':'Occasion complet',r.occ,r.nO,f.price_used)
+    +(r.nI&&!r.occSurInc?'<div style="opacity:.75">Incomplet <b>'+ebFmt(r.occInc)+'</b> <span style="color:var(--text-dim)">('+r.nI+', pour info)</span></div>':'');
 }
 async function ebValider(id){
   const r=ebSel(id);
