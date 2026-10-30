@@ -2808,7 +2808,7 @@ function vaRetirer(id, publiee){
 // chaque fiche et fait le gros du tri. Ici : tu coches, tu valides. La
 // médiane de ta sélection va dans price_new / price_used (estimation de
 // repli). Ce sont des prix DEMANDÉS : rien ne va dans catalog_sales.
-const EB_HORS = /press|d[ée]mo|promo|non comm|employ|impression exclusive/i;
+const EB_HORS = /press|d[ée]mo|promo|non comm|employ|impression exclusive|d[ée]mat[ée]rialis/i;
 const EB_LIGNES = 8;          // annonces visibles avant « voir plus »
 window._ebTaux = {EUR:1};
 
