@@ -2814,11 +2814,17 @@ window._ebTaux = {EUR:1};
 
 async function ebTaux(){
   if(window._ebTaux.USD) return window._ebTaux;
-  try{
-    const r=await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,GBP');
-    const d=await r.json();
-    if(d && d.rates){ window._ebTaux={EUR:1, USD:1/d.rates.USD, GBP:1/d.rates.GBP}; }
-  }catch(e){}
+  // cours BCE (Frankfurter) ; repli sur open.er-api si indisponible
+  const sources=[
+    ['https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD,GBP', d=>d.rates],
+    ['https://open.er-api.com/v6/latest/EUR', d=>d.rates]
+  ];
+  for(const [u,get] of sources){
+    try{
+      const d=await (await fetch(u)).json(), t=get(d);
+      if(t && t.USD && t.GBP){ window._ebTaux={EUR:1, USD:1/t.USD, GBP:1/t.GBP}; break; }
+    }catch(e){}
+  }
   return window._ebTaux;
 }
 const ebEur=(prix,devise)=>{ const t=window._ebTaux[devise||'EUR']; return (prix==null||!t)?null:Math.round(prix*t*100)/100; };
