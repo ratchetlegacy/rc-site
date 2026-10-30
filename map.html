@@ -78,7 +78,7 @@ a{color:inherit;text-decoration:none}
 @media(max-width:680px){
   .map-stage{aspect-ratio:3/4;max-height:none}
 }
-.map-world{position:absolute;inset:0;transition:transform .5s cubic-bezier(.3,.7,.3,1);transform-origin:center center}
+.map-world{position:absolute;inset:0;z-index:1;transition:transform .5s cubic-bezier(.3,.7,.3,1);transform-origin:center center}
 .map-stars{position:absolute;inset:0}
 .map-star{position:absolute;background:#fff;border-radius:50%;animation:tw 3s infinite ease-in-out}
 @keyframes tw{0%,100%{opacity:.2}50%{opacity:1}}
@@ -125,6 +125,65 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 .foot-small{font-size:.8rem}
 @media(max-width:820px){.nav-links{display:flex;overflow-x:auto;gap:2px;max-width:60vw}.nav-burger{display:none}}
 
+/* Planete selectionnee : on assombrit le reste pour faire ressortir
+   la planete et ses lieux, et les noms des lieux passent en pastilles
+   lisibles au lieu d'un petit texte dore. */
+.map-stage.focus .map-line{opacity:.06!important}
+.map-stage.focus .map-galaxy-glow{opacity:.35}
+.map-focus-veil{position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0;transition:opacity .4s;background:radial-gradient(circle at var(--fx,50%) var(--fy,50%),transparent 0,transparent 16%,rgba(5,6,12,.72) 46%)}
+.map-stage.focus .map-focus-veil{opacity:1}
+.map-stage.focus .loc-point{z-index:4}
+.map-stage.focus .loc-dot{width:16px;height:16px;border:2px solid rgba(255,200,90,.9)}
+.map-stage.focus .loc-dot.loc-photo{width:44px;height:44px;border:2px solid var(--gold);box-shadow:0 0 0 3px rgba(10,11,20,.8),0 0 16px rgba(255,200,90,.7)}
+.map-stage.focus .loc-label{font-size:.74rem;font-weight:600;color:#fff;background:rgba(10,11,20,.88);border:1px solid rgba(255,200,90,.45);border-radius:7px;padding:2px 7px;margin-top:5px;max-width:150px;white-space:normal;word-break:normal;overflow-wrap:normal;hyphens:none;text-shadow:none}
+.map-stage.focus .loc-point:hover .loc-label{border-color:var(--gold);background:rgba(40,30,10,.95)}
+.map-stage.focus .loc-line{background:rgba(255,200,90,.55)}
+.map-stage.focus .planet-node.selected .planet-label{font-size:.85rem;background:linear-gradient(135deg,var(--purple),var(--orange));border-radius:8px;padding:2px 9px;text-shadow:none}
+
+/* Fiche detaillee de la planete, sous la carte */
+.psheet{margin-top:22px;background:var(--bg2);border:1px solid var(--line);border-radius:20px;overflow:hidden;animation:sheetIn .35s ease}
+@keyframes sheetIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.psheet-head{display:grid;grid-template-columns:minmax(0,320px) 1fr;gap:0}
+.psheet-img{background:linear-gradient(135deg,#2a1d45,#3d2410);min-height:220px;display:flex;align-items:center;justify-content:center;font-size:3.4rem}
+.psheet-img img{width:100%;height:100%;object-fit:cover;display:block}
+.psheet-body{padding:24px 26px;position:relative}
+.psheet-body .ps-tag{font-family:'Orbitron',sans-serif;font-size:.66rem;letter-spacing:.2em;color:var(--gold);margin-bottom:6px}
+.psheet-body h2{font-family:'Orbitron',sans-serif;font-size:1.6rem;line-height:1.2;margin-bottom:4px}
+.psheet-body .ps-sub{color:var(--purple-light);font-weight:600;font-size:.9rem;margin-bottom:12px}
+.psheet-body .ps-desc{color:var(--text-mid);font-size:.95rem;margin-bottom:16px}
+.ps-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--text);width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:1rem}
+.ps-facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.ps-fact{background:var(--bg3);border:1px solid var(--line);border-radius:11px;padding:9px 12px}
+.ps-fact .k{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);font-weight:600}
+.ps-fact .v{font-size:.88rem;color:var(--text);margin-top:2px}
+.ps-section{padding:20px 26px 26px;border-top:1px solid var(--line)}
+.ps-section h3{font-family:'Orbitron',sans-serif;font-size:.9rem;letter-spacing:.06em;margin-bottom:14px}
+.ps-section h3 span{color:var(--text-dim);font-family:Inter,sans-serif;font-weight:500;font-size:.8rem;margin-left:6px}
+.ps-locs{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.ps-loc{background:var(--bg3);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;transition:.16s;text-align:left;color:inherit;font:inherit;padding:0}
+.ps-loc:hover{border-color:var(--gold);transform:translateY(-2px)}
+.ps-loc .li{box-shadow:none!important;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden}
+.ps-loc .li img{width:100%;height:100%;object-fit:cover;display:block}
+.ps-loc .lb{padding:11px 13px 13px}
+.ps-loc .ln{font-weight:700;font-size:.92rem}
+.ps-loc .lt{font-size:.7rem;color:var(--gold);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin:2px 0 5px}
+.ps-loc .ld{font-size:.8rem;color:var(--text-mid);line-height:1.45}
+.ps-empty{color:var(--text-dim);font-size:.88rem;font-style:italic}
+@media(max-width:680px){
+  .psheet-head{grid-template-columns:1fr}
+  .psheet-img{min-height:180px;max-height:240px}
+  .psheet-body{padding:20px}
+  .psheet-body h2{font-size:1.3rem}
+  .ps-section{padding:18px 20px 22px}
+  .ps-locs{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .ps-loc .lb{padding:9px 10px 11px}
+  .ps-loc .ln{font-size:.82rem}
+  .ps-loc .ld{font-size:.74rem}
+  .ps-facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .map-stage.focus .loc-label{font-size:.64rem;max-width:104px;padding:2px 6px}
+  .map-stage.focus .loc-dot.loc-photo{width:36px;height:36px}
+}
+
 /* Etiquettes sur telephone. Ce bloc doit rester en fin de feuille :
    les regles .planet-label / .loc-label plus haut posent un
    white-space:nowrap qui, a specificite egale, l'emporterait sur une
@@ -167,7 +226,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 <header class="page-hero">
   <div class="tag">GALACTIC ATLAS</div>
   <h1>The <span class="grad">Galaxy</span> Map</h1>
-  <p>Explore the worlds of the Ratchet &amp; Clank universe. Tap a planet to learn more.</p>
+  <p>Explore the worlds of the Ratchet &amp; Clank universe. Tap a planet to see its places and its full file below the map.</p>
 </header>
 
 <div class="wrap">
@@ -176,9 +235,11 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <div class="map-stage" id="map-stage">
     <div class="map-stars" id="map-stars"></div>
     <div class="map-galaxy-glow"></div>
+    <div class="map-focus-veil" id="map-veil"></div>
     <div class="map-world" id="map-world"></div>
   </div>
   <div style="text-align:center;margin-top:10px"><button id="map-reset" onclick="resetMapView()" style="display:none;background:var(--bg2);border:1px solid var(--line);border-radius:100px;padding:8px 18px;color:var(--text);font-weight:600;font-size:.82rem;cursor:pointer">🔍 Reset view</button></div>
+  <div id="planet-sheet"></div>
   <div class="map-hint" id="map-hint">💡 Planets are pulled from the wiki — add or edit them from the admin.</div>
   <a href="index.html" class="back-home">← Back to home</a>
 </div>
@@ -412,7 +473,7 @@ function applyView(animate){
 }
 function resetMapView(){ viewScale=1; viewX=0; viewY=0; applyView(true); }
 function zoomToPlanet(pos){
-  viewScale=2.6;
+  viewScale=(window.innerWidth<680) ? 2 : 2.6;
   viewX=(50-pos.x)*viewScale;
   viewY=(50-pos.y)*viewScale;
   applyView(true);
@@ -478,7 +539,7 @@ function zoomToPlanet(pos){
   stage.style.cursor='grab';
 })();
 
-// show location sub-points around a planet when clicked; second click opens the full sheet
+// show location sub-points around a planet when clicked, with its file under the map; second click scrolls to the file
 let activeLocPlanet=null;
 function clearLocations(){
   document.querySelectorAll('.planet-node').forEach(n=>{
@@ -487,19 +548,25 @@ function clearLocations(){
     if(lb){ lb.style.visibility=''; lb.style.top=''; lb.style.bottom=''; }
   });
   document.getElementById('map-world').querySelectorAll('.loc-point,.loc-line').forEach(n=>n.remove());
+  document.querySelectorAll('.planet-node.selected').forEach(n=>n.classList.remove('selected'));
+  const st=document.getElementById('map-stage'); if(st) st.classList.remove('focus');
+  hideSheet();
   activeLocPlanet=null;
   resetMapView();
 }
 function toggleLocations(pt){
   const world=document.getElementById('map-world');
-  if(activeLocPlanet===pt.p){ openP(pt.p); return; }
+  if(activeLocPlanet===pt.p){ const sh=document.getElementById('planet-sheet'); if(sh) sh.scrollIntoView({behavior:'smooth',block:'start'}); return; }
   clearLocations();
   activeLocPlanet=pt.p;
   document.querySelectorAll('.planet-node').forEach(n=>{
-    n.style.opacity='.18';
+    n.style.opacity='.12';
     const lb=n.querySelector('.planet-label'); if(lb) lb.style.visibility='hidden';
   });
+  document.getElementById('map-stage').classList.add('focus');
+  renderSheet(pt.p);
   if(pt.node){
+    pt.node.classList.add('selected');
     pt.node.style.opacity='1';
     const lb=pt.node.querySelector('.planet-label');
     // le nom de la planete passe au-dessus du globe pour liberer le dessous
@@ -512,17 +579,21 @@ function toggleLocations(pt){
     locs=(pt.p.notable_locations||'').split(/[·,]/).map(s=>s.trim()).filter(Boolean)
       .map(name=>({name, _text:true}));
   }
-  if(!locs.length){ resetMapView(); openP(pt.p); return; }
-  const shown=locs.slice(0,7);
+  if(!locs.length){ return; }
+  const shown=locs.slice(0,10);
   shown.forEach((loc,i)=>{
     const ang=(i/Math.max(shown.length,1))*Math.PI*2 - Math.PI/2;
     // rayon alterne : une position sur deux est repoussee, sinon les
     // etiquettes voisines se recouvrent
     // Assez loin pour degager le globe de la planete, qui est lui
     // aussi agrandi par le zoom : a 6,2 les noms passaient dessous.
-    const rad=(i%2===0) ? 9 : 13;
-    const lx=pt.pos.x+Math.cos(ang)*rad;
-    const ly=pt.pos.y+Math.sin(ang)*rad*0.85;
+    const k=(window.innerWidth<680) ? 1.55 : 1;
+    const rad=k*((shown.length<=4) ? 11 : ((i%2===0) ? 10 : 15));
+    // On garde chaque lieu dans la partie visible de la carte zoomee,
+    // sinon les noms au bord sortaient du cadre (surtout sur telephone).
+    const half=50/viewScale, mx=(window.innerWidth<680?17:10)/viewScale, my=9/viewScale;
+    const lx=Math.max(pt.pos.x-half+mx, Math.min(pt.pos.x+half-mx, pt.pos.x+Math.cos(ang)*rad));
+    const ly=Math.max(pt.pos.y-half+my, Math.min(pt.pos.y+half-my*1.6, pt.pos.y+Math.sin(ang)*rad*0.85));
     const line=document.createElement('div'); line.className='loc-line';
     placeLine(line, pt.pos.x, pt.pos.y, lx, ly);
     world.appendChild(line);
@@ -538,6 +609,40 @@ function toggleLocations(pt){
   // Les etiquettes de lieux viennent d'etre creees, apres le zoom :
   // il faut leur appliquer la contre-echelle a leur tour.
   scaleLabels();
+}
+// ── Fiche detaillee sous la carte ──
+function hideSheet(){ const b=document.getElementById('planet-sheet'); if(b) b.innerHTML=''; }
+function factRow(k,v){ return (v&&String(v).trim()) ? '<div class="ps-fact"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div></div>' : ''; }
+function renderSheet(p){
+  const box=document.getElementById('planet-sheet'); if(!box) return;
+  const locs=locationsFor(p.id);
+  const img=(p.image_url&&p.image_url.trim())
+    ? '<img src="'+esc(p.image_url)+'" alt="'+esc(p.name)+'" onerror="this.parentNode.textContent=\'🪐\'"/>' : '🪐';
+  const facts=[
+    factRow('Galaxy', galaxyOf(p)!=='Known Worlds' ? galaxyOf(p) : ''),
+    factRow('System', p.system), factRow('Dimension', p.dimension),
+    factRow('First appearance', p.first_appearance), factRow('Inhabitants', p.inhabitants),
+    factRow('Main location', p.main_location), factRow('Notable events', p.notable_events)
+  ].join('');
+  const cards=locs.map((l,i)=>{
+    const li=(l.image_url&&l.image_url.trim())
+      ? '<img src="'+esc(l.image_url)+'" alt="" loading="lazy" onerror="this.remove()"/>' : '📍';
+    return '<button class="ps-loc" data-i="'+i+'"><div class="li" style="'+locSkin(l.name,l.loc_type)+'">'+li+'</div><div class="lb">'
+      +'<div class="ln">'+esc(l.name)+'</div>'+(l.loc_type?'<div class="lt">'+esc(l.loc_type)+'</div>':'')
+      +(l.description?'<div class="ld">'+esc(l.description)+'</div>':'')+'</div></button>';
+  }).join('');
+  box.innerHTML='<section class="psheet" aria-label="'+esc(p.name)+'">'
+    +'<div class="psheet-head"><div class="psheet-img">'+img+'</div><div class="psheet-body">'
+    +'<button class="ps-close" title="Close" onclick="clearLocations()">✕</button>'
+    +'<div class="ps-tag">PLANET FILE</div><h2>'+esc(p.name)+'</h2>'
+    +(p.subtitle?'<div class="ps-sub">'+esc(p.subtitle)+'</div>':'')
+    +(p.description?'<p class="ps-desc">'+esc(p.description)+'</p>':'')
+    +(facts?'<div class="ps-facts">'+facts+'</div>':'')
+    +'</div></div>'
+    +'<div class="ps-section"><h3>Locations<span>'+locs.length+'</span></h3>'
+    +(locs.length?'<div class="ps-locs">'+cards+'</div>':'<div class="ps-empty">No named locations for this world yet.</div>')
+    +'</div></section>';
+  box.querySelectorAll('.ps-loc').forEach(b=>b.onclick=()=>openLoc(locs[+b.dataset.i], p));
 }
 // location detail sheet
 function openLoc(loc, planet){
