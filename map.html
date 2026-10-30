@@ -612,7 +612,7 @@ function toggleLocations(pt){
 }
 // ── Fiche detaillee sous la carte ──
 function hideSheet(){ const b=document.getElementById('planet-sheet'); if(b) b.innerHTML=''; }
-function factRow(k,v){ return (v&&String(v).trim()) ? '<div class="ps-fact"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div></div>' : ''; }
+function factRow(k,v){ return (v&&String(v).trim()) ? '<div class="ps-fact"><div class="k">'+esc(k)+'</div><div class="v" data-al>'+esc(v)+'</div></div>' : ''; }
 function renderSheet(p){
   const box=document.getElementById('planet-sheet'); if(!box) return;
   const locs=locationsFor(p.id);
@@ -642,6 +642,7 @@ function renderSheet(p){
     +'<div id="ps-tabs"></div><div id="ps-pane"></div></section>';
   const locHtml=locs.length?'<div class="ps-locs">'+cards+'</div>':'<div class="ps-empty">No named locations for this world yet.</div>';
   const wire=(k,pane)=>{ if(k==='locs') pane.querySelectorAll('.ps-loc').forEach(b=>b.onclick=()=>openLoc(locs[+b.dataset.i], p)); };
+  if(window.RCD) RCD.autoLink(box,sb);
   if(window.RCD) RCD.planetTabs(sb,p,document.getElementById('ps-tabs'),document.getElementById('ps-pane'),{key:'locs',label:'📍 Locations',count:locs.length,html:locHtml},wire);
   else { document.getElementById('ps-pane').innerHTML='<div class="ps-section">'+locHtml+'</div>'; wire('locs',document.getElementById('ps-pane')); }
 }
@@ -666,7 +667,33 @@ function openP(p){
 }
 function closeP(){ document.getElementById('pmodal').classList.remove('open'); document.body.style.overflow=''; }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeP(); });
-load();
+// ── Liens depuis les onglets de detail (et #planet= / #loc= dans l'adresse) ──
+function goPlanet(n, then){
+  const p=PLANETS.find(x=>x.name===n); if(!p) return false;
+  if(galaxyOf(p)!==activeGal || (activeSystem && systemOf(p)!==activeSystem)){
+    activeGal=galaxyOf(p); activeSystem=''; renderTabs(); renderSystemTabs(); renderMap();
+  }
+  const node=[...document.querySelectorAll('.planet-node')].find(nd=>{ const lb=nd.querySelector('.planet-label'); return lb&&lb.textContent===n; });
+  if(!node) return false;
+  clearLocations(); node.click();
+  document.getElementById('map-stage').scrollIntoView({behavior:'smooth',block:'start'});
+  if(then) then(p);
+  return true;
+}
+function goLoc(n){
+  const l=LOCATIONS.find(x=>x.name===n); if(!l) return false;
+  const p=PLANETS.find(x=>x.id===l.planet_id);
+  if(p) goPlanet(p.name);
+  openLoc(l,p); return true;
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  if(window.RCD) RCD.onOpen=(k,n)=> k==='planet'?goPlanet(n) : k==='location'?goLoc(n) : false;
+});
+load().then(()=>{
+  const h=decodeURIComponent((location.hash||'').slice(1));
+  if(h.startsWith('planet=')) goPlanet(h.slice(7));
+  else if(h.startsWith('loc=')) goLoc(h.slice(4));
+});
 // On ne redessine que si la largeur change. Sur telephone la barre
 // d'adresse qui se retracte declenche un resize en hauteur a chaque
 // defilement : sans ce garde-fou, la carte se reinitialisait sans
@@ -684,7 +711,7 @@ window.addEventListener('resize', ()=>{
   }, 250);
 });
 </script>
-<script src="details-tabs.js?v=3"></script>
+<script src="details-tabs.js?v=5"></script>
 <script src="site-enhance.js"></script>
 </body>
 </html>

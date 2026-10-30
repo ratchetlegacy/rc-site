@@ -59,6 +59,14 @@
 .rd-sub{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);font-weight:700;margin:12px 0 8px}
 .rd-chips{display:flex;flex-wrap:wrap;gap:7px}
 .rd-chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--line);border-radius:100px;padding:5px 12px;font-size:.8rem;color:var(--text-mid)}
+.rd-lk{color:inherit;text-decoration:none;border-bottom:1px dashed rgba(255,176,32,.6);cursor:pointer;transition:.15s}
+.rd-lk:hover{color:var(--gold);border-bottom-style:solid}
+.rd-chip.lk,.al-chip.lk{cursor:pointer;transition:.15s}
+.al-chip.lk:hover{border-color:var(--gold)!important;color:var(--text)!important}
+.rd-chip.lk:hover{border-color:var(--gold);color:var(--text);transform:translateY(-1px)}
+[data-k="game"]{cursor:pointer}
+.rd-cv[data-k]:hover .ph{outline:2px solid var(--gold);outline-offset:2px}
+.rd-gh[data-k]:hover{color:var(--gold)}
 .rd-chip.boss{border-color:rgba(255,80,80,.5);color:#ff9a9a}
 .rd-counters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px}
 .rd-count{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:9px 14px}
@@ -105,6 +113,71 @@
     return CACHE[id]=(data&&data.details)||null;
   }
 
+  // ── Liens : chaque nom connu (fiche, personnage, lieu, jeu) devient cliquable ──
+  let SB=null, IDX=null, RX=null;
+  const NAMES={};
+  function loadIndex(){
+    if(IDX) return IDX;
+    if(!SB) return Promise.resolve();
+    const add=(name,k,extra)=>{ name=(name||'').trim(); if(name.length<4) return; const key=name.toLowerCase(); if(!NAMES[key]) NAMES[key]={k,n:name,x:extra}; };
+    IDX=Promise.all([
+      SB.from('site_wiki_entries').select('id,type,name'),
+      SB.from('site_characters').select('name'),
+      SB.from('site_locations').select('name,planet_id')
+    ]).then(([e,c,l])=>{
+      const pl={}; (e.data||[]).forEach(r=>{ if(r.type==='planet') pl[r.id]=r.name; });
+      (e.data||[]).forEach(r=>add(r.name,r.type));
+      (c.data||[]).forEach(r=>add(r.name,'character'));
+      (l.data||[]).forEach(r=>add(r.name,'location',pl[r.planet_id]||''));
+      const keys=Object.keys(NAMES).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+      if(keys.length) RX=new RegExp('(^|[^A-Za-z0-9])('+keys.join('|')+')(?![A-Za-z0-9])','gi');
+    }).catch(()=>{});
+    return IDX;
+  }
+  // Echappe le texte et entoure les noms connus d'un lien
+  function lk(t){
+    t=String(t==null?'':t);
+    if(!RX) return esc(t);
+    let out='',last=0; RX.lastIndex=0; let m;
+    while((m=RX.exec(t))){
+      const st=m.index+m[1].length, hit=NAMES[m[2].toLowerCase()];
+      out+=esc(t.slice(last,st))+'<a class="rd-lk" data-k="'+hit.k+'" data-n="'+esc(hit.n)+'"'+(hit.x?' data-x="'+esc(hit.x)+'"':'')+'>'+esc(m[2])+'</a>';
+      last=st+m[2].length;
+    }
+    return out+esc(t.slice(last));
+  }
+  // chip cliquable si elle contient au moins un lien
+  const chip=(cls,ic,t)=>{ const h=lk(t); return '<span class="rd-chip'+(cls?' '+cls:'')+(h.indexOf('rd-lk')>=0?' lk':'')+'">'+ic+' '+h+'</span>'; };
+  // Transforme en liens les textes marques data-al d'un bloc deja affiche
+  function autoLink(root,sb){
+    if(!root) return; if(sb) SB=SB||sb;
+    loadIndex().then(()=>{
+      root.querySelectorAll('[data-al]').forEach(el=>{
+        if(el.dataset.done) return; el.dataset.done='1';
+        const h=lk(el.textContent);
+        if(h.indexOf('rd-lk')<0) return;
+        el.innerHTML=h;
+        const c=el.closest('.al-chip'); if(c) c.classList.add('lk');
+      });
+    });
+  }
+  // Ouverture : la page peut fournir RCD.onOpen(kind,name,extra) ; sinon on change de page
+  function openLink(k,n,x){
+    if(window.RCD&&RCD.onOpen&&RCD.onOpen(k,n,x)) return;
+    const e=encodeURIComponent;
+    if(k==='location') location.href='map.html#loc='+e(n);
+    else if(k==='game') location.href='wiki.html#game='+e(n);
+    else if(k==='character') location.href='wiki.html#char='+e(n);
+    else location.href='wiki.html#entry='+e(k)+':'+e(n);
+  }
+  document.addEventListener('click',ev=>{
+    const t=ev.target.closest&&ev.target.closest('.rd-pane [data-k], .rd-pane .rd-chip.lk, [data-al] .rd-lk, .al-chip.lk');
+    if(!t) return;
+    const a=t.dataset.k?t:t.querySelector('[data-k]'); if(!a) return;
+    ev.preventDefault(); ev.stopPropagation();
+    openLink(a.dataset.k,a.dataset.n,a.dataset.x);
+  });
+
   // Monte une barre d'onglets. tabs: [{key,label,count,html?:string,load?:async()=>string}]
   function mount(bar,pane,tabs,onShown){
     bar.className='rd-tabs';
@@ -114,7 +187,7 @@
       const t=tabs[i];
       if(t.html!=null){ pane.innerHTML='<div class="rd-pane">'+t.html+'</div>'; onShown&&onShown(t.key,pane); return; }
       pane.innerHTML='<div class="rd-pane"><div class="rd-load"><i></i>Loading…</div></div>';
-      try{ t.html=await t.load(); }catch(e){ pane.innerHTML='<div class="rd-pane"><div class="rd-empty">Could not load this tab. Try again.</div></div>'; return; }
+      try{ await loadIndex(); t.html=await t.load(); }catch(e){ pane.innerHTML='<div class="rd-pane"><div class="rd-empty">Could not load this tab. Try again.</div></div>'; return; }
       if(bar.querySelector('.rd-tab.on')!==bar.children[i]) return;
       pane.innerHTML='<div class="rd-pane">'+t.html+'</div>'; onShown&&onShown(t.key,pane);
     };
@@ -122,7 +195,7 @@
     show(0);
   }
 
-  const gameBlock=(g,inner)=>'<div class="rd-game">'+cover(g.game)+'<div><div class="rd-gh">'+esc(gi(g.game)[0])+'<span>'+esc(gi(g.game)[1])+'</span></div>'+inner+'</div></div>';
+  const gameBlock=(g,inner)=>'<div class="rd-game"><div data-k="game" data-n="'+esc(g.game)+'" title="Open the game sheet">'+cover(g.game)+'</div><div><div class="rd-gh" data-k="game" data-n="'+esc(g.game)+'">'+esc(gi(g.game)[0])+'<span>'+esc(gi(g.game)[1])+'</span></div>'+inner+'</div></div>';
   const empty=t=>'<div class="rd-empty">'+t+'</div>';
   const BOSS=/boss|king |giant|queen|courtney gears|shellshock|gleeman|klunk|dreadship|vorselon|leviathan king/i;
 
@@ -141,7 +214,7 @@
     const gs=list(d&&d.games).filter(g=>list(g.enemies).length);
     if(!gs.length) return empty('No enemy list for this world yet.');
     return gs.map(g=>gameBlock(g,'<div class="rd-chips">'+g.enemies.map(e=>{
-      const b=BOSS.test(e); return '<span class="rd-chip'+(b?' boss':'')+'">'+(b?'👑':'👾')+' '+esc(e)+'</span>';
+      const b=BOSS.test(e); return chip(b?'boss':'',b?'👑':'👾',e);
     }).join('')+'</div>')).join('');
   }
   function planetCollect(d){
@@ -155,12 +228,12 @@
       let h=c.length?'<div class="rd-counters">'+c.join('')+'</div>':'';
       if(list(g.skill_points).length) h+='<div class="rd-sub">Skill points</div><div class="rd-chips">'+g.skill_points.map(s=>'<span class="rd-chip">⭐ '+esc(s)+'</span>').join('')+'</div>';
       if(list(g.trophies).length) h+='<div class="rd-sub">Trophies</div><div class="rd-chips">'+g.trophies.map(s=>'<span class="rd-chip">🏆 '+esc(s)+'</span>').join('')+'</div>';
-      if(list(g.equipment).length) h+='<div class="rd-sub">Weapons & gadgets found here</div><div class="rd-chips">'+g.equipment.map(s=>'<span class="rd-chip">🎒 '+esc(s)+'</span>').join('')+'</div>';
+      if(list(g.equipment).length) h+='<div class="rd-sub">Weapons & gadgets found here</div><div class="rd-chips">'+g.equipment.map(s=>chip('','🎒',s)).join('')+'</div>';
       return gameBlock(g,h);
     }).join('');
   }
   // Onglets de planete. first: onglet d'ouverture deja rendu (aperçu ou lieux).
-  function planetTabs(sb,entry,bar,pane,first,onShown){
+  function planetTabs(sb,entry,bar,pane,first,onShown){ SB=sb;
     let p=null; const get=()=>p||(p=fetchDetails(sb,entry.id));
     mount(bar,pane,[first,
       {key:'missions',label:'🎯 Missions',load:async()=>planetMissions(await get())},
@@ -176,11 +249,11 @@
     const sorted=a.slice().sort((x,y)=>(gi(x)[1]||9999)-(gi(y)[1]||9999));
     const grid=arr=>'<div class="rd-covers">'+arr.slice().sort((x,y)=>(gi(x)[1]||9999)-(gi(y)[1]||9999)).map(n=>{
       const g=gi(n);
-      return '<div class="rd-cv"><div class="ph">'+(g[2]?cover(n,'x'):'🎮')+'</div><b>'+esc(g[0])+'</b>'+esc(g[1])+'</div>';
+      return '<div class="rd-cv" data-k="game" data-n="'+esc(n)+'"><div class="ph">'+(g[2]?cover(n,'x'):'🎮')+'</div><b>'+esc(g[0])+'</b>'+esc(g[1])+'</div>';
     }).join('')+'</div>';
     let h='<div class="rd-sub" style="margin-top:0">Appears in · '+a.length+' game'+(a.length>1?'s':'')+'</div>'+grid(sorted);
     const m=list(d&&d.mentioned_in);
-    if(m.length) h+='<div class="rd-sub" style="margin-top:18px">Mentioned in</div><div class="rd-chips">'+m.map(n=>'<span class="rd-chip">💬 '+esc(gi(n)[0])+'</span>').join('')+'</div>';
+    if(m.length) h+='<div class="rd-sub" style="margin-top:18px">Mentioned in</div><div class="rd-chips">'+m.map(n=>'<span class="rd-chip lk" data-k="game" data-n="'+esc(n)+'">💬 '+esc(gi(n)[0])+'</span>').join('')+'</div>';
     return h;
   }
   function weaponEvolution(d,entry){
@@ -201,7 +274,7 @@
     }
     if(ups.length){
       h+='<div class="rd-sub" style="margin-top:20px">Upgrade in each game</div><table class="rd-shop"><thead><tr><th>Game</th><th>Becomes</th><th>Upgrade price</th></tr></thead><tbody>'
-        +ups.map(g=>'<tr><td><div class="gc">'+cover(g.game,'x')+esc(gi(g.game)[0])+'</div></td><td>'+esc(g.upgrade)+'</td><td>'+(g.upgrade_price?'<span class="rd-price">'+num(g.upgrade_price)+' bolts</span>':'—')+'</td></tr>').join('')
+        +ups.map(g=>'<tr><td><div class="gc" data-k="game" data-n="'+esc(g.game)+'">'+cover(g.game,'x')+esc(gi(g.game)[0])+'</div></td><td>'+esc(g.upgrade)+'</td><td>'+(g.upgrade_price?'<span class="rd-price">'+num(g.upgrade_price)+' bolts</span>':'—')+'</td></tr>').join('')
         +'</tbody></table>';
     }
     return h;
@@ -215,10 +288,10 @@
     return h+'<table class="rd-shop"><thead><tr><th>Game</th><th>Where to get it</th><th>Price</th><th>Ammo</th></tr></thead><tbody>'
       +gs.map(g=>{
         const ammo=g.ammo?esc(g.ammo)+(g.ammo_max&&g.ammo_max!==g.ammo?' → '+esc(g.ammo_max):'')+(g.ammo_price?' <small style="color:var(--text-dim)">('+num(g.ammo_price)+' bolts each)</small>':''):'—';
-        return '<tr><td><div class="gc">'+cover(g.game,'x')+'<div>'+esc(gi(g.game)[0])+(g.model?'<div style="color:var(--gold);font-size:.74rem;font-weight:600">'+esc(g.model)+'</div>':'')+'</div></div></td><td>'+(esc(g.where)||'—')+'</td><td>'+(g.price?'<span class="rd-price">'+num(g.price)+' bolts</span>':'<span style="color:var(--text-dim)">Free / found</span>')+'</td><td>'+ammo+'</td></tr>';
+        return '<tr><td><div class="gc">'+cover(g.game,'x')+'<div><a class="rd-lk" data-k="game" data-n="'+esc(g.game)+'">'+esc(gi(g.game)[0])+'</a>'+(g.model?'<div style="color:var(--gold);font-size:.74rem;font-weight:600">'+esc(g.model)+'</div>':'')+'</div></div></td><td>'+(lk(g.where)||'—')+'</td><td>'+(g.price?'<span class="rd-price">'+num(g.price)+' bolts</span>':'<span style="color:var(--text-dim)">Free / found</span>')+'</td><td>'+ammo+'</td></tr>';
       }).join('')+'</tbody></table>';
   }
-  function weaponTabs(sb,entry,bar,pane,first,onShown){
+  function weaponTabs(sb,entry,bar,pane,first,onShown){ SB=sb;
     let p=null; const get=()=>p||(p=fetchDetails(sb,entry.id));
     mount(bar,pane,[first,
       {key:'games',label:'🎮 Games',load:async()=>weaponGames(await get())},
@@ -231,16 +304,16 @@
   function profile(d,rows){
     let h='';
     const facts=rows.filter(r=>r[2]==='t'&&d&&d[r[0]]);
-    if(facts.length) h+='<div class="rd-chips" style="margin-bottom:6px">'+facts.map(r=>'<span class="rd-chip">'+r[3]+' <b style="color:var(--text)">'+r[1]+'</b> '+esc([].concat(d[r[0]]).join(', '))+'</span>').join('')+'</div>';
+    if(facts.length) h+='<div class="rd-chips" style="margin-bottom:6px">'+facts.map(r=>'<span class="rd-chip">'+r[3]+' <b style="color:var(--text)">'+r[1]+'</b> '+lk([].concat(d[r[0]]).join(', '))+'</span>').join('')+'</div>';
     rows.filter(r=>r[2]==='l'&&d&&list(d[r[0]]).length).forEach(r=>{
-      h+='<div class="rd-sub">'+r[1]+'</div><div class="rd-chips">'+d[r[0]].map(x=>'<span class="rd-chip">'+r[3]+' '+esc(x)+'</span>').join('')+'</div>';
+      h+='<div class="rd-sub">'+r[1]+'</div><div class="rd-chips">'+d[r[0]].map(x=>chip('',r[3],x)).join('')+'</div>';
     });
-    list(d&&d.obtained).forEach((o,i)=>{ if(!i) h+='<div class="rd-sub">How to get it</div>'; h+=gameBlock(o,'<div style="font-size:.88rem;color:var(--text-mid)">'+esc(o.where)+'</div>'); });
+    list(d&&d.obtained).forEach((o,i)=>{ if(!i) h+='<div class="rd-sub">How to get it</div>'; h+=gameBlock(o,'<div style="font-size:.88rem;color:var(--text-mid)">'+lk(o.where)+'</div>'); });
     return h||empty('No profile information yet.');
   }
   const CREATURE=[['homeworld','Homeworld','l','🪐'],['leader','Leader','l','👑'],['headquarters','Headquarters','l','🏯'],['organization','Organization','l','🏢'],['locations','Where to find them','l','📍'],['members','Notable members','l','👤'],['attacks','Attacks','l','⚔️'],['defense','Defense','l','🛡️'],['allies','Allies','l','🤝'],['enemies','Enemies','l','💢']];
   const VEHICLE=[['kind','Type','t','🚀'],['manufacturer','Maker','t','🏭'],['organization','Used by','t','🏢'],['owner','Owner','t','👤'],['role','Role','t','🎯'],['weapon','Weapons','t','💥'],['homeworld','Origin','t','🪐'],['usable_at','Where you drive it','l','🕹️'],['seen_at','Also seen at','l','👀']];
-  function simpleTabs(kind){ return function(sb,entry,bar,pane,first,onShown){
+  function simpleTabs(kind){ return function(sb,entry,bar,pane,first,onShown){ SB=sb;
     let p=null; const get=()=>p||(p=fetchDetails(sb,entry.id));
     mount(bar,pane,[first,
       {key:'games',label:'🎮 Games',load:async()=>weaponGames(await get())},
@@ -248,5 +321,5 @@
                       :{key:'specs',label:'⚙️ Specs',load:async()=>profile(await get(),VEHICLE)}
     ],onShown);
   }; }
-  window.RCD={planetTabs,weaponTabs,creatureTabs:simpleTabs('creature'),vehicleTabs:simpleTabs('vehicle'),mount};
+  window.RCD={openLink,autoLink,planetTabs,weaponTabs,creatureTabs:simpleTabs('creature'),vehicleTabs:simpleTabs('vehicle'),mount};
 })();

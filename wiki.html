@@ -323,7 +323,7 @@ function openChar(i){
     ['Species',c.species],['Height',c.height],['Age',c.age],['Homeworld',c.homeworld],
     ['First appearance',c.first_appearance],['Weapons / Gadgets',c.weapons],['Voice actor',c.voice_actor]
   ].filter(r=>r[1]&&r[1].trim());
-  const stats=rows.map(r=>`<div class="cd-row"><span class="cd-k">${r[0]}</span><span class="cd-v">${esc(r[1])}</span></div>`).join('');
+  const stats=rows.map(r=>`<div class="cd-row"><span class="cd-k">${r[0]}</span><span class="cd-v" data-al>${esc(r[1])}</span></div>`).join('');
   document.getElementById('cd-body').innerHTML=`
     <div class="cd-top">
       <div class="cd-img" style="background:linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})">${img}</div>
@@ -339,6 +339,7 @@ function openChar(i){
       ${c.quote?`<div class="cd-quote">“${esc(c.quote)}”</div>`:''}
       ${c.description?`<p class="cd-desc">${esc(c.description)}</p>`:''}
     </div>`:''}`;
+  if(window.RCD) RCD.autoLink(document.getElementById('cd-body'),sb);
   document.getElementById('char-modal').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -546,12 +547,12 @@ function openEntry(i){
     ['Galaxy',e.galaxy],['Dimension',e.dimension],['Main location',e.main_location],
     ['Inhabitants',e.inhabitants],['First appearance',e.first_appearance]
   ].filter(r=>r[1]&&r[1].trim());
-  const stats=rows.map(r=>`<div class="cd-row"><span class="cd-k">${r[0]}</span><span class="cd-v">${esc(r[1])}</span></div>`).join('');
+  const stats=rows.map(r=>`<div class="cd-row"><span class="cd-k">${r[0]}</span><span class="cd-v" data-al>${esc(r[1])}</span></div>`).join('');
   const chips=(label,val,ic)=>{
     if(!val||!val.trim()) return '';
     const items=val.split(/[·,]/).map(s=>s.trim()).filter(Boolean);
     return `<div style="margin-top:16px"><div style="font-size:.7rem;color:var(--text-dim);font-weight:700;letter-spacing:.05em;margin-bottom:8px">${label}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px">${items.map(it=>`<span style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--line);border-radius:100px;padding:6px 13px;font-size:.82rem;color:var(--text-mid)">${ic} ${esc(it)}</span>`).join('')}</div></div>`;
+      <div style="display:flex;flex-wrap:wrap;gap:8px">${items.map(it=>`<span class="al-chip" style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--line);border-radius:100px;padding:6px 13px;font-size:.82rem;color:var(--text-mid)">${ic} <span data-al>${esc(it)}</span></span>`).join('')}</div></div>`;
   };
   document.getElementById('entry-body').innerHTML=`
     <div class="cd-top">
@@ -572,6 +573,7 @@ function openEntry(i){
   else if(window.RCD && e.type==='creature') RCD.creatureTabs(sb,e,bar,pane,first);
   else if(window.RCD && e.type==='vehicle') RCD.vehicleTabs(sb,e,bar,pane,first);
   else pane.innerHTML='<div class="cd-below">'+over+'</div>';
+  if(window.RCD) RCD.autoLink(document.getElementById('entry-body'),sb);
   document.getElementById('entry-modal').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -597,6 +599,47 @@ async function loadHubImages(){
   }catch(e){}
 }
 loadHubImages();
+
+// ── Liens depuis les onglets de detail (et #entry= / #char= / #game= dans l'adresse) ──
+function gameCardFor(n){
+  const base=n.replace(/ \(2002\)$/,'');
+  return [...document.querySelectorAll('#games-list .game')].find(el=>{
+    const t=(el.querySelector('h3')||{}).textContent||'';
+    return t===n || t===base || t.endsWith(': '+base);
+  });
+}
+function openGameSheet(n){
+  closeEntry(); closeChar(); showWikiSection('games');
+  const el=gameCardFor(n); if(!el) return true;
+  if(!el.classList.contains('open')) toggleGameCard(el);
+  setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),80);
+  return true;
+}
+function openByName(k,n){
+  if(['weapon','creature','planet','vehicle'].includes(k)){
+    const i=WIKI_ENTRIES.findIndex(e=>e.type===k&&e.name===n); if(i<0) return false;
+    closeChar(); closeEntry(); openEntry(i);
+    const box=document.querySelector('#entry-modal .cd-inner'); if(box) box.scrollTop=0;
+    return true;
+  }
+  if(k==='character'){ const i=CHARS.findIndex(c=>c.name===n); if(i<0) return false; closeEntry(); openChar(i); return true; }
+  if(k==='game') return openGameSheet(n);
+  return false;
+}
+window.addEventListener('DOMContentLoaded',()=>{ if(window.RCD) RCD.onOpen=openByName; });
+(function(){
+  const h=decodeURIComponent((location.hash||'').slice(1));
+  const m=h.match(/^(entry|char|game)=(.+)$/); if(!m) return;
+  let k=m[1], n=m[2];
+  if(k==='entry'){ const j=n.indexOf(':'); k=n.slice(0,j); n=n.slice(j+1); }
+  if(k==='char') k='character';
+  let tries=0;
+  const t=setInterval(()=>{
+    const ready= k==='character'?CHARS.length : k==='game'?document.querySelector('#games-list .game') : WIKI_ENTRIES.length;
+    if(ready){ clearInterval(t); openByName(k,n); }
+    else if(++tries>60) clearInterval(t);
+  },150);
+})();
 </script>
 <!-- CHARACTER DETAIL MODAL -->
 <div class="char-modal" id="char-modal" onclick="if(event.target===this)closeChar()">
@@ -606,7 +649,7 @@ loadHubImages();
   </div>
 </div>
 
-<script src="details-tabs.js?v=3"></script>
+<script src="details-tabs.js?v=5"></script>
 <script src="site-enhance.js"></script>
 <!-- ENTRY DETAIL MODAL -->
 <div class="char-modal" id="entry-modal" onclick="if(event.target===this)closeEntry()">
