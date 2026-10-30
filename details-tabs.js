@@ -27,7 +27,7 @@
   };
   const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const gi=n=>GAMES[n]||[n,'',''];
-  const cover=(n,cls)=>{ const g=gi(n); const im=g[2]?'<img src="'+CDN+'c_fill,w_120,h_150,f_auto,q_auto/'+g[2]+'" alt="" loading="lazy" onerror="this.remove()"/>':''; return cls==='x'?im:'<div class="rd-cover">'+im+'</div>'; };
+  const cover=(n,cls)=>{ const g=gi(n); const im=g[2]?'<img src="'+CDN+g[2]+'" alt="" loading="lazy" onerror="this.remove()"/>':''; return cls==='x'?im:'<div class="rd-cover">'+im+'</div>'; };
   const num=v=>{ const n=Number(String(v).replace(/[^\d.]/g,'')); return isFinite(n)&&String(v).trim()!==''?n.toLocaleString('en-US'):esc(v); };
   const list=a=>Array.isArray(a)?a.filter(Boolean):[];
 
