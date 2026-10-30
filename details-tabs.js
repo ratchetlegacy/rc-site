@@ -145,14 +145,16 @@
     }).join('')+'</div>')).join('');
   }
   function planetCollect(d){
-    const gs=list(d&&d.games).filter(g=>g.gold_bolts||g.platinum_bolts||g.titanium_bolts||list(g.skill_points).length||list(g.equipment).length);
+    const gs=list(d&&d.games).filter(g=>g.gold_bolts||g.platinum_bolts||g.titanium_bolts||g.spybots||g.lorbs||g.zurpstones||list(g.skill_points).length||list(g.trophies).length||list(g.equipment).length);
     if(!gs.length) return empty('No collectibles listed for this world yet.');
     return gs.map(g=>{
-      const c=[['gold_bolts','🔩','Gold bolts'],['platinum_bolts','💠','Platinum bolts'],['titanium_bolts','⚙️','Titanium bolts']]
+      const c=[['gold_bolts','🔩','Gold bolts'],['platinum_bolts','💠','Platinum bolts'],['titanium_bolts','⚙️','Titanium bolts'],['spybots','🛰️','Spybots'],['lorbs','📜','Lorbs'],['zurpstones','💎','Zurpstones']]
         .filter(k=>g[k[0]]).map(k=>'<div class="rd-count">'+k[1]+'<b>'+esc(g[k[0]])+'</b><span>'+k[2]+'</span></div>');
       if(list(g.skill_points).length) c.push('<div class="rd-count">⭐<b>'+g.skill_points.length+'</b><span>Skill points</span></div>');
+      if(list(g.trophies).length) c.push('<div class="rd-count">🏆<b>'+g.trophies.length+'</b><span>Trophies</span></div>');
       let h=c.length?'<div class="rd-counters">'+c.join('')+'</div>':'';
       if(list(g.skill_points).length) h+='<div class="rd-sub">Skill points</div><div class="rd-chips">'+g.skill_points.map(s=>'<span class="rd-chip">⭐ '+esc(s)+'</span>').join('')+'</div>';
+      if(list(g.trophies).length) h+='<div class="rd-sub">Trophies</div><div class="rd-chips">'+g.trophies.map(s=>'<span class="rd-chip">🏆 '+esc(s)+'</span>').join('')+'</div>';
       if(list(g.equipment).length) h+='<div class="rd-sub">Weapons & gadgets found here</div><div class="rd-chips">'+g.equipment.map(s=>'<span class="rd-chip">🎒 '+esc(s)+'</span>').join('')+'</div>';
       return gameBlock(g,h);
     }).join('');
@@ -172,16 +174,25 @@
     const a=list(d&&d.appears_in);
     if(!a.length) return empty('No game list for this item yet.');
     const sorted=a.slice().sort((x,y)=>(gi(x)[1]||9999)-(gi(y)[1]||9999));
-    return '<div class="rd-covers">'+sorted.map(n=>{
+    const grid=arr=>'<div class="rd-covers">'+arr.slice().sort((x,y)=>(gi(x)[1]||9999)-(gi(y)[1]||9999)).map(n=>{
       const g=gi(n);
       return '<div class="rd-cv"><div class="ph">'+(g[2]?cover(n,'x'):'🎮')+'</div><b>'+esc(g[0])+'</b>'+esc(g[1])+'</div>';
     }).join('')+'</div>';
+    let h='<div class="rd-sub" style="margin-top:0">Appears in · '+a.length+' game'+(a.length>1?'s':'')+'</div>'+grid(sorted);
+    const m=list(d&&d.mentioned_in);
+    if(m.length) h+='<div class="rd-sub" style="margin-top:18px">Mentioned in</div><div class="rd-chips">'+m.map(n=>'<span class="rd-chip">💬 '+esc(gi(n)[0])+'</span>').join('')+'</div>';
+    return h;
   }
   function weaponEvolution(d,entry){
     const ev=d&&d.evolution;
     const ups=[]; list(d&&d.games).forEach(g=>{ if(g.upgrade) ups.push(g); });
-    if(!ev&&!ups.length) return empty('This item has no upgraded form.');
+    const fam=list(d&&d.family);
+    if(!ev&&!ups.length&&!fam.length) return empty('This item has no upgraded form.');
     let h='';
+    if(fam.length){
+      h+='<div class="rd-sub" style="margin-top:0">One model per game</div><ol class="rd-tl">'+fam.map(x=>'<li><b>'+esc(x.name)+'</b> <span style="color:var(--text-dim);font-size:.8rem">· '+esc(gi(x.game)[0])+' ('+esc(gi(x.game)[1])+')</span>'+(x.kind?'<div style="color:var(--text-mid);font-size:.8rem">'+esc(x.kind)+(x.upgrade?' — upgrades to <b style="color:var(--gold)">'+esc(x.upgrade)+'</b>':'')+'</div>':'')+'</li>').join('')+'</ol>';
+      return h;
+    }
     if(ev){
       const a=entry.image_url?'<img src="'+esc(entry.image_url)+'" alt="" onerror="this.remove()"/>':'🔫';
       const b=ev.image?'<img src="'+esc(ev.image)+'" alt="" onerror="this.parentNode.textContent=\'✨\'"/>':'✨';
@@ -204,7 +215,7 @@
     return h+'<table class="rd-shop"><thead><tr><th>Game</th><th>Where to get it</th><th>Price</th><th>Ammo</th></tr></thead><tbody>'
       +gs.map(g=>{
         const ammo=g.ammo?esc(g.ammo)+(g.ammo_max&&g.ammo_max!==g.ammo?' → '+esc(g.ammo_max):'')+(g.ammo_price?' <small style="color:var(--text-dim)">('+num(g.ammo_price)+' bolts each)</small>':''):'—';
-        return '<tr><td><div class="gc">'+cover(g.game,'x')+esc(gi(g.game)[0])+'</div></td><td>'+(esc(g.where)||'—')+'</td><td>'+(g.price?'<span class="rd-price">'+num(g.price)+' bolts</span>':'<span style="color:var(--text-dim)">Free / found</span>')+'</td><td>'+ammo+'</td></tr>';
+        return '<tr><td><div class="gc">'+cover(g.game,'x')+'<div>'+esc(gi(g.game)[0])+(g.model?'<div style="color:var(--gold);font-size:.74rem;font-weight:600">'+esc(g.model)+'</div>':'')+'</div></div></td><td>'+(esc(g.where)||'—')+'</td><td>'+(g.price?'<span class="rd-price">'+num(g.price)+' bolts</span>':'<span style="color:var(--text-dim)">Free / found</span>')+'</td><td>'+ammo+'</td></tr>';
       }).join('')+'</tbody></table>';
   }
   function weaponTabs(sb,entry,bar,pane,first,onShown){
@@ -216,5 +227,26 @@
     ],onShown);
   }
 
-  window.RCD={planetTabs,weaponTabs,mount};
+  // ── Creatures & vehicules ──
+  function profile(d,rows){
+    let h='';
+    const facts=rows.filter(r=>r[2]==='t'&&d&&d[r[0]]);
+    if(facts.length) h+='<div class="rd-chips" style="margin-bottom:6px">'+facts.map(r=>'<span class="rd-chip">'+r[3]+' <b style="color:var(--text)">'+r[1]+'</b> '+esc([].concat(d[r[0]]).join(', '))+'</span>').join('')+'</div>';
+    rows.filter(r=>r[2]==='l'&&d&&list(d[r[0]]).length).forEach(r=>{
+      h+='<div class="rd-sub">'+r[1]+'</div><div class="rd-chips">'+d[r[0]].map(x=>'<span class="rd-chip">'+r[3]+' '+esc(x)+'</span>').join('')+'</div>';
+    });
+    list(d&&d.obtained).forEach((o,i)=>{ if(!i) h+='<div class="rd-sub">How to get it</div>'; h+=gameBlock(o,'<div style="font-size:.88rem;color:var(--text-mid)">'+esc(o.where)+'</div>'); });
+    return h||empty('No profile information yet.');
+  }
+  const CREATURE=[['homeworld','Homeworld','l','🪐'],['leader','Leader','l','👑'],['headquarters','Headquarters','l','🏯'],['organization','Organization','l','🏢'],['locations','Where to find them','l','📍'],['members','Notable members','l','👤'],['attacks','Attacks','l','⚔️'],['defense','Defense','l','🛡️'],['allies','Allies','l','🤝'],['enemies','Enemies','l','💢']];
+  const VEHICLE=[['kind','Type','t','🚀'],['manufacturer','Maker','t','🏭'],['organization','Used by','t','🏢'],['owner','Owner','t','👤'],['role','Role','t','🎯'],['weapon','Weapons','t','💥'],['homeworld','Origin','t','🪐'],['usable_at','Where you drive it','l','🕹️'],['seen_at','Also seen at','l','👀']];
+  function simpleTabs(kind){ return function(sb,entry,bar,pane,first,onShown){
+    let p=null; const get=()=>p||(p=fetchDetails(sb,entry.id));
+    mount(bar,pane,[first,
+      {key:'games',label:'🎮 Games',load:async()=>weaponGames(await get())},
+      kind==='creature'?{key:'profile',label:'🧬 Profile',load:async()=>profile(await get(),CREATURE)}
+                      :{key:'specs',label:'⚙️ Specs',load:async()=>profile(await get(),VEHICLE)}
+    ],onShown);
+  }; }
+  window.RCD={planetTabs,weaponTabs,creatureTabs:simpleTabs('creature'),vehicleTabs:simpleTabs('vehicle'),mount};
 })();

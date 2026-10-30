@@ -569,6 +569,8 @@ function openEntry(i){
   const first={key:'over',label:'📖 Overview',html:over||'<div class="rd-empty">No description yet.</div>'};
   if(window.RCD && e.type==='weapon') RCD.weaponTabs(sb,e,bar,pane,first);
   else if(window.RCD && e.type==='planet') RCD.planetTabs(sb,e,bar,pane,first);
+  else if(window.RCD && e.type==='creature') RCD.creatureTabs(sb,e,bar,pane,first);
+  else if(window.RCD && e.type==='vehicle') RCD.vehicleTabs(sb,e,bar,pane,first);
   else pane.innerHTML='<div class="cd-below">'+over+'</div>';
   document.getElementById('entry-modal').classList.add('open');
   document.body.style.overflow='hidden';
