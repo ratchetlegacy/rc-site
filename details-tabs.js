@@ -168,7 +168,7 @@
     function render(){
       const g=D.games[gi_], S=steps(g), st=S[lv], evo=st.evo;
       const maxP=Math.max(1,...S.map(x=>x.power||0)), maxA=Math.max(1,...S.map(x=>x.ammo||0));
-      const img=(evo&&D.ev.image&&(!g.upgrade||g.upgrade===D.ev.to))?D.ev.image:D.entry.image_url;
+      const img=evo?(g.upgrade_image||((D.ev.image&&(!g.upgrade||g.upgrade===D.ev.to))?D.ev.image:null)||D.entry.image_url):D.entry.image_url;
       const name=evo?(g.upgrade||D.ev.to||D.entry.name):D.entry.name;
       const label=st.lv!=null?'V'+st.lv:(evo?'MAX':'BASE');
       const bar=(k,ic,lab,max)=>st[k]!=null?'<div class="lv-stat"><span>'+ic+' '+lab+'</span><div class="lv-bar"><i style="width:'+Math.round(st[k]/max*100)+'%"></i></div><b>'+fmt(st[k])+'</b></div>':'';
@@ -196,6 +196,7 @@
     }
     function play(){ timer=setInterval(()=>{ const S=steps(D.games[gi_]); if(lv>=S.length-1){ stop(); render(); return; } go(lv+1); },900); go(lv); }
     function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+    D.games.forEach(x=>{ if(x.upgrade_image){ const im=new Image(); im.src=x.upgrade_image; } });
     render();
   }
 
@@ -363,7 +364,7 @@
     }
     if(ups.length){
       h+='<div class="rd-sub" style="margin-top:20px">Upgrade in each game</div><table class="rd-shop"><thead><tr><th>Game</th><th>Becomes</th><th>Upgrade price</th></tr></thead><tbody>'
-        +ups.map(g=>'<tr><td><div class="gc" data-k="game" data-n="'+esc(g.game)+'">'+cover(g.game,'x')+esc(gi(g.game)[0])+'</div></td><td>'+esc(g.upgrade)+(g.upgrade_where?'<div style="font-size:.74rem;color:var(--text-dim);margin-top:3px">📍 '+lk(g.upgrade_where)+'</div>':'')+'</td><td>'+(g.upgrade_price?'<span class="rd-price">'+num(g.upgrade_price)+' bolts</span>':'—')+(g.upgrade_gold_bolts?'<div class="lv-gold" style="margin-top:3px">+ 🔩 '+esc(g.upgrade_gold_bolts)+' gold bolts</div>':'')+'</td></tr>').join('')
+        +ups.map(g=>'<tr><td><div class="gc" data-k="game" data-n="'+esc(g.game)+'">'+cover(g.game,'x')+esc(gi(g.game)[0])+'</div></td><td>'+(g.upgrade_image?'<img src="'+esc(g.upgrade_image)+'" alt="" loading="lazy" onerror="this.remove()" style="width:44px;height:44px;object-fit:contain;vertical-align:middle;margin-right:8px"/>':'')+esc(g.upgrade)+(g.upgrade_where?'<div style="font-size:.74rem;color:var(--text-dim);margin-top:3px">📍 '+lk(g.upgrade_where)+'</div>':'')+'</td><td>'+(g.upgrade_price?'<span class="rd-price">'+num(g.upgrade_price)+' bolts</span>':'—')+(g.upgrade_gold_bolts?'<div class="lv-gold" style="margin-top:3px">+ 🔩 '+esc(g.upgrade_gold_bolts)+' gold bolts</div>':'')+'</td></tr>').join('')
         +'</tbody></table>';
     }
     return h;
