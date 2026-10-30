@@ -119,6 +119,16 @@
 @keyframes lvFlash{0%{opacity:1}100%{opacity:0}}
 @keyframes lvEvo{0%{transform:scale(.6) rotate(-8deg);filter:brightness(3)}60%{transform:scale(1.12)}100%{transform:none}}
 @media(max-width:640px){.lv-stage{grid-template-columns:1fr;gap:10px}.lv-img{height:130px}.lv-stat{grid-template-columns:76px 1fr 56px}}
+.fm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.fm-card{background:var(--bg3);border:1px solid var(--line);border-radius:14px;padding:12px;font-size:.84rem}
+.fm-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.fm-im{flex:1;height:96px;display:flex;align-items:center;justify-content:center;font-size:2rem;background:radial-gradient(circle,rgba(123,79,212,.18),transparent 70%);border-radius:10px}
+.fm-im img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 6px 12px rgba(0,0,0,.45))}
+.fm-arr{color:var(--gold);font-size:1.1rem}
+.fm-up{color:var(--gold);font-size:.76rem;font-weight:600;margin-top:2px}
+.fm-g{color:var(--text-mid);font-size:.76rem;margin-top:4px}
+.fm-g:hover{color:var(--gold)}
+.fm-k{color:var(--text-dim);font-size:.74rem;margin-top:2px}
 .rd-shop{width:100%;border-collapse:collapse;font-size:.84rem}
 .rd-shop th{text-align:left;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);padding:0 10px 8px;font-weight:700}
 .rd-shop td{padding:10px;border-top:1px solid var(--line);vertical-align:top;color:var(--text-mid)}
@@ -352,7 +362,8 @@
     if(!ev&&!ups.length&&!fam.length) return empty('This item has no upgraded form.');
     let h='';
     if(fam.length){
-      h+='<div class="rd-sub" style="margin-top:0">One model per game</div><ol class="rd-tl">'+fam.map(x=>'<li><b>'+esc(x.name)+'</b> <span style="color:var(--text-dim);font-size:.8rem">· '+esc(gi(x.game)[0])+' ('+esc(gi(x.game)[1])+')</span>'+(x.kind?'<div style="color:var(--text-mid);font-size:.8rem">'+esc(x.kind)+(x.upgrade?' — upgrades to <b style="color:var(--gold)">'+esc(x.upgrade)+'</b>':'')+'</div>':'')+'</li>').join('')+'</ol>';
+      const pic=(u,alt)=>'<div class="fm-im">'+(u?'<img src="'+esc(u)+'" alt="'+esc(alt)+'" loading="lazy" onerror="this.remove()"/>':'🔫')+'</div>';
+    h+='<div class="rd-sub" style="margin-top:0">One model per game</div><div class="fm-grid">'+fam.map(x=>'<div class="fm-card"><div class="fm-row">'+pic(x.image,x.name)+(x.upgrade?'<span class="fm-arr">➜</span>'+pic(x.upgrade_image||x.image,x.upgrade):'')+'</div><b>'+esc(x.name)+'</b>'+(x.upgrade?'<div class="fm-up">⬆️ '+esc(x.upgrade)+'</div>':'')+'<div class="fm-g" data-k="game" data-n="'+esc(x.game)+'">'+esc(gi(x.game)[0])+' · '+esc(gi(x.game)[1])+'</div>'+(x.kind?'<div class="fm-k">'+esc(x.kind)+'</div>':'')+'</div>').join('')+'</div>';
       return h;
     }
     // Animation de montee de niveau : un jeu a la fois
