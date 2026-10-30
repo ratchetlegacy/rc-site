@@ -3043,6 +3043,14 @@ async function ebVoir(aid, fid){
     +(d.lieu?'<span class="eb-chip">📍 '+esc(d.lieu)+'</span>':'')
     +(d.vendeur?'<span class="eb-chip">👤 '+esc(d.vendeur.nom)+(d.vendeur.avis?' · '+esc(d.vendeur.avis)+' % positifs':'')+'</span>':'')
     +'</div>'
+    +(()=>{ // code-barres de l'annonce comparé à celui de la fiche
+        const c=(d.caracteristiques||[]).find(x=>/^(upc|ean|gtin|isbn)/i.test(x.nom));
+        if(!c) return '';
+        const v=String(c.valeur).replace(/\D/g,''), fb=String(f.barcode||'').replace(/\D/g,'');
+        if(!fb) return '<div class="eb-chips" style="margin:4px 0"><span class="eb-chip">code-barres annonce '+esc(c.valeur)+' · fiche sans code</span></div>';
+        const ok=v.replace(/^0+/,'')===fb.replace(/^0+/,'');
+        return '<div class="eb-chips" style="margin:4px 0"><span class="eb-chip '+(ok?'ok':'warn')+'">'+(ok?'✓ code-barres identique à la fiche':'⚠ code-barres différent de la fiche ('+esc(c.valeur)+' / '+esc(f.barcode)+')')+'</span></div>';
+      })()
     +(d.etat_detail?'<div class="vf-note" style="margin:6px 0"><b>État selon le vendeur :</b> '+esc(d.etat_detail)+'</div>':'')
     +(d.caracteristiques&&d.caracteristiques.length?'<dl class="eb-aspects">'+d.caracteristiques.map(c=>'<dt>'+esc(c.nom)+'</dt><dd>'+esc(c.valeur)+'</dd>').join('')+'</dl>':'')
     +(d.description?'<div class="eb-desc">'+esc(d.description)+'</div>':'')
