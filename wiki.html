@@ -121,12 +121,12 @@ a{color:inherit;text-decoration:none}
 .vh-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
 .chars.hangar{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 .char.vh{padding:0;text-align:left;overflow:hidden;position:relative;background:linear-gradient(180deg,#151b36,#0d1020);border-color:rgba(123,79,212,.35)}
-.char.vh:hover{border-color:var(--gold);box-shadow:0 10px 30px -10px rgba(255,176,32,.45)}
+.char.vh:hover{border-color:rgb(var(--g));box-shadow:0 10px 30px -10px rgba(var(--g),.5)}
 .vh .bay{height:156px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;
-  background:radial-gradient(ellipse 60% 30% at 50% 88%,rgba(255,176,32,.32),transparent 70%),
-  repeating-linear-gradient(0deg,rgba(123,79,212,.13) 0 1px,transparent 1px 24px),
-  repeating-linear-gradient(90deg,rgba(123,79,212,.13) 0 1px,transparent 1px 24px),#0b0e1d}
-.vh .bay::after{content:'';position:absolute;left:12%;right:12%;bottom:14px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(255,176,32,.7),transparent)}
+  background:radial-gradient(ellipse 60% 30% at 50% 88%,rgba(var(--g),.34),transparent 70%),
+  repeating-linear-gradient(0deg,rgba(var(--l),.13) 0 1px,transparent 1px 24px),
+  repeating-linear-gradient(90deg,rgba(var(--l),.13) 0 1px,transparent 1px 24px),#0b0e1d}
+.vh .bay::after{content:'';position:absolute;left:12%;right:12%;bottom:14px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(var(--g),.75),transparent)}
 .vh .bay img{max-width:86%;max-height:124px;object-fit:contain;filter:drop-shadow(0 12px 14px rgba(0,0,0,.65));transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 .vh .bay img.shot{max-width:100%;max-height:none;width:100%;height:100%;object-fit:cover;filter:none}
 .vh:hover .bay img{transform:translateY(-7px) scale(1.05)}
@@ -180,12 +180,25 @@ a{color:inherit;text-decoration:none}
 .cd-inner{position:relative;max-width:760px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:20px;overflow:hidden;max-height:90vh;overflow-y:auto;display:block}
 .cd-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.5);border:none;color:#fff;width:36px;height:36px;border-radius:10px;font-size:1.1rem;cursor:pointer;z-index:3}
 .cd-top{display:grid;grid-template-columns:230px 1fr;gap:0}
+/* Themes des baies : --g = halo, --l = grille */
+.vh,.vh-bigbay{--g:255,176,32;--l:123,79,212}
+.t-weapon{--g:255,107,26;--l:255,107,26}
+.t-gadget{--g:40,200,255;--l:40,160,255}
+.t-creature{--g:90,220,120;--l:60,180,110}
+.t-planet{--g:160,110,255;--l:123,79,212}
+.t-char{--g:255,176,32;--l:255,120,180}
+.vh .tag,.vh-bigbay .tag{border-color:rgba(var(--g),.5);color:rgb(var(--g))}
+.t-planet .bay,.vh-bigbay.t-planet{background:radial-gradient(1px 1px at 12% 20%,#fff,transparent),radial-gradient(1px 1px at 70% 30%,#fff,transparent),radial-gradient(1.5px 1.5px at 40% 75%,#fff,transparent),radial-gradient(1px 1px at 85% 80%,#fff,transparent),radial-gradient(1px 1px at 25% 60%,#cfc6ff,transparent),radial-gradient(ellipse at 50% 50%,rgba(var(--g),.25),transparent 70%),#080a18}
+.t-planet .bay::after,.vh-bigbay.t-planet::after{display:none}
+.t-char .bay{height:190px}.t-char .bay img{max-height:170px}
+.chars.hangar.small{grid-template-columns:repeat(auto-fill,minmax(205px,1fr))}
+.chars.hangar.small .bay{height:130px}.chars.hangar.small .bay img{max-height:104px}
 .cd-top.vh-top{grid-template-columns:1fr}
 .vh-bigbay{height:300px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:18px 18px 0 0;
-  background:radial-gradient(ellipse 55% 28% at 50% 88%,rgba(255,176,32,.38),transparent 70%),
-  repeating-linear-gradient(0deg,rgba(123,79,212,.14) 0 1px,transparent 1px 28px),
-  repeating-linear-gradient(90deg,rgba(123,79,212,.14) 0 1px,transparent 1px 28px),#0b0e1d}
-.vh-bigbay::after{content:'';position:absolute;left:15%;right:15%;bottom:22px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(255,176,32,.8),transparent)}
+  background:radial-gradient(ellipse 55% 28% at 50% 88%,rgba(var(--g),.4),transparent 70%),
+  repeating-linear-gradient(0deg,rgba(var(--l),.14) 0 1px,transparent 1px 28px),
+  repeating-linear-gradient(90deg,rgba(var(--l),.14) 0 1px,transparent 1px 28px),#0b0e1d}
+.vh-bigbay::after{content:'';position:absolute;left:15%;right:15%;bottom:22px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(var(--g),.85),transparent)}
 .vh-bigbay img{max-width:80%;max-height:240px;object-fit:contain;filter:drop-shadow(0 16px 18px rgba(0,0,0,.7));animation:vhFloat 4s ease-in-out infinite}
 .vh-bigbay img.shot{max-width:100%;max-height:none;width:100%;height:100%;object-fit:cover;filter:none;animation:none}
 .vh-bigbay .ph{font-size:4rem;opacity:.7}
@@ -364,9 +377,9 @@ async function loadChars(){
         const av = (c.image_url&&c.image_url.trim())
           ? `<div class="av"><img src="${esc(c.image_url)}" alt="" style="object-position:${pos}" onerror="this.parentNode.textContent='${esc(c.emoji||'🦊')}';this.parentNode.style.background='linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})'"/></div>`
           : `<div class="av" style="background:linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})">${esc(c.emoji||'🦊')}</div>`;
-        return `<div class="char" data-games="${esc('|'+(c.games||[]).join('|')+'|')}" style="cursor:pointer" onclick="openChar(${i})">${av}<h3>${esc(c.name)}</h3>${c.role?`<div class="role">${esc(c.role)}</div>`:''}${c.description?`<p>${esc(c.description)}</p>`:''}</div>`;
+        return bayCard({theme:'char',name:c.name,tag:(c.role||'').split(' · ')[0],desc:c.description,img:c.image_url,games:c.games,ic:c.emoji||'🦊',click:'openChar('+i+')'});
       }).join('');
-      return `<div class="char-group"><div class="char-group-title">${CAT_LABELS[cat]||('✨ '+esc(cat))}</div><div class="chars">${cards}</div></div>`;
+      return `<div class="char-group"><div class="char-group-title">${CAT_LABELS[cat]||('✨ '+esc(cat))}</div><div class="chars hangar">${cards}</div></div>`;
     }).join('');
     buildGameFilter('characters');
   }catch(e){
@@ -384,8 +397,8 @@ function openChar(i){
   ].filter(r=>r[1]&&r[1].trim());
   const stats=rows.map(r=>`<div class="cd-row"><span class="cd-k">${r[0]}</span><span class="cd-v" data-al>${esc(r[1])}</span></div>`).join('');
   document.getElementById('cd-body').innerHTML=`
-    <div class="cd-top">
-      <div class="cd-img" style="background:linear-gradient(135deg,${esc(c.color1||'#7B4FD4')},${esc(c.color2||'#FF6B1A')})">${img}</div>
+    <div class="cd-top vh-top">
+      <div class="vh-bigbay t-char">${c.role?`<span class="tag">${esc((c.role||'').split(' · ')[0])}</span>`:''}${bayImg(c.image_url,'char',c.name,null,c.emoji||'🦊')}</div>
       <div class="cd-top-info">
         <div>
           <h2>${esc(c.name)}</h2>
@@ -629,15 +642,7 @@ function renderHangar(list){
   grid.className='hangar-wrap';
   const G={}; VH_GROUPS.forEach(g=>G[g[0]]=[]); G.other=[];
   list.forEach(e=>{ const g=VH_GROUPS.find(g=>g[3].test(e.name)); (g?G[g[0]]:G.other).push(e); });
-  const cov=n=>{ const g=(typeof GF_GAMES!=='undefined'?GF_GAMES:[]).find(x=>x[0]===n); return g&&g[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+g[2]+'" alt="'+esc(g[1])+'" title="'+esc(g[1])+'" loading="lazy" onerror="this.remove()"/>':''; };
-  const card=e=>{
-    const idx=WIKI_ENTRIES.indexOf(e), gs=e.games||[];
-    const img=(e.image_url&&e.image_url.trim())?'<img'+(VH_SHOT.test(e.name)?' class="shot"':'')+' src="'+esc(e.image_url)+'" alt="" loading="lazy" onerror="this.outerHTML=\'<span class=ph>🚀</span>\'"/>':'<span class="ph">🚀</span>';
-    return '<div class="char vh" data-games="'+esc('|'+gs.join('|')+'|')+'" style="cursor:pointer" onclick="openEntry('+idx+')">'
-      +'<div class="bay">'+(e.subtitle?'<span class="tag">'+esc(e.subtitle)+'</span>':'')+img+'</div>'
-      +'<div class="body"><h3>'+esc(e.name)+'</h3>'+(e.description?'<p>'+esc(e.description)+'</p>':'')
-      +(gs.length?'<div class="gms">'+gs.slice(0,7).map(cov).join('')+(gs.length>7?'<span>+'+(gs.length-7)+'</span>':'')+'</div>':'')+'</div></div>';
-  };
+  const card=e=>bayCard({theme:'vehicle',name:e.name,tag:e.subtitle,desc:e.description,img:e.image_url,pos:e.img_pos,games:e.games,click:'openEntry('+WIKI_ENTRIES.indexOf(e)+')'});
   grid.innerHTML=VH_GROUPS.concat([['other','✨','Other rides']]).filter(g=>G[g[0]].length).map(g=>
     '<div class="char-group vh-group"><div class="vh-head"><span class="ic">'+g[1]+'</span>'+g[2]+'<small>'+G[g[0]].length+'</small></div><div class="chars hangar">'+G[g[0]].map(card).join('')+'</div></div>').join('');
 }
@@ -645,19 +650,21 @@ function renderHangar(list){
 function renderEntries(gridId, list){
   const grid=document.getElementById(gridId); if(!grid) return;
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Coming soon!</div>'; return; }
-  grid.innerHTML=list.map(e=>{
-    const idx=WIKI_ENTRIES.indexOf(e);
-    const pos=esc(e.img_pos||'center');
-    const av=(e.image_url&&e.image_url.trim())
-      ? `<div class="av"><img src="${esc(e.image_url)}" alt="" style="object-position:${pos}" onerror="this.parentNode.textContent='📦'"/></div>`
-      : `<div class="av" style="background:linear-gradient(135deg,#7B4FD4,#FF6B1A);font-size:2rem">${gridId==='weapons-grid'?'🔫':gridId==='gadgets-grid'?'🧰':gridId==='creatures-grid'?'👽':gridId==='planets-grid'?'🪐':'🚀'}</div>`;
-    return `<div class="char" data-games="${esc('|'+(e.games||[]).join('|')+'|')}" style="cursor:pointer" onclick="openEntry(${idx})">${av}<h3>${esc(e.name)}</h3>${e.subtitle?`<div class="role">${esc(e.subtitle)}</div>`:''}${e.description?`<p>${esc(e.description)}</p>`:''}</div>`;
-  }).join('');
+  grid.classList.add('hangar'); if(gridId==='weapons-grid'||gridId==='gadgets-grid') grid.classList.add('small');
+  grid.innerHTML=list.map(e=>bayCard({theme:bayTheme(e),name:e.name,tag:e.subtitle,desc:e.description,img:e.image_url,pos:e.img_pos,games:e.games,click:'openEntry('+WIKI_ENTRIES.indexOf(e)+')'})).join('');
 }
-function vhBay(e){
-  const im=(e.image_url&&e.image_url.trim())?'<img'+(VH_SHOT.test(e.name)?' class="shot"':'')+' src="'+esc(e.image_url)+'" alt="" onerror="this.outerHTML=\'<span class=ph>🚀</span>\'"/>':'<span class="ph">🚀</span>';
-  return '<div class="vh-bigbay">'+(e.subtitle?'<span class="tag">'+esc(e.subtitle)+'</span>':'')+im+'</div>';
+// Baie commune (cartes et fiches) : theme selon le type
+const BAY_IC={vehicle:'🚀',weapon:'🔫',gadget:'🧰',creature:'👽',planet:'🪐',char:'🦊'};
+function bayTheme(e){ return e.type==='weapon'&&e.category==='gadget'?'gadget':e.type; }
+function bayImg(url,theme,name,pos,ic){
+  const shot=theme==='planet'||(theme==='vehicle'&&VH_SHOT.test(name||''));
+  return (url&&url.trim())?'<img'+(shot?' class="shot"':'')+' src="'+esc(url)+'" alt="" loading="lazy"'+(shot&&pos?' style="object-position:'+esc(pos)+'"':'')+' onerror="this.outerHTML=\'<span class=ph>'+(ic||BAY_IC[theme]||'✨')+'</span>\'"/>':'<span class="ph">'+(ic||BAY_IC[theme]||'✨')+'</span>';
 }
+function vhBay(e){ const t=bayTheme(e); return '<div class="vh-bigbay t-'+t+'">'+(e.subtitle?'<span class="tag">'+esc(e.subtitle)+'</span>':'')+bayImg(e.image_url,t,e.name,e.img_pos)+'</div>'; }
+function gamesMini(gs){ return (gs&&gs.length)?'<div class="gms">'+gs.slice(0,7).map(n=>{ const g=GF_GAMES.find(x=>x[0]===n); return g&&g[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+g[2]+'" alt="" title="'+esc(g[1])+'" loading="lazy" onerror="this.remove()"/>':''; }).join('')+(gs.length>7?'<span>+'+(gs.length-7)+'</span>':'')+'</div>':''; }
+function bayCard(o){ return '<div class="char vh t-'+o.theme+'" data-games="'+esc('|'+(o.games||[]).join('|')+'|')+'" style="cursor:pointer" onclick="'+o.click+'">'
+  +'<div class="bay">'+(o.tag?'<span class="tag">'+esc(o.tag)+'</span>':'')+bayImg(o.img,o.theme,o.name,o.pos,o.ic)+'</div>'
+  +'<div class="body"><h3>'+esc(o.name)+'</h3>'+(o.desc?'<p>'+esc(o.desc)+'</p>':'')+gamesMini(o.games)+'</div></div>'; }
 function openEntry(i){
   const e=WIKI_ENTRIES[i]; if(!e) return;
   const img=(e.image_url&&e.image_url.trim())
@@ -675,8 +682,8 @@ function openEntry(i){
       <div style="display:flex;flex-wrap:wrap;gap:8px">${items.map(it=>`<span class="al-chip" style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--line);border-radius:100px;padding:6px 13px;font-size:.82rem;color:var(--text-mid)">${ic} <span data-al>${esc(it)}</span></span>`).join('')}</div></div>`;
   };
   document.getElementById('entry-body').innerHTML=`
-    <div class="cd-top${e.type==='vehicle'?' vh-top':''}">
-      ${e.type==='vehicle'?vhBay(e):`<div class="cd-img" style="background:linear-gradient(135deg,#2a1d45,#3d2410)">${img}</div>`}
+    <div class="cd-top vh-top">
+      ${vhBay(e)}
       <div class="cd-top-info">
         <div><h2>${esc(e.name)}</h2>${e.subtitle?`<div class="cd-role">${esc(e.subtitle)}</div>`:''}</div>
         ${stats?`<div class="cd-stats">${stats}</div>`:''}
