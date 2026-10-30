@@ -100,6 +100,7 @@
 .lv-stat b{text-align:right;color:var(--text);font-variant-numeric:tabular-nums}
 .lv-bar{height:9px;background:rgba(255,255,255,.07);border-radius:9px;overflow:hidden}
 .lv-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--purple,#7B4FD4),var(--gold,#FFB020));border-radius:9px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.lv-gold{color:#ffd24a;font-weight:700;text-shadow:0 0 10px rgba(255,200,60,.45)}
 .lv-xp{font-size:.78rem;color:var(--text-dim);margin-top:4px}
 .lv-dots{display:flex;gap:6px;margin:14px 0 12px;flex-wrap:wrap}
 .lv-dot{width:22px;height:8px;border-radius:5px;border:0;background:rgba(255,255,255,.12);cursor:pointer;padding:0}
@@ -178,7 +179,7 @@
         +bar('power','💥','Damage',maxP)+bar('ammo','🎯','Ammo',maxA)
         +(st.exp!=null?'<div class="lv-xp">XP to next level: <b>'+fmt(st.exp)+'</b></div>':'')
         +(st.mod?'<div class="lv-xp">Mod at this level: <b>'+esc(st.mod)+'</b></div>':'')
-        +(evo&&g.upgrade_price&&!(list(g.levels).length>1)?'<div class="lv-xp">Upgrade price: <b style="color:var(--gold)">'+fmt(String(g.upgrade_price).replace(/\D/g,''))+' bolts</b></div>':'')
+        +(evo&&g.upgrade_price&&!(list(g.levels).length>1)?'<div class="lv-xp">Upgrade price: <b style="color:var(--gold)">'+fmt(String(g.upgrade_price).replace(/\D/g,''))+' bolts</b>'+(g.upgrade_gold_bolts?' + <b class="lv-gold">🔩 '+esc(g.upgrade_gold_bolts)+' gold bolts</b>':'')+'</div>'+(g.upgrade_where?'<div class="lv-xp">Where: '+lk(g.upgrade_where)+'</div>':''):'')
         +'<div class="lv-dots">'+S.map((x,i)=>'<button class="lv-dot'+(i<=lv?' on':'')+(x.evo?' up':'')+'" data-s="'+i+'" title="'+(x.lv!=null?'V'+x.lv:(x.evo?'Upgraded':'Base'))+'"></button>').join('')+'</div>'
         +'<div class="lv-ctrl"><button class="lv-play">'+(timer?'⏸ Pause':(lv>=S.length-1?'↺ Replay':'▶ Level up'))+'</button><button class="lv-step" '+(lv>=S.length-1?'disabled':'')+'>+1</button></div>'
         +'</div></div>';
@@ -362,7 +363,7 @@
     }
     if(ups.length){
       h+='<div class="rd-sub" style="margin-top:20px">Upgrade in each game</div><table class="rd-shop"><thead><tr><th>Game</th><th>Becomes</th><th>Upgrade price</th></tr></thead><tbody>'
-        +ups.map(g=>'<tr><td><div class="gc" data-k="game" data-n="'+esc(g.game)+'">'+cover(g.game,'x')+esc(gi(g.game)[0])+'</div></td><td>'+esc(g.upgrade)+'</td><td>'+(g.upgrade_price?'<span class="rd-price">'+num(g.upgrade_price)+' bolts</span>':'—')+'</td></tr>').join('')
+        +ups.map(g=>'<tr><td><div class="gc" data-k="game" data-n="'+esc(g.game)+'">'+cover(g.game,'x')+esc(gi(g.game)[0])+'</div></td><td>'+esc(g.upgrade)+(g.upgrade_where?'<div style="font-size:.74rem;color:var(--text-dim);margin-top:3px">📍 '+lk(g.upgrade_where)+'</div>':'')+'</td><td>'+(g.upgrade_price?'<span class="rd-price">'+num(g.upgrade_price)+' bolts</span>':'—')+(g.upgrade_gold_bolts?'<div class="lv-gold" style="margin-top:3px">+ 🔩 '+esc(g.upgrade_gold_bolts)+' gold bolts</div>':'')+'</td></tr>').join('')
         +'</tbody></table>';
     }
     return h;
