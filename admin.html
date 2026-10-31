@@ -463,6 +463,8 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
       <input type="text" id="wi-weapons" placeholder="https://..."/>
       <label>Creatures card</label>
       <input type="text" id="wi-creatures" placeholder="https://..."/>
+      <label>Bosses card</label>
+      <input type="text" id="wi-bosses" placeholder="https://..."/>
       <label>Planets card</label>
       <input type="text" id="wi-planets" placeholder="https://..."/>
       <label>Vehicles card</label>
@@ -1102,13 +1104,13 @@ async function loadWikiHubImages(){
   try{
     const {data}=await sb.from('site_settings').select('key,value');
     const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
-    ['games','characters','weapons','creatures','planets','vehicles','lore'].forEach(k=>{
+    ['games','characters','weapons','creatures','bosses','planets','vehicles','lore'].forEach(k=>{
       const el=document.getElementById('wi-'+k); if(el) el.value=S['wiki_img_'+k]||'';
     });
   }catch(e){}
 }
 async function saveWikiHubImages(){
-  const rows=['games','characters','weapons','creatures','planets','vehicles','lore'].map(k=>
+  const rows=['games','characters','weapons','creatures','bosses','planets','vehicles','lore'].map(k=>
     ({key:'wiki_img_'+k, value:document.getElementById('wi-'+k).value.trim()}));
   const {error}=await sb.from('site_settings').upsert(rows);
   if(error){ showMsg('wikihub-msg',error.message,false); return; }
