@@ -177,6 +177,22 @@ a{color:inherit;text-decoration:none}
 
 .back-home{display:inline-flex;align-items:center;gap:8px;margin:40px 0;color:var(--text-dim);font-weight:600;transition:.15s}
 /* Wiki hub */
+.ws{position:relative;max-width:640px;margin:22px auto 6px;z-index:20}
+.ws input{width:100%;box-sizing:border-box;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px 46px 14px 46px;color:var(--text);font:inherit;font-size:1rem;outline:none;transition:.2s}
+.ws input:focus{border-color:rgba(255,176,32,.6);box-shadow:0 0 0 4px rgba(255,176,32,.12)}
+.ws .ic{position:absolute;left:16px;top:50%;transform:translateY(-50%);opacity:.7;pointer-events:none}
+.ws .kb{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:.7rem;color:var(--text-dim);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+.ws-res{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--bg2);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px rgba(0,0,0,.55);max-height:62vh;overflow:auto;display:none;padding:6px}
+.ws-res.on{display:block}
+.ws-it{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:10px;cursor:pointer}
+.ws-it.sel,.ws-it:hover{background:var(--bg3)}
+.ws-it .th{width:44px;height:44px;flex:none;border-radius:9px;background:var(--bg3);display:grid;place-items:center;overflow:hidden;font-size:1.3rem}
+.ws-it .th img{width:100%;height:100%;object-fit:contain}
+.ws-it b{display:block;font-size:.92rem;color:var(--text)}.ws-it b mark{background:none;color:var(--gold)}
+.ws-it small{font-size:.74rem;color:var(--text-dim)}
+.ws-it .ty{margin-left:auto;font-size:.68rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim);border:1px solid var(--line);border-radius:100px;padding:3px 9px;white-space:nowrap}
+.ws-empty{padding:16px;text-align:center;color:var(--text-dim);font-size:.88rem}
+.ws-grp{font-size:.68rem;color:var(--text-dim);font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:8px 10px 4px}
 .wiki-hub{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin:20px 0 40px}
 .wiki-hub-card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:26px 22px;cursor:pointer;transition:.2s;text-align:center}
 .wiki-hub-card:hover{transform:translateY(-5px);border-color:var(--purple);box-shadow:0 14px 34px -14px rgba(123,79,212,.5)}
@@ -288,6 +304,13 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 </header>
 
 <div class="wrap">
+  <!-- Recherche globale -->
+  <div class="ws" id="ws">
+    <span class="ic">🔎</span>
+    <input type="search" id="ws-in" placeholder="Search the wiki: a character, weapon, boss, planet, place…" autocomplete="off" aria-label="Search the wiki"/>
+    <span class="kb" id="ws-kb">/</span>
+    <div class="ws-res" id="ws-res" role="listbox"></div>
+  </div>
   <!-- HUB: big clickable cards -->
   <div class="wiki-hub" id="wiki-hub">
     <div class="wiki-hub-card" id="hub-games" onclick="showWikiSection('games')"><span class="wh-ic">🎮</span><h3>Games</h3><p>The full saga, game by game</p></div>
@@ -840,6 +863,73 @@ function openByName(k,n){
   return false;
 }
 window.addEventListener('DOMContentLoaded',()=>{ if(window.RCD) RCD.onOpen=openByName; });
+// ── Recherche globale : fiches, personnages, jeux, lieux ──
+(function(){
+  const inp=document.getElementById('ws-in'), box=document.getElementById('ws-res'), kb=document.getElementById('ws-kb');
+  if(!inp) return;
+  const norm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+  const TY={weapon:['🔫','Weapon'],gadget:['🧰','Gadget'],creature:['👽','Creature'],planet:['🪐','Planet'],vehicle:['🚀','Vehicle'],boss:['👹','Boss'],character:['🦊','Character'],game:['🎮','Game'],location:['📍','Place']};
+  let LOC=null, sel=-1, cur=[];
+  async function locs(){
+    if(LOC) return LOC;
+    try{ const pl={}; WIKI_ENTRIES.forEach(e=>{ if(e.type==='planet') pl[e.id]=e.name; });
+      const {data}=await sb.from('site_locations').select('name,planet_id,image_url');
+      LOC=(data||[]).map(l=>({k:'location',n:l.name,sub:pl[l.planet_id]||'',img:l.image_url,x:pl[l.planet_id]||''}));
+    }catch(e){ LOC=[]; }
+    return LOC;
+  }
+  function all(){
+    const out=[];
+    WIKI_ENTRIES.forEach(e=>{ const t=(e.type==='weapon'&&e.category==='gadget')?'gadget':e.type; out.push({k:e.type,t,n:e.name,sub:e.subtitle||'',img:e.image_url,txt:e.description||''}); });
+    (typeof CHARS!=='undefined'?CHARS:[]).forEach(c=>out.push({k:'character',t:'character',n:c.name,sub:(c.role||'').split(' · ')[0],img:c.image_url,txt:c.description||''}));
+    (typeof GAMES!=='undefined'?GAMES:[]).forEach(g=>out.push({k:'game',t:'game',n:g.name,sub:[g.platform,g.year].filter(Boolean).join(' · '),img:g.image_url,txt:g.synopsis||''}));
+    (LOC||[]).forEach(l=>out.push(Object.assign({t:'location',txt:''},l)));
+    return out;
+  }
+  function score(it,q,words){
+    const n=norm(it.n);
+    if(n===q) return 100; if(n.startsWith(q)) return 80;
+    if(n.split(/[\s\-:'.]+/).some(w=>w.startsWith(q))) return 65;
+    if(n.includes(q)) return 50;
+    if(words.every(w=>n.includes(w))) return 40;
+    const s=norm(it.sub); if(words.every(w=>(n+' '+s).includes(w))) return 25;
+    if(q.length>3&&words.every(w=>norm(it.txt).includes(w))) return 10;
+    return 0;
+  }
+  const esc2=t=>esc(t);
+  function hl(n,q){ const i=norm(n).indexOf(q); return i<0?esc2(n):esc2(n.slice(0,i))+'<mark>'+esc2(n.slice(i,i+q.length))+'</mark>'+esc2(n.slice(i+q.length)); }
+  function render(){
+    const q=norm(inp.value.trim());
+    if(q.length<2){ box.classList.remove('on'); return; }
+    const words=q.split(/\s+/).filter(Boolean);
+    cur=all().map(it=>({it,s:score(it,q,words)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||a.it.n.localeCompare(b.it.n)).slice(0,30).map(x=>x.it);
+    sel=cur.length?0:-1;
+    box.innerHTML=cur.length?cur.map((it,i)=>{ const ty=TY[it.t]||['✨',it.t];
+      return '<div class="ws-it'+(i===sel?' sel':'')+'" data-i="'+i+'" role="option"><div class="th">'+(it.img?'<img src="'+esc2(it.img)+'" alt="" loading="lazy" onerror="this.outerHTML=\''+ty[0]+'\'"/>':ty[0])+'</div><div style="min-width:0"><b>'+hl(it.n,q)+'</b>'+(it.sub?'<small>'+esc2(it.sub)+'</small>':'')+'</div><span class="ty">'+ty[0]+' '+ty[1]+'</span></div>'; }).join('')
+      :'<div class="ws-empty">No result for “'+esc2(inp.value.trim())+'”.</div>';
+    box.classList.add('on');
+  }
+  function go(i){
+    const it=cur[i]; if(!it) return;
+    box.classList.remove('on'); inp.blur();
+    if(it.k==='location'){ location.href='map.html#loc='+encodeURIComponent(it.n); return; }
+    openByName(it.k,it.n);
+  }
+  function mark(){ box.querySelectorAll('.ws-it').forEach((el,j)=>el.classList.toggle('sel',j===sel)); const el=box.querySelector('.ws-it.sel'); if(el) el.scrollIntoView({block:'nearest'}); }
+  inp.addEventListener('focus',()=>{ locs().then(render); if(kb) kb.style.display='none'; });
+  inp.addEventListener('blur',()=>{ if(kb&&!inp.value) kb.style.display=''; });
+  inp.addEventListener('input',render);
+  inp.addEventListener('keydown',ev=>{
+    if(ev.key==='ArrowDown'){ ev.preventDefault(); if(cur.length){ sel=(sel+1)%cur.length; mark(); } }
+    else if(ev.key==='ArrowUp'){ ev.preventDefault(); if(cur.length){ sel=(sel-1+cur.length)%cur.length; mark(); } }
+    else if(ev.key==='Enter'){ ev.preventDefault(); go(sel<0?0:sel); }
+    else if(ev.key==='Escape'){ box.classList.remove('on'); inp.blur(); }
+  });
+  box.addEventListener('mousedown',ev=>{ const el=ev.target.closest('.ws-it'); if(el){ ev.preventDefault(); go(+el.dataset.i); } });
+  document.addEventListener('click',ev=>{ if(!ev.target.closest('#ws')) box.classList.remove('on'); });
+  document.addEventListener('keydown',ev=>{ if(ev.key==='/'&&!/input|textarea|select/i.test((document.activeElement||{}).tagName||'')){ ev.preventDefault(); inp.focus(); window.scrollTo({top:0,behavior:'smooth'}); } });
+})();
+
 (function(){
   const h=decodeURIComponent((location.hash||'').slice(1));
   const m=h.match(/^(entry|char|game)=(.+)$/); if(!m) return;
