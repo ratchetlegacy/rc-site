@@ -258,6 +258,8 @@
       (c.data||[]).forEach(r=>add(r.name,'character'));
       (e.data||[]).forEach(r=>{ if(r.type==='boss') add(r.name,'boss'); });
       (l.data||[]).forEach(r=>add(r.name,'location',pl[r.planet_id]||''));
+      return fetch('data/bestiary.json').then(r=>r.json()).then(B=>{ (B||[]).forEach(b=>add(b.n,'enemy')); }).catch(()=>{});
+    }).then(()=>{
       const keys=Object.keys(NAMES).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
       if(keys.length) RX=new RegExp('(^|[^A-Za-z0-9])('+keys.join('|')+')(?![A-Za-z0-9])','gi');
     }).catch(()=>{});

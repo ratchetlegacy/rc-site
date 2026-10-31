@@ -246,6 +246,7 @@ a{color:inherit;text-decoration:none}
 .t-planet{--g:160,110,255;--l:123,79,212}
 .t-char{--g:255,176,32;--l:255,120,180}
 .t-boss{--g:255,60,60;--l:200,40,60}
+.t-enemy{--g:200,90,255;--l:150,60,220}
 .t-boss .bay{background:radial-gradient(ellipse at 50% 80%,rgba(var(--g),.28),transparent 70%),repeating-linear-gradient(135deg,rgba(255,60,60,.06) 0 12px,transparent 12px 24px),#140810}
 .vh .tag,.vh-bigbay .tag{border-color:rgba(var(--g),.5);color:rgb(var(--g))}
 .t-planet .bay,.vh-bigbay.t-planet{background:radial-gradient(1px 1px at 12% 20%,#fff,transparent),radial-gradient(1px 1px at 70% 30%,#fff,transparent),radial-gradient(1.5px 1.5px at 40% 75%,#fff,transparent),radial-gradient(1px 1px at 85% 80%,#fff,transparent),radial-gradient(1px 1px at 25% 60%,#cfc6ff,transparent),radial-gradient(ellipse at 50% 50%,rgba(var(--g),.25),transparent 70%),#080a18}
@@ -345,6 +346,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <div class="wiki-hub-card" id="hub-characters" onclick="showWikiSection('characters')"><span class="wh-ic">🦊</span><h3>Characters</h3><p>Heroes, villains &amp; oddballs</p></div>
     <div class="wiki-hub-card" id="hub-weapons" onclick="showWikiSection('weapons')"><span class="wh-ic">🔫</span><h3>Weapons</h3><p>The legendary arsenal</p></div>
     <div class="wiki-hub-card" id="hub-creatures" onclick="showWikiSection('creatures')"><span class="wh-ic">👽</span><h3>Creatures</h3><p>Species of the galaxy</p></div>
+    <div class="wiki-hub-card" id="hub-enemies" onclick="showWikiSection('enemies')"><span class="wh-ic">👾</span><h3>Enemies</h3><p>The full bestiary, game by game</p></div>
     <div class="wiki-hub-card" id="hub-planets" onclick="showWikiSection('planets')"><span class="wh-ic">🪐</span><h3>Planets</h3><p>Worlds &amp; locations</p></div>
     <div class="wiki-hub-card" id="hub-bosses" onclick="showWikiSection('bosses')"><span class="wh-ic">👹</span><h3>Bosses</h3><p>Every big fight &amp; how to win</p></div>
     <div class="wiki-hub-card" id="hub-trivia" onclick="showWikiSection('trivia')"><span class="wh-ic">💡</span><h3>Did you know?</h3><p>Fun facts &amp; secrets</p></div>
@@ -419,6 +421,14 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <div class="sec-sub">Behind-the-scenes stories, cut content and secrets from every game. <button class="tv-rnd" onclick="triviaRandom()">🎲 Random fact</button></div>
     <div id="tv-pick"></div>
     <div id="trivia-list"><div style="text-align:center;padding:30px;color:var(--text-dim)">Loading…</div></div>
+  </section>
+
+  <!-- ENEMIES -->
+  <section class="sec" id="enemies">
+    <div class="sec-title"><span class="em">👾</span> Enemies — the Bestiary</div>
+    <div class="sec-sub">Every common enemy and mini-boss of the series, with where to meet them, their attacks and how to deal with them.</div>
+    <div class="gf-bar" data-sec="enemies"></div>
+    <div id="enemies-grid"><div style="text-align:center;padding:30px;color:var(--text-dim)">Loading…</div></div>
   </section>
 
   <!-- BOSSES -->
@@ -682,7 +692,7 @@ loadLore();
 // Open a section directly if the URL has a hash (e.g. wiki.html#lore)
 (function(){
   const hash=(location.hash||'').replace('#','');
-  const valid=['games','characters','weapons','creatures','bosses','planets','vehicles','lore','trivia'];
+  const valid=['games','characters','weapons','creatures','enemies','bosses','planets','vehicles','lore','trivia'];
   if(valid.includes(hash)){
     // wait a tick so the DOM/functions are ready
     setTimeout(()=>{ if(typeof showWikiSection==='function') showWikiSection(hash); }, 60);
@@ -786,7 +796,7 @@ function renderEntries(gridId, list){
   if(window.cmpSync) cmpSync();
 }
 // Baie commune (cartes et fiches) : theme selon le type
-const BAY_IC={vehicle:'🚀',weapon:'🔫',gadget:'🧰',creature:'👽',planet:'🪐',char:'🦊',boss:'👹'};
+const BAY_IC={vehicle:'🚀',weapon:'🔫',gadget:'🧰',creature:'👽',planet:'🪐',char:'🦊',boss:'👹',enemy:'👾'};
 function bayTheme(e){ return e.type==='weapon'&&e.category==='gadget'?'gadget':e.type; }
 function bayImg(url,theme,name,pos,ic){
   const shot=theme==='vehicle'&&VH_SHOT.test(name||'');
@@ -841,6 +851,39 @@ function openEntry(i){
 }
 
 
+
+// ── Bestiaire (ennemis) : donnees statiques data/bestiary.json ──
+let ENEMIES=[], ENEMIES_P=null;
+function loadEnemies(){ return ENEMIES_P||(ENEMIES_P=fetch('data/bestiary.json').then(r=>r.json()).then(d=>{ ENEMIES=d||[]; return ENEMIES; }).catch(()=>[])); }
+function renderEnemies(){
+  const grid=document.getElementById('enemies-grid'); if(!grid) return;
+  loadEnemies().then(list=>{
+    if(!list.length){ grid.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-dim)">Could not load the bestiary.</div>'; return; }
+    const G={}; list.forEach((e,i)=>{ const g=e.g[0]||'Other'; (G[g]=G[g]||[]).push(i); });
+    const order=GF_GAMES.map(g=>g[0]).filter(g=>G[g]);
+    grid.innerHTML=order.map(g=>{ const gi=GF_GAMES.find(x=>x[0]===g);
+      return '<div class="char-group vh-group"><div class="vh-head">'+(gi&&gi[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+gi[2]+'" alt="" style="width:30px;height:38px;object-fit:cover;border-radius:5px" onerror="this.remove()"/>':'')+esc(gi?gi[1]:g)+'<small>'+G[g].length+'</small></div><div class="chars hangar small">'
+        +G[g].map(i=>{ const e=list[i]; return bayCard({theme:'enemy',name:e.n,tag:'',desc:e.d,img:e.i,games:e.g,click:'openEnemy('+i+')'}); }).join('')+'</div></div>'; }).join('');
+    grid.querySelectorAll('img').forEach(im=>im.referrerPolicy='no-referrer');
+    buildGameFilter('enemies');
+  });
+}
+function openEnemy(i){
+  const e=ENEMIES[i]; if(!e) return;
+  closeChar();
+  const x=e.x||{};
+  const chips=(arr,ic)=>'<div class="rd-chips">'+arr.map(v=>'<span class="rd-chip al-chip">'+ic+' <span data-al>'+esc(v)+'</span></span>').join('')+'</div>';
+  document.getElementById('entry-body').innerHTML='<div class="cd-top vh-top"><div class="vh-bigbay t-enemy">'+(x.species?'<span class="tag">'+esc(x.species[0])+'</span>':'')+bayImg(e.i,'enemy',e.n)+'</div>'
+    +'<div class="cd-top-info"><div><h2>'+esc(e.n)+'</h2><div class="cd-role">Enemy · '+esc(e.g.join(' · '))+'</div></div></div></div><div id="en-tabs"></div><div id="en-pane"></div>';
+  document.querySelectorAll('#entry-body img').forEach(im=>im.referrerPolicy='no-referrer');
+  const tabs=[{key:'over',label:'📖 Overview',html:'<p class="cd-desc" data-al style="margin-top:0">'+esc(e.d||'')+'</p>'+(x.where?'<div class="rd-sub">Where to find them</div>'+chips(x.where,'📍'):'')}];
+  if(x.attacks||x.defense||e.t) tabs.push({key:'fight',label:'⚔️ Combat',html:(x.attacks?'<div class="rd-sub" style="margin-top:0">Attacks</div>'+chips(x.attacks,'⚔️'):'')+(x.defense?'<div class="rd-sub">Defense</div>'+chips(x.defense,'🛡️'):'')+(e.t?'<div class="rd-sub">How to deal with them</div><div data-al style="font-size:.9rem;color:var(--text-mid);line-height:1.6;background:var(--bg3);border-left:3px solid #c85aff;border-radius:8px;padding:12px 14px">'+esc(e.t)+'</div>':'')});
+  tabs.push({key:'games',label:'🎮 Games',html:'<div class="rd-chips">'+e.g.map(g=>'<span class="rd-chip lk" data-k="game" data-n="'+esc(g)+'">🎮 '+esc(g)+'</span>').join('')+'</div><div class="rd-sub" style="margin-top:18px;text-transform:none;letter-spacing:0;font-weight:500">Source: Ratchet &amp; Clank Wiki (Fandom), CC BY-SA.</div>'});
+  if(window.RCD){ RCD.mount(document.getElementById('en-tabs'),document.getElementById('en-pane'),tabs); RCD.autoLink(document.getElementById('entry-body'),sb); }
+  document.getElementById('entry-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+renderEnemies();
 // ── Le saviez-vous ? ──
 let TRIVIA=[];
 async function loadTrivia(){
@@ -923,7 +966,7 @@ async function loadHubImages(){
   try{
     const {data}=await sb.from('site_settings').select('key,value');
     const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
-    const map={games:'wiki_img_games',characters:'wiki_img_characters',weapons:'wiki_img_weapons',creatures:'wiki_img_creatures',bosses:'wiki_img_bosses',trivia:'wiki_img_trivia',planets:'wiki_img_planets',vehicles:'wiki_img_vehicles',lore:'wiki_img_lore'};
+    const map={games:'wiki_img_games',characters:'wiki_img_characters',weapons:'wiki_img_weapons',creatures:'wiki_img_creatures',bosses:'wiki_img_bosses',enemies:'wiki_img_enemies',trivia:'wiki_img_trivia',planets:'wiki_img_planets',vehicles:'wiki_img_vehicles',lore:'wiki_img_lore'};
     Object.keys(map).forEach(k=>{
       const url=S[map[k]];
       const card=document.getElementById('hub-'+k);
@@ -974,6 +1017,7 @@ function openByName(k,n){
     return true;
   }
   if(k==='character'){ const i=CHARS.findIndex(c=>c.name===n); if(i<0) return false; closeEntry(); openChar(i); return true; }
+  if(k==='enemy'){ loadEnemies().then(L=>{ const i=L.findIndex(e=>e.n===n); if(i>=0){ closeEntry(); openEnemy(i); const box=document.querySelector('#entry-modal .cd-inner'); if(box) box.scrollTop=0; } }); return true; }
   if(k==='game') return openGameSheet(n);
   return false;
 }
@@ -983,7 +1027,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(window.RCD) RCD.onOpen=openB
   const inp=document.getElementById('ws-in'), box=document.getElementById('ws-res'), kb=document.getElementById('ws-kb');
   if(!inp) return;
   const norm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
-  const TY={weapon:['🔫','Weapon'],gadget:['🧰','Gadget'],creature:['👽','Creature'],planet:['🪐','Planet'],vehicle:['🚀','Vehicle'],boss:['👹','Boss'],character:['🦊','Character'],game:['🎮','Game'],location:['📍','Place']};
+  const TY={enemy:['👾','Enemy'],weapon:['🔫','Weapon'],gadget:['🧰','Gadget'],creature:['👽','Creature'],planet:['🪐','Planet'],vehicle:['🚀','Vehicle'],boss:['👹','Boss'],character:['🦊','Character'],game:['🎮','Game'],location:['📍','Place']};
   let LOC=null, sel=-1, cur=[];
   async function locs(){
     if(LOC) return LOC;
@@ -999,6 +1043,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(window.RCD) RCD.onOpen=openB
     (typeof CHARS!=='undefined'?CHARS:[]).forEach(c=>out.push({k:'character',t:'character',n:c.name,sub:(c.role||'').split(' · ')[0],img:c.image_url,txt:c.description||''}));
     (typeof GAMES!=='undefined'?GAMES:[]).forEach(g=>out.push({k:'game',t:'game',n:g.name,sub:[g.platform,g.year].filter(Boolean).join(' · '),img:g.image_url,txt:g.synopsis||''}));
     (LOC||[]).forEach(l=>out.push(Object.assign({t:'location',txt:''},l)));
+    (typeof ENEMIES!=='undefined'?ENEMIES:[]).forEach(e=>out.push({k:'enemy',t:'enemy',n:e.n,sub:(e.g||[]).join(' · '),img:e.i,txt:e.d||''}));
     return out;
   }
   function score(it,q,words){
@@ -1067,7 +1112,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(window.RCD) RCD.onOpen=openB
   </div>
 </div>
 
-<script src="details-tabs.js?v=21"></script>
+<script src="details-tabs.js?v=22"></script>
 <script src="site-enhance.js"></script>
 <!-- ENTRY DETAIL MODAL -->
 <div class="cmp-tray" id="cmp-tray"></div>
