@@ -68,6 +68,18 @@
 .rd-chip.lk,.al-chip.lk{cursor:pointer;transition:.15s}
 .al-chip.lk:hover{border-color:var(--gold)!important;color:var(--text)!important}
 .rd-chip.lk:hover{border-color:var(--gold);color:var(--text);transform:translateY(-1px)}
+.ck-head{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(255,176,32,.1),rgba(123,79,212,.12));border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:16px}
+.ck-head b{display:block;font-size:.95rem}.ck-head span{font-size:.78rem;color:var(--text-dim)}.ck-head .ck-prog{min-width:240px;flex:1;max-width:360px;margin:0}
+.ck-prog{display:flex;align-items:center;gap:10px;margin:4px 0 10px}.ck-prog b{font-size:.8rem;white-space:nowrap}.ck-prog span{font-size:.75rem;color:var(--gold);font-weight:700;white-space:nowrap}
+.ck-bar{flex:1;height:8px;border-radius:8px;background:var(--bg3);overflow:hidden}.ck-bar i{display:block;height:100%;background:linear-gradient(90deg,#ffb020,#ff6b1a);border-radius:8px;transition:width .3s}
+.ck-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px}
+.ck-item{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:7px 10px;cursor:pointer;font-size:.82rem;color:var(--text-mid);transition:.15s;user-select:none}
+.ck-item:hover{border-color:rgba(255,176,32,.5)}.ck-item input{display:none}
+.ck-box{width:18px;height:18px;flex:none;border-radius:5px;border:2px solid var(--text-dim);display:grid;place-items:center;font-size:.7rem}
+.ck-item.on{background:rgba(255,176,32,.1);border-color:rgba(255,176,32,.55);color:var(--text)}.ck-item.on .ck-box{background:var(--gold);border-color:var(--gold)}.ck-item.on .ck-box::after{content:"✓";color:#1a1206;font-weight:900}
+.ck-item.on .ck-t{text-decoration:line-through;text-decoration-color:rgba(255,176,32,.6)}
+.ck-t small{display:block;font-size:.68rem;color:var(--text-dim)}.ck-ic{flex:none}
+.ck-reset{margin-top:8px;background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:8px;padding:4px 10px;font-size:.72rem;cursor:pointer}.ck-reset:hover{color:var(--text);border-color:var(--text-dim)}
 [data-k="game"]{cursor:pointer}
 .rd-cv[data-k]:hover .ph{outline:2px solid var(--gold);outline-offset:2px}
 .rd-gh[data-k]:hover{color:var(--gold)}
@@ -330,20 +342,56 @@
       const b=BOSS.test(e); return chip(b?'boss':'',b?'👑':'👾',e);
     }).join('')+'</div>')).join('');
   }
-  function planetCollect(d){
-    const gs=list(d&&d.games).filter(g=>g.gold_bolts||g.platinum_bolts||g.titanium_bolts||g.spybots||g.lorbs||g.zurpstones||list(g.skill_points).length||list(g.trophies).length||list(g.equipment).length);
+  // Checklist des collectibles : coches gardees dans ce navigateur (localStorage)
+  const CK_KEY='rl-collect-v1';
+  const ckGet=()=>{ try{ return JSON.parse(localStorage.getItem(CK_KEY)||'{}')||{}; }catch(e){ return {}; } };
+  const ckSet=o=>{ try{ localStorage.setItem(CK_KEY,JSON.stringify(o)); }catch(e){} };
+  const CK_TYPES=[['gold_bolts','🔩','Gold bolt'],['platinum_bolts','💠','Platinum bolt'],['titanium_bolts','⚙️','Titanium bolt'],['spybots','🛰️','Spybot'],['lorbs','📜','Lorb'],['zurpstones','💎','Zurpstone']];
+  function ckItems(g){
+    const it=[];
+    CK_TYPES.forEach(t=>{ const n=parseInt(g[t[0]],10); if(n>0&&n<60) for(let i=1;i<=n;i++) it.push({id:t[0]+':'+i,ic:t[1],t:t[2]+' #'+i}); });
+    list(g.skill_points).forEach(x=>it.push({id:'sp:'+x,ic:'⭐',t:x,sub:'Skill point'}));
+    list(g.trophies).forEach(x=>it.push({id:'tr:'+x,ic:'🏆',t:x,sub:'Trophy'}));
+    return it;
+  }
+  function ckBar(done,tot){ const pc=tot?Math.round(done/tot*100):0; return '<div class="ck-prog"><div class="ck-bar"><i style="width:'+pc+'%"></i></div><b>'+done+' / '+tot+'</b><span>'+(pc===100?'🏁 Complete!':pc+'%')+'</span></div>'; }
+  function planetCollect(d,entry){
+    const pl=(entry&&entry.name)||'';
+    const gs=list(d&&d.games).filter(g=>ckItems(g).length||list(g.equipment).length);
     if(!gs.length) return empty('No collectibles listed for this world yet.');
-    return gs.map(g=>{
-      const c=[['gold_bolts','🔩','Gold bolts'],['platinum_bolts','💠','Platinum bolts'],['titanium_bolts','⚙️','Titanium bolts'],['spybots','🛰️','Spybots'],['lorbs','📜','Lorbs'],['zurpstones','💎','Zurpstones']]
-        .filter(k=>g[k[0]]).map(k=>'<div class="rd-count">'+k[1]+'<b>'+esc(g[k[0]])+'</b><span>'+k[2]+'</span></div>');
-      if(list(g.skill_points).length) c.push('<div class="rd-count">⭐<b>'+g.skill_points.length+'</b><span>Skill points</span></div>');
-      if(list(g.trophies).length) c.push('<div class="rd-count">🏆<b>'+g.trophies.length+'</b><span>Trophies</span></div>');
-      let h=c.length?'<div class="rd-counters">'+c.join('')+'</div>':'';
-      if(list(g.skill_points).length) h+='<div class="rd-sub">Skill points</div><div class="rd-chips">'+g.skill_points.map(s=>'<span class="rd-chip">⭐ '+esc(s)+'</span>').join('')+'</div>';
-      if(list(g.trophies).length) h+='<div class="rd-sub">Trophies</div><div class="rd-chips">'+g.trophies.map(s=>'<span class="rd-chip">🏆 '+esc(s)+'</span>').join('')+'</div>';
+    const C=ckGet(); let all=0, allDone=0;
+    const body=gs.map(g=>{
+      const it=ckItems(g), base=pl+'|'+g.game+'|';
+      const done=it.filter(x=>C[base+x.id]).length; all+=it.length; allDone+=done;
+      let h='';
+      if(it.length){
+        h+=ckBar(done,it.length);
+        h+='<div class="ck-list">'+it.map(x=>'<label class="ck-item'+(C[base+x.id]?' on':'')+'"><input type="checkbox" data-ck="'+esc(base+x.id)+'"'+(C[base+x.id]?' checked':'')+'/><span class="ck-box"></span><span class="ck-ic">'+x.ic+'</span><span class="ck-t">'+esc(x.t)+(x.sub?'<small>'+x.sub+'</small>':'')+'</span></label>').join('')+'</div>';
+        h+='<button class="ck-reset" data-ckreset="'+esc(base)+'">Reset this game</button>';
+      }
       if(list(g.equipment).length) h+='<div class="rd-sub">Weapons & gadgets found here</div><div class="rd-chips">'+g.equipment.map(s=>chip('','🎒',s)).join('')+'</div>';
-      return gameBlock(g,h);
+      return '<div class="ck-game">'+gameBlock(g,h)+'</div>';
     }).join('');
+    return (all?'<div class="ck-head"><div><b>🗺️ '+esc(pl)+' — collectibles checklist</b><span>Tick what you have found. Progress is saved on this device.</span></div>'+ckBar(allDone,all)+'</div>':'')+body;
+  }
+  // Clic sur une case : enregistre et met a jour les barres
+  document.addEventListener('change',ev=>{
+    const cb=ev.target; if(!cb||!cb.dataset||!cb.dataset.ck) return;
+    const C=ckGet(); if(cb.checked) C[cb.dataset.ck]=1; else delete C[cb.dataset.ck]; ckSet(C);
+    cb.closest('.ck-item').classList.toggle('on',cb.checked);
+    ckRefresh(cb.closest('.rd-pane'));
+  });
+  document.addEventListener('click',ev=>{
+    const b=ev.target.closest&&ev.target.closest('[data-ckreset]'); if(!b) return;
+    const C=ckGet(), pre=b.dataset.ckreset; Object.keys(C).forEach(k=>{ if(k.indexOf(pre)===0) delete C[k]; }); ckSet(C);
+    b.closest('.ck-game').querySelectorAll('input[data-ck]').forEach(i=>{ i.checked=false; i.closest('.ck-item').classList.remove('on'); });
+    ckRefresh(b.closest('.rd-pane'));
+  });
+  function ckRefresh(root){
+    if(!root) return;
+    const upd=(bar,box)=>{ const a=box.querySelectorAll('input[data-ck]'), d=[...a].filter(i=>i.checked).length; if(bar) bar.outerHTML=ckBar(d,a.length); };
+    root.querySelectorAll('.ck-game').forEach(g=>upd(g.querySelector('.ck-prog'),g));
+    const h=root.querySelector('.ck-head'); if(h) upd(h.querySelector('.ck-prog'),root);
   }
   // Onglets de planete. first: onglet d'ouverture deja rendu (aperçu ou lieux).
   function planetTabs(sb,entry,bar,pane,first,onShown){ SB=sb;
@@ -351,7 +399,7 @@
     mount(bar,pane,[first,
       {key:'missions',label:'🎯 Missions',load:async()=>planetMissions(await get())},
       {key:'enemies',label:'👾 Enemies',load:async()=>planetEnemies(await get())},
-      {key:'collect',label:'🔩 Collectibles',load:async()=>planetCollect(await get())}
+      {key:'collect',label:'✅ Collectibles',load:async()=>planetCollect(await get(),entry)}
     ],onShown);
   }
 
