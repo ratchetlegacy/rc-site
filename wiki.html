@@ -928,7 +928,7 @@ async function loadHubImages(){
       const url=S[map[k]];
       const card=document.getElementById('hub-'+k);
       if(url && card){
-        card.style.backgroundImage='linear-gradient(to top,rgba(16,18,31,.92),rgba(16,18,31,.45)),url('+url+')';
+        card.style.backgroundImage=(k==='trivia'?'linear-gradient(to top,rgba(16,18,31,.78),rgba(16,18,31,.02) 70%)':'linear-gradient(to top,rgba(16,18,31,.92),rgba(16,18,31,.45))')+',url('+url+')';
         card.style.backgroundSize='cover';
         card.style.backgroundPosition='center';
         const ic=card.querySelector('.wh-ic'); if(ic) ic.style.opacity='.6';

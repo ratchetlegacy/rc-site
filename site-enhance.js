@@ -435,7 +435,7 @@ if ('serviceWorker' in navigator) {
     '🎯':'v1789645737/s-l1200_ljljwc.webp','🧸':'v1781865031/6737-all-4-one-clank-plush_large_yyiy0x.jpg',
     '🎁':'v1785817120/17858171121595155329457155411058_ego8uq.jpg','👕':'v1781865076/6906-calecon-ratchet-clank-2_large_qwjqrl.jpg',
     '🖼️':'v1781793110/6859-always-outnumbered-never-outgunned_large_owdg1c.jpg','🖼':'v1781793110/6859-always-outnumbered-never-outgunned_large_owdg1c.jpg',
-    '📗':'v1789629898/images_wgryz7.jpg','📚':'v1789629898/images_wgryz7.jpg','🎬':'v1789634061/91aFSZYVKkL_ulbr7i.jpg'
+    '📗':'v1789629898/images_wgryz7.jpg','🎬':'v1789634061/91aFSZYVKkL_ulbr7i.jpg'
   };
   var SEL=['.sec-title .em','.char-group-title','.vh-head .ic','.tv-game .ph','.fod-ic','.vlt-cats a','.cm-ic','.card-cat',
     '.ws-it .ty','.rd-tab','.nw h3','.cmp-btn','.cmp-tray .go','h2 .em','.btn','.uni-card h3'].join(',');

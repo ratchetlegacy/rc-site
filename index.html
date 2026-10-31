@@ -173,7 +173,7 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
   .uni-grid{grid-template-columns:1fr}
   .sec-pad{padding:64px 0}
 }
-.fod{display:flex;gap:16px;align-items:flex-start;margin:26px auto 0;max-width:820px;background:linear-gradient(135deg,rgba(255,176,32,.1),rgba(123,79,212,.14));border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.fod{display:flex;gap:16px;align-items:flex-start;margin:26px auto 0;max-width:820px;background:linear-gradient(90deg,rgba(14,12,34,.95) 0%,rgba(14,12,34,.82) 55%,rgba(14,12,34,.25) 100%),url('https://res.cloudinary.com/dmfq8hkvu/image/upload/c_fill,w_900,h_420,g_east,f_auto,q_auto/v1793431257/Wiki/trivia-hub.jpg') right center/cover no-repeat;min-height:150px;border:1px solid var(--line);border-radius:18px;padding:18px 20px}
 .fod-ic{font-size:2rem;line-height:1}.fod-b{flex:1;min-width:0}
 .fod-t{font-weight:800;font-size:.95rem}.fod-t span{font-weight:600;font-size:.72rem;color:var(--gold);border:1px solid rgba(255,176,32,.45);border-radius:100px;padding:2px 9px;margin-left:6px;white-space:nowrap}
 .fod p{margin:8px 0 10px;color:var(--text-mid);line-height:1.55;font-size:.95rem}
@@ -209,7 +209,9 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
 @media(max-width:900px){.vlt{grid-template-columns:1fr}.vlt-stats{grid-template-columns:repeat(2,1fr)}}
 .ab-mosaic{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;width:100%;height:100%;gap:3px;background:var(--bg)}
 .ab-mosaic img{width:100%;height:100%;object-fit:cover}
-.news-sec .nw{display:grid;grid-template-columns:1.3fr 1fr;gap:28px}
+.nw-3{grid-template-columns:repeat(3,1fr)}.nw-3 .nw-it{grid-template-columns:1fr}.nw-3 .nw-it .im{min-height:170px}.nw-3 .nw-it .tx{padding:12px 16px 16px}
+.guides-sec{background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.gd-list.gd-row{grid-template-columns:repeat(4,1fr);gap:16px;max-width:900px;margin:0 auto}
 .nw h3{font-family:'Orbitron',sans-serif;font-size:1rem;margin:0 0 14px;display:flex;justify-content:space-between;align-items:baseline}
 .nw h3 a{font-family:Inter,sans-serif;font-size:.8rem;color:var(--purple-light);text-decoration:none;font-weight:700}
 .nw-list{display:grid;gap:12px}
@@ -226,7 +228,7 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
 .gd-it .im{aspect-ratio:3/4;background:var(--bg3) center/cover}
 .gd-it div.t{padding:8px 10px;font-size:.76rem;font-weight:700;color:var(--text)}
 .gd-it div.t span{display:block;font-weight:500;color:var(--text-dim);font-size:.68rem}
-@media(max-width:900px){.news-sec .nw{grid-template-columns:1fr}}
+@media(max-width:900px){.nw-3{grid-template-columns:1fr}.nw-3 .nw-it{grid-template-columns:120px 1fr}.nw-3 .nw-it .im{min-height:92px}.nw-3 .nw-it .tx{padding:12px 14px 12px 0}.gd-list.gd-row{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -321,18 +323,29 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
   </div>
 </section>
 
-<!-- LATEST -->
+<!-- NEWS -->
 <section class="sec-pad news-sec" id="latest">
   <div class="wrap">
     <div class="sec-head">
       <div class="sec-tag">WHAT'S NEW</div>
-      <h2>Latest news &amp; guides</h2>
-      <p>The latest from the Ratchet &amp; Clank world, and the newest collector guides.</p>
+      <h2>Latest news</h2>
+      <p>The latest from the Ratchet &amp; Clank world — games, merch and collectibles.</p>
     </div>
-    <div class="nw">
-      <div><h3>📰 News <a href="news.html">All news →</a></h3><div class="nw-list" id="home-news"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div></div>
-      <div><h3>📗 Guides <a href="guides.html">All guides →</a></h3><div class="gd-list" id="home-guides"></div></div>
+    <div class="nw-list nw-3" id="home-news"><div style="color:var(--text-dim);font-size:.85rem">Loading…</div></div>
+    <div style="text-align:center;margin-top:22px"><a href="news.html" class="btn btn-ghost">📰 All the news →</a></div>
+  </div>
+</section>
+
+<!-- GUIDES -->
+<section class="sec-pad guides-sec" id="guides">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-tag">COLLECTOR GUIDES</div>
+      <h2>The Ratchet Legacy guides</h2>
+      <p>Complete collector guides, game by game — every edition, every region, every secret.</p>
     </div>
+    <div class="gd-list gd-row" id="home-guides"></div>
+    <div style="text-align:center;margin-top:22px"><a href="guides.html" class="btn btn-ghost">📗 All the guides →</a></div>
   </div>
 </section>
 
@@ -497,7 +510,7 @@ for(let i=0;i<70;i++){
     if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No news yet.</div>'; return; }
     box.innerHTML=data.map(n=>'<a class="nw-it" href="news.html"><div class="im" style="'+(n.image_url?'background-image:url(&quot;'+escH(n.image_url)+'&quot;)':'')+'"></div><div class="tx">'+(n.date_label?'<small>'+escH(n.date_label)+'</small>':'')+'<b>'+escH(n.title)+'</b>'+(n.summary?'<p>'+escH(n.summary)+'</p>':'')+'</div></a>').join('');
   },()=>{});
-  sb.from('site_guides').select('id,title,game,cover_url,cover_pos').order('created_at',{ascending:false}).order('sort_order',{ascending:false}).limit(3).then(({data})=>{
+  sb.from('site_guides').select('id,title,game,cover_url,cover_pos').order('created_at',{ascending:false}).order('sort_order',{ascending:false}).limit(4).then(({data})=>{
     const box=document.getElementById('home-guides'); if(!box||!data) return;
     box.innerHTML=data.map(g=>'<a class="gd-it" href="guides.html"><div class="im" style="'+(g.cover_url?'background-image:url(&quot;'+escH(g.cover_url)+'&quot;);background-position:'+escH(g.cover_pos||'center'):'')+'"></div><div class="t">'+escH(g.title)+(g.game?'<span>'+escH(g.game)+'</span>':'')+'</div></a>').join('');
   },()=>{});
