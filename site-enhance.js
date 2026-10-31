@@ -412,3 +412,63 @@ if ('serviceWorker' in navigator) {
     })
   }).catch(function () { /* la mesure ne doit jamais gener le visiteur */ });
 })();
+
+
+/* ── Petites photos a la place des emojis ─────────────────────────
+   Chaque emoji « de rubrique » est remplace par une vraie image du
+   jeu (une arme pour les armes, Ratchet pour les personnages…).
+   Les images viennent de Cloudinary, reduites a 96 px. */
+(function(){
+  var C='https://res.cloudinary.com/dmfq8hkvu/image/upload/';
+  var T='c_fit,w_96,h_96,f_auto,q_auto/';
+  var CUT={ // detourees
+    '🔫':'Wiki/Armes/ryno.webp','🧰':'Wiki/Vehicules/swingshot.webp','🛠️':'Wiki/Vehicules/swingshot.webp','🛠':'Wiki/Vehicules/swingshot.webp',
+    '🦊':'v1788676004/Ratchet_ACIT_qswvhb.webp','🦸':'v1788676004/Ratchet_ACIT_qswvhb.webp',
+    '😈':'v1788715176/6294-nefarious-4582_rwgsrr.png','👹':'v1788715176/6294-nefarious-4582_rwgsrr.png',
+    '🤖':'v1788709553/Clank__28R_26C-A4O_29_dhntlf.webp','🤝':'v1788709603/6376-qwark-4666_l3ea4x.png','✨':'v1788715291/Rivet_render_kfj1e0.webp',
+    '👽':'Wiki/Creatures/blarg.webp','🐾':'Wiki/Creatures/blarg.webp','🪐':'v1789104373/6685-veldin_small_w7tzcu.png',
+    '🚀':'Wiki/Vehicules/aphelion.webp','📖':'Wiki/Creatures/zoni.webp','💡':'v1788709553/Clank__28R_26C-A4O_29_dhntlf.webp',
+    '⚔️':'Wiki/Armes/omniwrench.webp'
+  };
+  var PHOTO={ // photos de produits (carrees, arrondies)
+    '🎮':'v1781874919/images_ncvprf.jpg','📦':'sony-playstation-2-slim-ratchet-gladiator-bundle-front-1553440584-86_sa1yub.webp',
+    '🎯':'v1789645737/s-l1200_ljljwc.webp','🧸':'v1781865031/6737-all-4-one-clank-plush_large_yyiy0x.jpg',
+    '🎁':'v1785817120/17858171121595155329457155411058_ego8uq.jpg','👕':'v1781865076/6906-calecon-ratchet-clank-2_large_qwjqrl.jpg',
+    '🖼️':'v1781793110/6859-always-outnumbered-never-outgunned_large_owdg1c.jpg','🖼':'v1781793110/6859-always-outnumbered-never-outgunned_large_owdg1c.jpg',
+    '📗':'v1789629898/images_wgryz7.jpg','📚':'v1789629898/images_wgryz7.jpg','🎬':'v1789634061/91aFSZYVKkL_ulbr7i.jpg'
+  };
+  var SEL=['.sec-title .em','.char-group-title','.vh-head .ic','.tv-game .ph','.fod-ic','.vlt-cats a','.cm-ic','.card-cat',
+    '.ws-it .ty','.rd-tab','.nw h3','.cmp-btn','.cmp-tray .go','h2 .em','.btn','.uni-card h3'].join(',');
+  var keys=Object.keys(CUT).concat(Object.keys(PHOTO)).sort(function(a,b){return b.length-a.length;});
+  var RX=new RegExp('('+keys.map(function(k){return k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}).join('|')+')\uFE0F?','g');
+  var st=document.createElement('style');
+  st.textContent='img.rli{height:1.3em;width:auto;max-width:1.6em;vertical-align:-.22em;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.55));display:inline-block}'
+   +'img.rli.ph{width:1.2em;height:1.2em;max-width:none;object-fit:cover;border-radius:.25em;filter:none;box-shadow:0 1px 4px rgba(0,0,0,.5)}'
+   +'.sec-title .em img.rli,.cm-ic img.rli,.tv-game .ph img.rli,.fod-ic img.rli{height:1.15em;max-width:1.5em}';
+  document.head.appendChild(st);
+  function swap(el){
+    if(el.dataset.rli) return; el.dataset.rli='1';
+    var w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null), n, list=[];
+    while((n=w.nextNode())) if(RX.test(n.nodeValue)){ list.push(n); } RX.lastIndex=0;
+    list.forEach(function(t){
+      var frag=document.createDocumentFragment(), s=t.nodeValue, last=0, m; RX.lastIndex=0;
+      while((m=RX.exec(s))){
+        if(m.index>last) frag.appendChild(document.createTextNode(s.slice(last,m.index)));
+        var k=m[1], img=document.createElement('img'), p=PHOTO[k];
+        img.className='rli'+(p?' ph':''); img.alt=''; img.loading='lazy'; img.decoding='async';
+        img.src=C+T+(p||CUT[k]);
+        img.onerror=(function(e){return function(){ this.replaceWith(document.createTextNode(e)); };})(m[0]);
+        frag.appendChild(img); last=m.index+m[0].length;
+      }
+      if(last<s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+      t.parentNode.replaceChild(frag,t);
+    });
+  }
+  function scan(root){ (root.querySelectorAll?root:document).querySelectorAll(SEL).forEach(swap); if(root.matches&&root.matches(SEL)) swap(root); }
+  function start(){
+    scan(document);
+    new MutationObserver(function(ms){ ms.forEach(function(m){ m.addedNodes.forEach(function(n){ if(n.nodeType===1) scan(n); }); if(m.type==='childList'&&m.target.nodeType===1&&m.target.matches&&m.target.matches(SEL)){ delete m.target.dataset.rli; swap(m.target); } }); })
+      .observe(document.body,{childList:true,subtree:true});
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+})();
