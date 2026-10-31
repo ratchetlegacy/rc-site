@@ -610,6 +610,11 @@ function gameTabs(sb,g,bar,pane){ SB=sb;
   tabs.push(fromWiki('vehicle',null,'🚀 Vehicles','vehicle'));
   tabs.push(fromWiki('creature',null,'👽 Creatures','creature'));
   tabs.push(fromWiki('boss',null,'👹 Bosses','boss'));
+  tabs.push({key:'trivia',label:'💡 Trivia',load:async()=>{
+    const {data,error}=await sb.from('site_trivia').select('fact').eq('game',key).order('sort_order');
+    if(error) throw error;
+    return (data&&data.length)?data.map(t=>'<div style="background:var(--bg3);border-left:3px solid var(--gold);border-radius:10px;padding:10px 14px;margin-bottom:8px;font-size:.9rem;color:var(--text-mid);line-height:1.55">💡 '+lk(t.fact)+'</div>').join('')+SRC:empty('No fun facts for this game yet.');
+  }});
   tabs.push({key:'chars',label:'👥 Characters',load:async()=>{
     const {data,error}=await sb.from('site_characters').select('name,role,image_url').contains('games',[key]).order('name');
     if(error) throw error;

@@ -173,6 +173,12 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
   .uni-grid{grid-template-columns:1fr}
   .sec-pad{padding:64px 0}
 }
+.fod{display:flex;gap:16px;align-items:flex-start;margin:26px auto 0;max-width:820px;background:linear-gradient(135deg,rgba(255,176,32,.1),rgba(123,79,212,.14));border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.fod-ic{font-size:2rem;line-height:1}.fod-b{flex:1;min-width:0}
+.fod-t{font-weight:800;font-size:.95rem}.fod-t span{font-weight:600;font-size:.72rem;color:var(--gold);border:1px solid rgba(255,176,32,.45);border-radius:100px;padding:2px 9px;margin-left:6px;white-space:nowrap}
+.fod p{margin:8px 0 10px;color:var(--text-mid);line-height:1.55;font-size:.95rem}
+.fod-a{display:flex;flex-wrap:wrap;gap:14px;align-items:center}.fod-a button{background:none;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:6px 12px;cursor:pointer;font:inherit;font-size:.82rem}.fod-a button:hover{border-color:var(--gold)}
+.fod-a a{color:var(--gold);font-size:.85rem;font-weight:600;text-decoration:none}
 </style>
 </head>
 <body>
@@ -243,6 +249,11 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
         <p>The story of the series, its studios, and how it became a legend.</p>
         <span class="arrow">Read the lore →</span>
       </a>
+    </div>
+    <div class="fod" id="fod" hidden>
+      <div class="fod-ic">💡</div>
+      <div class="fod-b"><div class="fod-t">Did you know? <span id="fod-g"></span></div><p id="fod-x"></p>
+      <div class="fod-a"><button type="button" id="fod-n">🎲 Another one</button><a href="wiki.html#trivia">All the fun facts →</a></div></div>
     </div>
     <div style="text-align:center;margin-top:26px">
       <a href="wiki.html" class="btn btn-ghost" style="display:inline-flex;align-items:center;gap:8px">📚 Explore the full wiki — and more →</a>
@@ -408,6 +419,14 @@ for(let i=0;i<70;i++){
   const nb=n=>Number(n).toLocaleString('en-GB');
 
   const sb=window.supabase.createClient(SB_URL,SB_KEY);
+  // Anecdote du jour (change chaque jour, meme pour tout le monde)
+  sb.from('site_trivia').select('game,fact').order('sort_order').then(({data})=>{
+    const box=document.getElementById('fod'); if(!box||!data||!data.length) return;
+    let i=Math.floor(Date.now()/864e5)%data.length;
+    const show=()=>{ document.getElementById('fod-g').textContent=data[i].game; document.getElementById('fod-x').textContent=data[i].fact; };
+    show(); box.hidden=false;
+    document.getElementById('fod-n').onclick=()=>{ let j=i; if(data.length>1) while(j===i) j=Math.floor(Math.random()*data.length); i=j; show(); };
+  },()=>{});
 
   let mine=null;
   try{ mine=localStorage.getItem(KEY); }catch(e){}
