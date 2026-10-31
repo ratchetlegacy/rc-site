@@ -465,6 +465,8 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
       <input type="text" id="wi-creatures" placeholder="https://..."/>
       <label>Bosses card</label>
       <input type="text" id="wi-bosses" placeholder="https://..."/>
+      <label>Enemies card</label>
+      <input type="text" id="wi-enemies" placeholder="https://..."/>
       <label>Did you know? card</label>
       <input type="text" id="wi-trivia" placeholder="https://..."/>
       <label>Homepage — "Built by a collector" photo (empty = mosaic of Vault photos)</label>
@@ -1108,14 +1110,14 @@ async function loadWikiHubImages(){
   try{
     const {data}=await sb.from('site_settings').select('key,value');
     const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
-    ['games','characters','weapons','creatures','bosses','trivia','planets','vehicles','lore'].forEach(k=>{
+    ['games','characters','weapons','creatures','bosses','enemies','trivia','planets','vehicles','lore'].forEach(k=>{
       const el=document.getElementById('wi-'+k); if(el) el.value=S['wiki_img_'+k]||'';
     });
     const ab=document.getElementById('wi-about'); if(ab) ab.value=S['home_about_img']||'';
   }catch(e){}
 }
 async function saveWikiHubImages(){
-  const rows=['games','characters','weapons','creatures','bosses','trivia','planets','vehicles','lore'].map(k=>
+  const rows=['games','characters','weapons','creatures','bosses','enemies','trivia','planets','vehicles','lore'].map(k=>
     ({key:'wiki_img_'+k, value:document.getElementById('wi-'+k).value.trim()}));
   const ab=document.getElementById('wi-about'); if(ab) rows.push({key:'home_about_img', value:ab.value.trim()});
   const {error}=await sb.from('site_settings').upsert(rows);
