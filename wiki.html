@@ -847,10 +847,11 @@ async function loadTrivia(){
   const box=document.getElementById('trivia-list'); if(!box) return;
   try{ const {data,error}=await sb.from('site_trivia').select('id,game,fact').order('sort_order'); if(error) throw error; TRIVIA=data||[]; }catch(e){ box.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-dim)">Could not load the fun facts.</div>'; return; }
   const G={}; TRIVIA.forEach(t=>(G[t.game]=G[t.game]||[]).push(t));
-  const order=GF_GAMES.map(g=>g[0]).filter(g=>G[g]).concat(Object.keys(G).filter(g=>!GF_GAMES.some(x=>x[0]===g)));
+  const SP={'The series':'🌌','Cancelled projects':'🗄️','Characters':'🦊','Weapons & gadgets':'🔫'};
+  const order=Object.keys(SP).filter(g=>G[g]).concat(GF_GAMES.map(g=>g[0]).filter(g=>G[g])).concat(Object.keys(G).filter(g=>!SP[g]&&!GF_GAMES.some(x=>x[0]===g)));
   box.innerHTML=order.map(g=>{ const gi=GF_GAMES.find(x=>x[0]===g);
-    return '<div class="tv-game">'+(gi&&gi[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+gi[2]+'" alt="" loading="lazy"/>':'<div class="ph">🎮</div>')
-      +'<div><h3 data-k="game" data-n="'+esc(g)+'" onclick="openGameSheet(this.dataset.n)">'+esc(g)+'</h3><div class="tv-facts">'+G[g].map(t=>'<div class="tv-f" id="tv-'+t.id+'">'+esc(t.fact)+'</div>').join('')+'</div></div></div>'; }).join('');
+    return '<div class="tv-game">'+(gi&&gi[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+gi[2]+'" alt="" loading="lazy"/>':'<div class="ph">'+(SP[g]||'🎮')+'</div>')
+      +'<div><h3'+(gi?' data-k="game" data-n="'+esc(g)+'" onclick="openGameSheet(this.dataset.n)"':' style="cursor:default"')+'>'+esc(g)+'</h3><div class="tv-facts">'+G[g].map(t=>'<div class="tv-f" id="tv-'+t.id+'">'+esc(t.fact)+'</div>').join('')+'</div></div></div>'; }).join('');
 }
 function triviaRandom(){
   if(!TRIVIA.length) return;
