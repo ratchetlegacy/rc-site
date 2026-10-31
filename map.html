@@ -202,6 +202,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   .map-stage.dense .planet-label{opacity:0;transition:opacity .25s}
   .map-stage.dense.zoomed .planet-label{opacity:1}
 }
+.loc-fb{opacity:.45;filter:saturate(.6)}.loc-fb-pin{position:absolute;inset:0;display:grid;place-items:center;font-size:1.6rem;pointer-events:none}.ps-loc .li,#p-img{position:relative}
 </style>
 </head>
 <body>
@@ -625,8 +626,9 @@ function renderSheet(p){
     factRow('Main location', p.main_location), factRow('Notable events', p.notable_events)
   ].join('');
   const cards=locs.map((l,i)=>{
-    const li=(l.image_url&&l.image_url.trim())
-      ? '<img src="'+esc(l.image_url)+'" alt="" loading="lazy" onerror="this.remove()"/>' : '📍';
+    const own=l.image_url&&l.image_url.trim(), fb=!own&&p.image_url&&p.image_url.trim();
+    const li=own ? '<img src="'+esc(l.image_url)+'" alt="" loading="lazy" onerror="this.remove()"/>'
+      : fb ? '<img class="loc-fb" src="'+esc(p.image_url)+'" alt="" loading="lazy" onerror="this.remove()"/><span class="loc-fb-pin">📍</span>' : '📍';
     return '<button class="ps-loc" data-i="'+i+'"><div class="li" style="'+locSkin(l.name,l.loc_type)+'">'+li+'</div><div class="lb">'
       +'<div class="ln">'+esc(l.name)+'</div>'+(l.loc_type?'<div class="lt">'+esc(l.loc_type)+'</div>':'')
       +(l.description?'<div class="ld">'+esc(l.description)+'</div>':'')+'</div></button>';
@@ -648,7 +650,9 @@ function renderSheet(p){
 }
 // location detail sheet
 function openLoc(loc, planet){
-  document.getElementById('p-img').innerHTML=loc.image_url?`<img src="${esc(loc.image_url)}" onerror="this.parentNode.textContent='📍'"/>`:'📍';
+  const fbu=!(loc.image_url&&loc.image_url.trim())&&planet&&planet.image_url;
+  document.getElementById('p-img').innerHTML=loc.image_url?`<img src="${esc(loc.image_url)}" onerror="this.parentNode.textContent='📍'"/>`
+    :fbu?`<img class="loc-fb" src="${esc(planet.image_url)}" onerror="this.parentNode.textContent='📍'"/><span class="loc-fb-pin">📍</span>`:'📍';
   document.getElementById('p-name').textContent=loc.name||'';
   document.getElementById('p-sub').textContent=[loc.loc_type, planet?('on '+planet.name):''].filter(Boolean).join(' · ');
   document.getElementById('p-desc').textContent=loc.description||'';
