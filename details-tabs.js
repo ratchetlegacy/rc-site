@@ -79,6 +79,12 @@
 .ck-item.on{background:rgba(255,176,32,.1);border-color:rgba(255,176,32,.55);color:var(--text)}.ck-item.on .ck-box{background:var(--gold);border-color:var(--gold)}.ck-item.on .ck-box::after{content:"✓";color:#1a1206;font-weight:900}
 .ck-item.on .ck-t{text-decoration:line-through;text-decoration-color:rgba(255,176,32,.6)}
 .ck-t small{display:block;font-size:.68rem;color:var(--text-dim)}.ck-ic{flex:none}
+.ck-sync{margin:-6px 0 16px;background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:.82rem;color:var(--text-mid)}
+.ck-sync summary{cursor:pointer;font-weight:600;color:var(--text)}.ck-sync form{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.ck-sync input{flex:1 1 160px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--text);font:inherit}
+.ck-sync button{background:linear-gradient(135deg,#ffb020,#ff6b1a);border:none;color:#1a1206;font-weight:700;border-radius:8px;padding:8px 14px;cursor:pointer}
+.ck-sync a{font-size:.75rem;color:var(--gold);flex-basis:100%}.ck-err{color:#ff6b6b;flex-basis:100%}
+.ck-sync.on{display:flex;align-items:center;justify-content:space-between;gap:10px}.ck-sync.on button{background:none;border:1px solid var(--line);color:var(--text-dim);font-weight:500}
 .ck-reset{margin-top:8px;background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:8px;padding:4px 10px;font-size:.72rem;cursor:pointer}.ck-reset:hover{color:var(--text);border-color:var(--text-dim)}
 [data-k="game"]{cursor:pointer}
 .rd-cv[data-k]:hover .ph{outline:2px solid var(--gold);outline-offset:2px}
@@ -308,7 +314,7 @@
     const show=async i=>{
       bar.querySelectorAll('.rd-tab').forEach((b,j)=>b.classList.toggle('on',j===i));
       const t=tabs[i];
-      if(t.html!=null){ pane.innerHTML='<div class="rd-pane">'+t.html+'</div>'; initWidgets(pane); onShown&&onShown(t.key,pane); return; }
+      if(t.html!=null&&!t.fresh){ pane.innerHTML='<div class="rd-pane">'+t.html+'</div>'; initWidgets(pane); onShown&&onShown(t.key,pane); return; }
       pane.innerHTML='<div class="rd-pane"><div class="rd-load"><i></i>Loading…</div></div>';
       try{ await loadIndex(); t.html=await t.load(); }catch(e){ pane.innerHTML='<div class="rd-pane"><div class="rd-empty">Could not load this tab. Try again.</div></div>'; return; }
       if(bar.querySelector('.rd-tab.on')!==bar.children[i]) return;
@@ -372,18 +378,62 @@
       if(list(g.equipment).length) h+='<div class="rd-sub">Weapons & gadgets found here</div><div class="rd-chips">'+g.equipment.map(s=>chip('','🎒',s)).join('')+'</div>';
       return '<div class="ck-game">'+gameBlock(g,h)+'</div>';
     }).join('');
-    return (all?'<div class="ck-head"><div><b>🗺️ '+esc(pl)+' — collectibles checklist</b><span>Tick what you have found. Progress is saved on this device.</span></div>'+ckBar(allDone,all)+'</div>':'')+body;
+    return (all?'<div class="ck-head"><div><b>🗺️ '+esc(pl)+' — collectibles checklist</b><span class="ck-st">'+ckStatus()+'</span></div>'+ckBar(allDone,all)+'</div>'+ckSyncBox():'')+body;
   }
+  // ── Synchro avec le compte du tracker (meme base Supabase) ──
+  let CK_USER=null, CK_SYNCED=false;
+  const ckStatus=()=>CK_USER?'☁️ Synced with your tracker account ('+esc(CK_USER.email||'')+').':'Tick what you have found. Progress is saved on this device.';
+  const ckSyncBox=()=>CK_USER?'<div class="ck-sync on"><span>☁️ Progress saved to your account — it follows you on every device.</span><button data-cklogout>Sign out</button></div>'
+    :'<details class="ck-sync"><summary>☁️ Save my progress with my tracker account</summary><form data-cklogin><input type="email" name="e" placeholder="Email" autocomplete="username" required/><input type="password" name="p" placeholder="Password" autocomplete="current-password" required/><button>Sign in</button><a href="https://tracker.ratchetlegacy.com" target="_blank" rel="noopener">No account? Create one in the tracker</a><small class="ck-err"></small></form></details>';
+  async function ckPull(){
+    if(!SB||!SB.auth) return;
+    try{
+      const {data}=await SB.auth.getSession(); CK_USER=data&&data.session?data.session.user:null;
+      if(!CK_USER) return;
+      const {data:rows,error}=await SB.from('user_collectibles').select('ck');
+      if(error) return;
+      const C=ckGet(), remote={}; (rows||[]).forEach(r=>remote[r.ck]=1);
+      // ce qui est coche ici mais pas sur le compte part sur le compte
+      const up=Object.keys(C).filter(k=>!remote[k]).map(k=>({ck:k}));
+      if(up.length) await SB.from('user_collectibles').upsert(up,{onConflict:'user_id,ck',ignoreDuplicates:true});
+      ckSet(Object.assign(C,remote)); CK_SYNCED=true;
+    }catch(e){}
+  }
+  async function ckPush(k,on){
+    if(!CK_USER||!SB) return;
+    try{ if(on) await SB.from('user_collectibles').upsert([{ck:k}],{onConflict:'user_id,ck',ignoreDuplicates:true});
+         else await SB.from('user_collectibles').delete().eq('ck',k); }catch(e){}
+  }
+  function ckRerender(root){
+    const pane=root&&root.closest('.rd-pane'); if(!pane||!pane._ck) return;
+    pane.innerHTML=planetCollect(pane._ck.d,pane._ck.e); 
+  }
+  document.addEventListener('submit',async ev=>{
+    const f=ev.target; if(!f.matches||!f.matches('[data-cklogin]')) return;
+    ev.preventDefault(); const err=f.querySelector('.ck-err'); err.textContent='';
+    const btn=f.querySelector('button'); btn.disabled=true;
+    try{
+      const {error}=await SB.auth.signInWithPassword({email:f.e.value.trim(),password:f.p.value});
+      if(error){ err.textContent='Sign-in failed: '+error.message; btn.disabled=false; return; }
+      await ckPull(); ckRerender(f);
+    }catch(e){ err.textContent='Sign-in failed.'; btn.disabled=false; }
+  });
+  document.addEventListener('click',async ev=>{
+    const b=ev.target.closest&&ev.target.closest('[data-cklogout]'); if(!b) return;
+    try{ await SB.auth.signOut(); }catch(e){}
+    CK_USER=null; ckRerender(b);
+  });
   // Clic sur une case : enregistre et met a jour les barres
   document.addEventListener('change',ev=>{
     const cb=ev.target; if(!cb||!cb.dataset||!cb.dataset.ck) return;
-    const C=ckGet(); if(cb.checked) C[cb.dataset.ck]=1; else delete C[cb.dataset.ck]; ckSet(C);
+    const C=ckGet(); if(cb.checked) C[cb.dataset.ck]=1; else delete C[cb.dataset.ck]; ckSet(C); ckPush(cb.dataset.ck,cb.checked);
     cb.closest('.ck-item').classList.toggle('on',cb.checked);
     ckRefresh(cb.closest('.rd-pane'));
   });
   document.addEventListener('click',ev=>{
     const b=ev.target.closest&&ev.target.closest('[data-ckreset]'); if(!b) return;
     const C=ckGet(), pre=b.dataset.ckreset; Object.keys(C).forEach(k=>{ if(k.indexOf(pre)===0) delete C[k]; }); ckSet(C);
+    if(CK_USER&&SB) SB.from('user_collectibles').delete().like('ck',pre.replace(/[%_]/g,'\\$&')+'%').then(()=>{},()=>{});
     b.closest('.ck-game').querySelectorAll('input[data-ck]').forEach(i=>{ i.checked=false; i.closest('.ck-item').classList.remove('on'); });
     ckRefresh(b.closest('.rd-pane'));
   });
@@ -399,7 +449,7 @@
     mount(bar,pane,[first,
       {key:'missions',label:'🎯 Missions',load:async()=>planetMissions(await get())},
       {key:'enemies',label:'👾 Enemies',load:async()=>planetEnemies(await get())},
-      {key:'collect',label:'✅ Collectibles',load:async()=>planetCollect(await get(),entry)}
+      {key:'collect',label:'✅ Collectibles',fresh:true,load:async()=>{ const d=await get(); await ckPull(); setTimeout(()=>{ const pn=pane.querySelector('.rd-pane'); if(pn) pn._ck={d,e:entry}; },0); return planetCollect(d,entry); }}
     ],onShown);
   }
 
