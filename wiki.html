@@ -211,6 +211,26 @@ a{color:inherit;text-decoration:none}
 .cd-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.5);border:none;color:#fff;width:36px;height:36px;border-radius:10px;font-size:1.1rem;cursor:pointer;z-index:3}
 .cd-top{display:grid;grid-template-columns:230px 1fr;gap:0}
 /* Themes des baies : --g = halo, --l = grille */
+.vh{position:relative}
+.cmp-btn{position:absolute;top:10px;right:10px;z-index:3;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:rgba(10,12,24,.75);color:#fff;cursor:pointer;font-size:1rem;opacity:.75;transition:.15s}
+.cmp-btn:hover{opacity:1;border-color:var(--gold)}.cmp-btn.on{opacity:1;background:var(--gold);border-color:var(--gold)}
+.cmp-tray{position:fixed;left:50%;bottom:16px;transform:translate(-50%,140%);z-index:60;display:flex;align-items:center;gap:10px;background:rgba(16,18,31,.96);border:1px solid rgba(255,176,32,.5);border-radius:16px;padding:10px 12px;box-shadow:0 18px 50px rgba(0,0,0,.6);transition:transform .3s cubic-bezier(.2,.8,.2,1);max-width:calc(100% - 24px)}
+.cmp-tray.on{transform:translate(-50%,0)}
+.cmp-tray .it{display:flex;align-items:center;gap:6px;background:var(--bg3);border-radius:10px;padding:4px 8px 4px 4px;font-size:.78rem;color:var(--text);white-space:nowrap;max-width:150px;overflow:hidden}
+.cmp-tray .it img{width:30px;height:30px;object-fit:contain}.cmp-tray .it button{background:none;border:none;color:var(--text-dim);cursor:pointer}
+.cmp-tray .go{background:linear-gradient(135deg,#ffb020,#ff6b1a);border:none;color:#1a1206;font-weight:800;border-radius:10px;padding:10px 14px;cursor:pointer;white-space:nowrap}
+.cmp-tray .go:disabled{opacity:.45;cursor:default}
+.cmp-tray .hint{font-size:.75rem;color:var(--text-dim);white-space:nowrap}
+.cmp-grid{display:grid;gap:12px;margin-top:6px}
+.cmp-col{background:var(--bg3);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+.cmp-col .pic{height:120px;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 70%,rgba(255,107,26,.25),transparent 70%);border-radius:10px}
+.cmp-col .pic img{max-height:110px;max-width:90%;object-fit:contain;filter:drop-shadow(0 8px 10px rgba(0,0,0,.6))}
+.cmp-col h3{margin:10px 0 6px;font-size:1rem}.cmp-col select{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:6px;font:inherit;font-size:.8rem}
+.cmp-row{display:grid;grid-template-columns:110px repeat(var(--n),1fr);gap:12px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--line);font-size:.85rem}
+.cmp-row .k{color:var(--text-dim);font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.cmp-row .v{color:var(--text);min-width:0}.cmp-row .v.best{color:var(--gold);font-weight:700}
+.cmp-bar{height:6px;border-radius:6px;background:var(--bg2);margin-top:4px;overflow:hidden}.cmp-bar i{display:block;height:100%;background:linear-gradient(90deg,#ffb020,#ff6b1a)}
+@media(max-width:640px){.cmp-row{grid-template-columns:78px repeat(var(--n),1fr);gap:8px;font-size:.78rem}.cmp-col .pic{height:80px}.cmp-col .pic img{max-height:72px}.cmp-tray .hint{display:none}}
 .vh,.vh-bigbay{--g:255,176,32;--l:123,79,212}
 .t-weapon{--g:255,107,26;--l:255,107,26}
 .t-gadget{--g:40,200,255;--l:40,160,255}
@@ -745,7 +765,8 @@ function renderEntries(gridId, list){
   const grid=document.getElementById(gridId); if(!grid) return;
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Coming soon!</div>'; return; }
   grid.classList.add('hangar'); if(gridId==='weapons-grid'||gridId==='gadgets-grid') grid.classList.add('small');
-  grid.innerHTML=list.map(e=>bayCard({theme:bayTheme(e),name:e.name,tag:e.subtitle,desc:e.description,img:e.image_url,pos:e.img_pos,games:e.games,click:'openEntry('+WIKI_ENTRIES.indexOf(e)+')'})).join('');
+  grid.innerHTML=list.map(e=>bayCard({theme:bayTheme(e),name:e.name,tag:e.subtitle,desc:e.description,img:e.image_url,pos:e.img_pos,games:e.games,cmp:e.type==='weapon'?WIKI_ENTRIES.indexOf(e):null,click:'openEntry('+WIKI_ENTRIES.indexOf(e)+')'})).join('');
+  if(window.cmpSync) cmpSync();
 }
 // Baie commune (cartes et fiches) : theme selon le type
 const BAY_IC={vehicle:'🚀',weapon:'🔫',gadget:'🧰',creature:'👽',planet:'🪐',char:'🦊',boss:'👹'};
@@ -759,6 +780,7 @@ function vhBay(e){ const t=bayTheme(e); return '<div class="vh-bigbay t-'+t+'">'
 function gamesMini(gs){ return (gs&&gs.length)?'<div class="gms">'+gs.slice(0,7).map(n=>{ const g=GF_GAMES.find(x=>x[0]===n); return g&&g[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+g[2]+'" alt="" title="'+esc(g[1])+'" loading="lazy" onerror="this.remove()"/>':''; }).join('')+(gs.length>7?'<span>+'+(gs.length-7)+'</span>':'')+'</div>':''; }
 function bayCard(o){ return '<div class="char vh t-'+o.theme+'" data-games="'+esc('|'+(o.games||[]).join('|')+'|')+'" style="cursor:pointer" onclick="'+o.click+'">'
   +'<div class="bay">'+(o.tag?'<span class="tag">'+esc(o.tag)+'</span>':'')+bayImg(o.img,o.theme,o.name,o.pos,o.ic)+'</div>'
+  +(o.cmp!=null?'<button class="cmp-btn" data-cmp="'+o.cmp+'" title="Add to comparison" onclick="event.stopPropagation();cmpToggle('+o.cmp+')">⚖️</button>':'')
   +'<div class="body"><h3>'+esc(o.name)+'</h3>'+(o.desc?'<p>'+esc(o.desc)+'</p>':'')+gamesMini(o.games)+'</div></div>'; }
 function openEntry(i){
   const e=WIKI_ENTRIES[i]; if(!e) return;
@@ -797,6 +819,63 @@ function openEntry(i){
   else if(window.RCD && e.type==='boss') RCD.bossTabs(sb,e,bar,pane,first);
   else pane.innerHTML='<div class="cd-below">'+over+'</div>';
   if(window.RCD) RCD.autoLink(document.getElementById('entry-body'),sb);
+  document.getElementById('entry-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+// ── Comparateur d'armes (jusqu'a 3) ──
+let CMP=[];
+function cmpToggle(i){
+  const k=CMP.indexOf(i);
+  if(k>=0) CMP.splice(k,1); else { if(CMP.length>=3) CMP.shift(); CMP.push(i); }
+  cmpSync();
+}
+function cmpSync(){
+  document.querySelectorAll('.cmp-btn').forEach(b=>b.classList.toggle('on',CMP.includes(+b.dataset.cmp)));
+  const t=document.getElementById('cmp-tray'); if(!t) return;
+  if(!CMP.length){ t.classList.remove('on'); return; }
+  t.innerHTML=CMP.map(i=>{ const e=WIKI_ENTRIES[i]; return '<span class="it">'+(e.image_url?'<img src="'+esc(e.image_url)+'" alt=""/>':'🔫')+esc(e.name)+'<button onclick="cmpToggle('+i+')" title="Remove">✕</button></span>'; }).join('')
+    +(CMP.length<2?'<span class="hint">Pick 1–2 more weapons</span>':'')
+    +'<button class="go" '+(CMP.length<2?'disabled':'')+' onclick="cmpOpen()">⚖️ Compare</button>';
+  t.classList.add('on');
+}
+async function cmpOpen(){
+  const ents=CMP.map(i=>WIKI_ENTRIES[i]);
+  const {data}=await sb.from('site_wiki_entries').select('id,details').in('id',ents.map(e=>e.id));
+  const D={}; (data||[]).forEach(r=>D[r.id]=r.details||{});
+  const games=ents.map(e=>(D[e.id].games||[]).map(g=>g.game));
+  const common=GF_GAMES.map(g=>g[0]).find(g=>games.every(l=>l.includes(g)));
+  const pick=ents.map((e,j)=>common||games[j][0]||'');
+  closeChar();
+  const draw=()=>{
+    const G=ents.map((e,j)=>(D[e.id].games||[]).find(g=>g.game===pick[j])||{});
+    const num=v=>{ const n=parseInt(String(v||'').replace(/[^0-9]/g,''),10); return isNaN(n)?null:n; };
+    const pw=G.map(g=>{ const L=(g.levels||[]).filter(x=>x.power!=null); return L.length?{a:L[0].power,b:L[L.length-1].power}:null; });
+    const maxP=Math.max(1,...pw.map(p=>p?p.b:0));
+    const row=(k,vals,best)=>{ let bi=-1; if(best){ const ns=vals.map(v=>v==null?null:v.n); const ok=ns.filter(x=>x!=null); if(ok.length>1){ const t=best==='min'?Math.min(...ok):Math.max(...ok); if(ns.filter(x=>x===t).length===1) bi=ns.indexOf(t);} }
+      return '<div class="cmp-row" style="--n:'+ents.length+'"><div class="k">'+k+'</div>'+vals.map((v,j)=>'<div class="v'+(j===bi?' best':'')+'">'+(v==null||v.h==null||v.h===''?'—':v.h)+'</div>').join('')+'</div>'; };
+    const fmt=n=>n==null?null:Number(n).toLocaleString('en-US');
+    const rows=[
+      row('Price',G.map(g=>{ const n=num(g.price); return {n,h:n!=null?fmt(n)+' bolts':(g.where?'Free / found':null)}; }),'min'),
+      row('Where',G.map(g=>({h:esc(g.where||'')}))),
+      row('Power',pw.map(p=>p?{n:p.b,h:fmt(p.a)+(p.b!==p.a?' → <b>'+fmt(p.b)+'</b>':'')+'<div class="cmp-bar"><i style="width:'+Math.round(p.b/maxP*100)+'%"></i></div>'}:null),'max'),
+      row('Ammo',G.map(g=>{ const a=num(g.ammo), m=num(g.ammo_max); return a!=null?{n:m||a,h:fmt(a)+(m&&m!==a?' → '+fmt(m):'')}:null; }),'max'),
+      row('Ammo price',G.map(g=>{ const n=num(g.ammo_price); return n!=null?{n,h:fmt(n)+' bolts'}:null; }),'min'),
+      row('Upgrades to',G.map(g=>g.upgrade?{h:esc(g.upgrade)+(g.evolve_at?' <small style="color:var(--text-dim)">(V'+g.evolve_at+')</small>':'')}:null)),
+      row('Upgrade cost',G.map(g=>{ const n=num(g.upgrade_price); return n!=null?{n,h:fmt(n)+' bolts'}:null; }),'min'),
+      row('Type',ents.map(e=>({h:esc([].concat(D[e.id].kind||[]).join(', '))}))),
+      row('Range',ents.map(e=>({h:esc([].concat(D[e.id].range||[]).join(', '))}))),
+      row('Fire rate',ents.map(e=>({h:esc([].concat(D[e.id].rate_of_fire||[]).join(', '))}))),
+      row('Maker',ents.map(e=>({h:esc([].concat(D[e.id].manufacturer||[]).join(', '))})))
+    ].join('');
+    document.getElementById('entry-body').innerHTML='<div style="padding:22px 20px 26px"><h2 style="margin:0 0 4px">⚖️ Weapon comparison</h2><div class="cd-role" style="margin-bottom:12px">Pick the game for each weapon — the best value of each row is highlighted.</div>'
+      +'<div class="cmp-grid" style="grid-template-columns:repeat('+ents.length+',1fr)">'+ents.map((e,j)=>'<div class="cmp-col"><div class="pic">'+(e.image_url?'<img src="'+esc(e.image_url)+'" alt=""/>':'🔫')+'</div><h3>'+esc(e.name)+'</h3>'
+        +(games[j].length?'<select data-j="'+j+'">'+games[j].map(g=>'<option'+(g===pick[j]?' selected':'')+'>'+esc(g)+'</option>').join('')+'</select>':'<small style="color:var(--text-dim)">No game data</small>')+'</div>').join('')+'</div>'
+      +'<div style="margin-top:14px">'+rows+'</div>'
+      +'<div class="rd-sub" style="margin-top:16px;text-transform:none;letter-spacing:0;font-weight:500">Source: Ratchet &amp; Clank Wiki (Fandom), CC BY-SA.</div></div>';
+    document.querySelectorAll('#entry-body select[data-j]').forEach(sl=>sl.onchange=()=>{ pick[+sl.dataset.j]=sl.value; draw(); });
+  };
+  draw();
   document.getElementById('entry-modal').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -955,6 +1034,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(window.RCD) RCD.onOpen=openB
 <script src="details-tabs.js?v=20"></script>
 <script src="site-enhance.js"></script>
 <!-- ENTRY DETAIL MODAL -->
+<div class="cmp-tray" id="cmp-tray"></div>
 <div class="char-modal" id="entry-modal" onclick="if(event.target===this)closeEntry()">
   <div class="cd-inner">
     <button class="cd-close" onclick="closeEntry()">✕</button>
