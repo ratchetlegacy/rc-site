@@ -236,8 +236,9 @@
       SB.from('site_locations').select('name,planet_id')
     ]).then(([e,c,l])=>{
       const pl={}; (e.data||[]).forEach(r=>{ if(r.type==='planet') pl[r.id]=r.name; });
-      (e.data||[]).forEach(r=>add(r.name,r.type));
+      (e.data||[]).forEach(r=>{ if(r.type!=='boss') add(r.name,r.type); });
       (c.data||[]).forEach(r=>add(r.name,'character'));
+      (e.data||[]).forEach(r=>{ if(r.type==='boss') add(r.name,'boss'); });
       (l.data||[]).forEach(r=>add(r.name,'location',pl[r.planet_id]||''));
       const keys=Object.keys(NAMES).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
       if(keys.length) RX=new RegExp('(^|[^A-Za-z0-9])('+keys.join('|')+')(?![A-Za-z0-9])','gi');
@@ -437,6 +438,23 @@
                       :{key:'specs',label:'⚙️ Specs',load:async()=>profile(await get(),VEHICLE)}
     ],onShown);
   }; }
+  // ── Bosses : profil + comment le battre ──
+  const BOSSP=[['species','Species','l','🧬'],['organization','Works for','l','🏢'],['location','Where you fight it','l','📍']];
+  function bossFight(d){
+    let h='';
+    if(list(d&&d.attacks).length) h+='<div class="rd-sub" style="margin-top:0">Attacks</div><div class="rd-chips">'+d.attacks.map(x=>chip('','⚔️',x)).join('')+'</div>';
+    if(list(d&&d.defense).length) h+='<div class="rd-sub">Defense</div><div class="rd-chips">'+d.defense.map(x=>chip('','🛡️',x)).join('')+'</div>';
+    if(d&&d.strategy) h+='<div class="rd-sub">How to beat it</div><div style="font-size:.9rem;color:var(--text-mid);line-height:1.6;background:var(--bg3);border-left:3px solid #ff4b4b;border-radius:8px;padding:12px 14px">'+lk(d.strategy)+'</div>';
+    return h?h+SRC:empty('No fight details yet.');
+  }
+  function bossTabs(sb,entry,bar,pane,first,onShown){ SB=sb;
+    let p=null; const get=()=>p||(p=fetchDetails(sb,entry.id));
+    mount(bar,pane,[first,
+      {key:'fight',label:'⚔️ The fight',load:async()=>bossFight(await get())},
+      {key:'games',label:'🎮 Games',load:async()=>weaponGames(await get())},
+      {key:'profile',label:'🧬 Profile',load:async()=>profile(await get(),BOSSP)}
+    ],onShown);
+  }
   // ── Personnages ──
 async function charDetails(sb,id){
   if(('c'+id) in CACHE) return CACHE['c'+id];
@@ -493,6 +511,7 @@ function gameTabs(sb,g,bar,pane){ SB=sb;
   tabs.push(fromWiki('planet',null,'🪐 Planets','planet'));
   tabs.push(fromWiki('vehicle',null,'🚀 Vehicles','vehicle'));
   tabs.push(fromWiki('creature',null,'👽 Creatures','creature'));
+  tabs.push(fromWiki('boss',null,'👹 Bosses','boss'));
   tabs.push({key:'chars',label:'👥 Characters',load:async()=>{
     const {data,error}=await sb.from('site_characters').select('name,role,image_url').contains('games',[key]).order('name');
     if(error) throw error;
@@ -508,5 +527,5 @@ function charTabs(sb,c,bar,pane,first,onShown){ SB=sb;
     {key:'profile',label:'🧬 Profile',load:async()=>charProfile(c,await get())}
   ],onShown);
 }
-window.RCD={openLink,autoLink,planetTabs,weaponTabs,creatureTabs:simpleTabs('creature'),vehicleTabs:simpleTabs('vehicle'),charTabs,gameTabs,mount};
+window.RCD={openLink,autoLink,planetTabs,weaponTabs,creatureTabs:simpleTabs('creature'),vehicleTabs:simpleTabs('vehicle'),bossTabs,charTabs,gameTabs,mount};
 })();

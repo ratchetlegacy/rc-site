@@ -201,6 +201,8 @@ a{color:inherit;text-decoration:none}
 .t-creature{--g:90,220,120;--l:60,180,110}
 .t-planet{--g:160,110,255;--l:123,79,212}
 .t-char{--g:255,176,32;--l:255,120,180}
+.t-boss{--g:255,60,60;--l:200,40,60}
+.t-boss .bay{background:radial-gradient(ellipse at 50% 80%,rgba(var(--g),.28),transparent 70%),repeating-linear-gradient(135deg,rgba(255,60,60,.06) 0 12px,transparent 12px 24px),#140810}
 .vh .tag,.vh-bigbay .tag{border-color:rgba(var(--g),.5);color:rgb(var(--g))}
 .t-planet .bay,.vh-bigbay.t-planet{background:radial-gradient(1px 1px at 12% 20%,#fff,transparent),radial-gradient(1px 1px at 70% 30%,#fff,transparent),radial-gradient(1.5px 1.5px at 40% 75%,#fff,transparent),radial-gradient(1px 1px at 85% 80%,#fff,transparent),radial-gradient(1px 1px at 25% 60%,#cfc6ff,transparent),radial-gradient(ellipse at 50% 50%,rgba(var(--g),.25),transparent 70%),#080a18}
 .t-planet .bay::after,.vh-bigbay.t-planet::after{display:none}
@@ -290,6 +292,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <div class="wiki-hub-card" id="hub-weapons" onclick="showWikiSection('weapons')"><span class="wh-ic">🔫</span><h3>Weapons</h3><p>The legendary arsenal</p></div>
     <div class="wiki-hub-card" id="hub-creatures" onclick="showWikiSection('creatures')"><span class="wh-ic">👽</span><h3>Creatures</h3><p>Species of the galaxy</p></div>
     <div class="wiki-hub-card" id="hub-planets" onclick="showWikiSection('planets')"><span class="wh-ic">🪐</span><h3>Planets</h3><p>Worlds &amp; locations</p></div>
+    <div class="wiki-hub-card" id="hub-bosses" onclick="showWikiSection('bosses')"><span class="wh-ic">👹</span><h3>Bosses</h3><p>Every big fight &amp; how to win</p></div>
     <div class="wiki-hub-card" id="hub-vehicles" onclick="showWikiSection('vehicles')"><span class="wh-ic">🚀</span><h3>Vehicles</h3><p>Ships &amp; rides</p></div>
     <div class="wiki-hub-card" id="hub-lore" onclick="showWikiSection('lore')"><span class="wh-ic">📖</span><h3>Lore &amp; History</h3><p>The story of the series</p></div>
   </div>
@@ -353,6 +356,14 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <div class="sec-sub">The races and beings that populate the galaxy.</div>
     <div class="gf-bar" data-sec="creatures"></div>
     <div class="chars" id="creatures-grid"><div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Loading…</div></div>
+  </section>
+
+  <!-- BOSSES -->
+  <section class="sec" id="bosses">
+    <div class="sec-title"><span class="em">👹</span> Bosses</div>
+    <div class="sec-sub">Every boss of the series, game by game — with their attacks and how to beat them.</div>
+    <div class="gf-bar" data-sec="bosses"></div>
+    <div id="bosses-grid"><div style="text-align:center;padding:30px;color:var(--text-dim)">Loading…</div></div>
   </section>
 
   <!-- PLANETS -->
@@ -608,7 +619,7 @@ loadLore();
 // Open a section directly if the URL has a hash (e.g. wiki.html#lore)
 (function(){
   const hash=(location.hash||'').replace('#','');
-  const valid=['games','characters','weapons','creatures','planets','vehicles','lore'];
+  const valid=['games','characters','weapons','creatures','bosses','planets','vehicles','lore'];
   if(valid.includes(hash)){
     // wait a tick so the DOM/functions are ready
     setTimeout(()=>{ if(typeof showWikiSection==='function') showWikiSection(hash); }, 60);
@@ -661,7 +672,7 @@ async function loadWikiEntries(){
   try{
     const {data,error}=await sb.from('site_wiki_entries').select('id,type,name,subtitle,description,image_url,img_pos,sort_order,galaxy,dimension,main_location,inhabitants,first_appearance,notable_locations,notable_events,system,games,category').order('sort_order').order('name');
     if(error) throw error;
-    const byType={weapon:[],gadget:[],creature:[],planet:[],vehicle:[]};
+    const byType={weapon:[],gadget:[],creature:[],planet:[],vehicle:[],boss:[]};
     WIKI_ENTRIES=data||[];
     (data||[]).forEach(e=>{ const k=(e.type==='weapon'&&e.category==='gadget')?'gadget':e.type; if(byType[k]) byType[k].push(e); });
     renderEntries('weapons-grid', byType.weapon);
@@ -669,7 +680,8 @@ async function loadWikiEntries(){
     renderEntries('creatures-grid', byType.creature);
     renderEntries('planets-grid', byType.planet);
     renderHangar(byType.vehicle);
-    ['weapons','creatures','planets','vehicles'].forEach(buildGameFilter);
+    renderBosses(byType.boss);
+    ['weapons','creatures','bosses','planets','vehicles'].forEach(buildGameFilter);
   }catch(e){}
 }
 let WIKI_ENTRIES=[];
@@ -692,6 +704,17 @@ function renderHangar(list){
     '<div class="char-group vh-group"><div class="vh-head"><span class="ic">'+g[1]+'</span>'+g[2]+'<small>'+G[g[0]].length+'</small></div><div class="chars hangar">'+G[g[0]].map(card).join('')+'</div></div>').join('');
 }
 
+// Bosses groupes par jeu (premier jeu de la liste), dans l'ordre de sortie
+function renderBosses(list){
+  const grid=document.getElementById('bosses-grid'); if(!grid) return;
+  if(!list.length){ grid.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-dim)">Coming soon!</div>'; return; }
+  const G={}; list.forEach(e=>{ const g=(e.games&&e.games[0])||'Other'; (G[g]=G[g]||[]).push(e); });
+  const order=GF_GAMES.map(g=>g[0]).filter(g=>G[g]).concat(Object.keys(G).filter(g=>!GF_GAMES.some(x=>x[0]===g)));
+  const card=e=>bayCard({theme:'boss',name:e.name,tag:(e.games&&e.games.length>1)?'×'+e.games.length+' games':'',desc:e.description,img:e.image_url,pos:e.img_pos,games:e.games,click:'openEntry('+WIKI_ENTRIES.indexOf(e)+')'});
+  grid.innerHTML=order.map(g=>{ const gi=GF_GAMES.find(x=>x[0]===g);
+    return '<div class="char-group vh-group"><div class="vh-head">'+(gi&&gi[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+gi[2]+'" alt="" style="width:30px;height:38px;object-fit:cover;border-radius:5px" onerror="this.remove()"/>':'<span class="ic">👹</span>')+esc(gi?gi[1]:g)+'<small>'+G[g].length+'</small></div><div class="chars hangar">'+G[g].map(card).join('')+'</div></div>'; }).join('');
+}
+
 function renderEntries(gridId, list){
   const grid=document.getElementById(gridId); if(!grid) return;
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Coming soon!</div>'; return; }
@@ -699,7 +722,7 @@ function renderEntries(gridId, list){
   grid.innerHTML=list.map(e=>bayCard({theme:bayTheme(e),name:e.name,tag:e.subtitle,desc:e.description,img:e.image_url,pos:e.img_pos,games:e.games,click:'openEntry('+WIKI_ENTRIES.indexOf(e)+')'})).join('');
 }
 // Baie commune (cartes et fiches) : theme selon le type
-const BAY_IC={vehicle:'🚀',weapon:'🔫',gadget:'🧰',creature:'👽',planet:'🪐',char:'🦊'};
+const BAY_IC={vehicle:'🚀',weapon:'🔫',gadget:'🧰',creature:'👽',planet:'🪐',char:'🦊',boss:'👹'};
 function bayTheme(e){ return e.type==='weapon'&&e.category==='gadget'?'gadget':e.type; }
 function bayImg(url,theme,name,pos,ic){
   const shot=theme==='vehicle'&&VH_SHOT.test(name||'');
@@ -745,6 +768,7 @@ function openEntry(i){
   else if(window.RCD && e.type==='planet') RCD.planetTabs(sb,e,bar,pane,first);
   else if(window.RCD && e.type==='creature') RCD.creatureTabs(sb,e,bar,pane,first);
   else if(window.RCD && e.type==='vehicle') RCD.vehicleTabs(sb,e,bar,pane,first);
+  else if(window.RCD && e.type==='boss') RCD.bossTabs(sb,e,bar,pane,first);
   else pane.innerHTML='<div class="cd-below">'+over+'</div>';
   if(window.RCD) RCD.autoLink(document.getElementById('entry-body'),sb);
   document.getElementById('entry-modal').classList.add('open');
@@ -758,7 +782,7 @@ async function loadHubImages(){
   try{
     const {data}=await sb.from('site_settings').select('key,value');
     const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
-    const map={games:'wiki_img_games',characters:'wiki_img_characters',weapons:'wiki_img_weapons',creatures:'wiki_img_creatures',planets:'wiki_img_planets',vehicles:'wiki_img_vehicles',lore:'wiki_img_lore'};
+    const map={games:'wiki_img_games',characters:'wiki_img_characters',weapons:'wiki_img_weapons',creatures:'wiki_img_creatures',bosses:'wiki_img_bosses',planets:'wiki_img_planets',vehicles:'wiki_img_vehicles',lore:'wiki_img_lore'};
     Object.keys(map).forEach(k=>{
       const url=S[map[k]];
       const card=document.getElementById('hub-'+k);
@@ -802,7 +826,7 @@ function openGameSheet(n){
   return true;
 }
 function openByName(k,n){
-  if(['weapon','creature','planet','vehicle'].includes(k)){
+  if(['weapon','creature','planet','vehicle','boss'].includes(k)){
     const i=WIKI_ENTRIES.findIndex(e=>e.type===k&&e.name===n); if(i<0) return false;
     closeChar(); closeEntry(); openEntry(i);
     const box=document.querySelector('#entry-modal .cd-inner'); if(box) box.scrollTop=0;
@@ -835,7 +859,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(window.RCD) RCD.onOpen=openB
   </div>
 </div>
 
-<script src="details-tabs.js?v=17"></script>
+<script src="details-tabs.js?v=18"></script>
 <script src="site-enhance.js"></script>
 <!-- ENTRY DETAIL MODAL -->
 <div class="char-modal" id="entry-modal" onclick="if(event.target===this)closeEntry()">
