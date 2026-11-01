@@ -330,6 +330,7 @@
   const guideBtn=g=>GUIDES.includes(g)?'<a class="rd-guide" href="guides.html#game='+encodeURIComponent(g)+'" title="Open the '+esc(gi(g)[0])+' guide">📗<span>Guide</span></a>':'';
   const gameBlock=(g,inner,guide)=>'<div class="rd-game'+(guide&&GUIDES.includes(g.game)?' has-guide':'')+'"><div data-k="game" data-n="'+esc(g.game)+'" title="Open the game sheet">'+cover(g.game)+'</div><div><div class="rd-gh" data-k="game" data-n="'+esc(g.game)+'">'+esc(gi(g.game)[0])+'<span>'+esc(gi(g.game)[1])+'</span></div>'+inner+'</div>'+(guide?guideBtn(g.game):'')+'</div>';
   const empty=t=>'<div class="rd-empty">'+t+'</div>';
+  const guidesRow=games=>{ const g=[...new Set(list(games).map(GKEY))].filter(x=>GUIDES.includes(x)); return g.length?'<div class="gd-guides">'+g.map(x=>'<a href="guides.html#game='+encodeURIComponent(x)+'">📗 Ratchet Legacy guide: <b>'+esc(gi(x)[0])+'</b> →</a>').join('')+'</div>':''; };
   const BOSS=/boss|king |giant|queen|courtney gears|shellshock|gleeman|klunk|dreadship|vorselon|leviathan king/i;
 
   // ── Planetes ──
@@ -550,7 +551,7 @@
   function bossTabs(sb,entry,bar,pane,first,onShown){ SB=sb;
     let p=null; const get=()=>p||(p=fetchDetails(sb,entry.id));
     mount(bar,pane,[first,
-      {key:'fight',label:'⚔️ The fight',load:async()=>bossFight(await get())},
+      {key:'fight',label:'⚔️ The fight',load:async()=>bossFight(await get())+guidesRow(entry.games)},
       {key:'games',label:'🎮 Games',load:async()=>weaponGames(await get())},
       {key:'profile',label:'🧬 Profile',load:async()=>profile(await get(),BOSSP)}
     ],onShown);
@@ -632,5 +633,5 @@ function charTabs(sb,c,bar,pane,first,onShown){ SB=sb;
     {key:'profile',label:'🧬 Profile',load:async()=>charProfile(c,await get())}
   ],onShown);
 }
-window.RCD={openLink,autoLink,planetTabs,weaponTabs,creatureTabs:simpleTabs('creature'),vehicleTabs:simpleTabs('vehicle'),bossTabs,charTabs,gameTabs,mount};
+window.RCD={guidesRow,openLink,autoLink,planetTabs,weaponTabs,creatureTabs:simpleTabs('creature'),vehicleTabs:simpleTabs('vehicle'),bossTabs,charTabs,gameTabs,mount};
 })();

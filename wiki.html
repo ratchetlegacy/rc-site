@@ -82,6 +82,7 @@ a{color:inherit;text-decoration:none}
 .game.open .game-body{max-height:3000px}
 .game-body-inner{padding:0 20px 20px 20px;border-top:1px solid var(--line);margin:0 20px;padding-top:16px}
 .game-body p{color:var(--text-mid);font-size:.92rem;margin-bottom:14px}
+.gd-guides{display:flex;flex-direction:column;gap:6px;margin-top:14px}.gd-guides a{display:block;background:rgba(80,200,120,.08);border:1px solid rgba(80,200,120,.3);color:#8fe3a8;border-radius:10px;padding:9px 12px;font-size:.84rem;text-decoration:none}.gd-guides a:hover{background:rgba(80,200,120,.16)}.gd-guides b{color:#c9f5d6}
 .g-facts{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 2px;font-size:.8rem;color:var(--text-mid)}.g-facts b{color:var(--gold);font-weight:700;margin-right:4px}
 .game-anec{display:flex;gap:10px;background:rgba(255,200,90,.06);border:1px solid rgba(255,200,90,.18);border-radius:10px;padding:12px 14px;font-size:.86rem;color:var(--text-mid)}
 .game-anec b{color:var(--gold)}
@@ -589,6 +590,7 @@ function setOrder(o){
   document.getElementById('ob-story').classList.toggle('active',o==='story');
   renderGames();
 }
+const gGuide=n=>window.RCD&&RCD.guidesRow?RCD.guidesRow([n]):'';
 function gFacts(g){ const d=g.details||{}; const r=[]; if(d.release) r.push('<span><b>Released</b>'+esc(d.release)+'</span>'); if(d.developer) r.push('<span><b>Developer</b>'+esc(d.developer)+'</span>'); return r.length?'<div class="g-facts">'+r.join('')+'</div>':''; }
 function renderGames(){
   const box=document.getElementById('games-list');
@@ -607,6 +609,7 @@ function renderGames(){
         ${g.anecdote?`<div class="game-anec"><span>💡</span><span><b>Did you know?</b> ${esc(g.anecdote)}</span></div>`:''}
         ${g.story&&g.story.trim()?`<a href="story.html" style="display:inline-block;margin-top:10px;color:var(--purple-light);font-weight:600;font-size:.85rem">📖 Read the full story →</a>`:''}
         <button class="gd-btn" onclick="event.stopPropagation();openGameDetails('${esc(g.id)}')">🎮 Game sheet: modes, weapons, planets &amp; more →</button>
+        ${gGuide(g.name)}
         ${completionHtml(g)}
       </div></div>
     </div></div>`;
@@ -871,6 +874,7 @@ function renderEnemies(){
     buildGameFilter('enemies');
   });
 }
+const gGuide2=a=>window.RCD&&RCD.guidesRow?RCD.guidesRow(a):'';
 function openEnemy(i){
   const e=ENEMIES[i]; if(!e) return;
   closeChar();
@@ -881,7 +885,7 @@ function openEnemy(i){
   document.querySelectorAll('#entry-body img').forEach(im=>im.referrerPolicy='no-referrer');
   const tabs=[{key:'over',label:'📖 Overview',html:'<p class="cd-desc" data-al style="margin-top:0">'+esc(e.d||'')+'</p>'+(x.where?'<div class="rd-sub">Where to find them</div>'+chips(x.where,'📍'):'')}];
   if(x.attacks||x.defense||e.t) tabs.push({key:'fight',label:'⚔️ Combat',html:(x.attacks?'<div class="rd-sub" style="margin-top:0">Attacks</div>'+chips(x.attacks,'⚔️'):'')+(x.defense?'<div class="rd-sub">Defense</div>'+chips(x.defense,'🛡️'):'')+(e.t?'<div class="rd-sub">How to deal with them</div><div data-al style="font-size:.9rem;color:var(--text-mid);line-height:1.6;background:var(--bg3);border-left:3px solid #c85aff;border-radius:8px;padding:12px 14px">'+esc(e.t)+'</div>':'')});
-  tabs.push({key:'games',label:'🎮 Games',html:'<div class="rd-chips">'+e.g.map(g=>'<span class="rd-chip lk" data-k="game" data-n="'+esc(g)+'">🎮 '+esc(g)+'</span>').join('')+'</div><div class="rd-sub" style="margin-top:18px;text-transform:none;letter-spacing:0;font-weight:500">Source: Ratchet &amp; Clank Wiki (Fandom), CC BY-SA.</div>'});
+  tabs.push({key:'games',label:'🎮 Games',html:'<div class="rd-chips">'+e.g.map(g=>'<span class="rd-chip lk" data-k="game" data-n="'+esc(g)+'">🎮 '+esc(g)+'</span>').join('')+'</div>'+gGuide2(e.g)+'<div class="rd-sub" style="margin-top:18px;text-transform:none;letter-spacing:0;font-weight:500">Source: Ratchet &amp; Clank Wiki (Fandom), CC BY-SA.</div>'});
   if(window.RCD){ RCD.mount(document.getElementById('en-tabs'),document.getElementById('en-pane'),tabs); RCD.autoLink(document.getElementById('entry-body'),sb); }
   document.getElementById('entry-modal').classList.add('open');
   document.body.style.overflow='hidden';
@@ -998,7 +1002,7 @@ function openGameDetails(id){
   document.getElementById('entry-body').innerHTML=`
     <div class="cd-top">
       <div class="cd-img" style="background:linear-gradient(135deg,#2a1d45,#3d2410)">${g.image_url?`<img src="${esc(g.image_url)}" style="width:100%;height:100%;object-fit:cover"/>`:'🎮'}</div>
-      <div class="cd-top-info"><div><h2>${esc(g.name)}</h2><div class="cd-role">${esc([g.platform,g.year].filter(Boolean).join(' · '))}</div>${gFacts(g)}</div>${g.synopsis?`<p class="cd-desc" style="margin-top:6px">${esc(g.synopsis)}</p>`:''}</div>
+      <div class="cd-top-info"><div><h2>${esc(g.name)}</h2><div class="cd-role">${esc([g.platform,g.year].filter(Boolean).join(' · '))}</div>${gFacts(g)}</div>${g.synopsis?`<p class="cd-desc" style="margin-top:6px">${esc(g.synopsis)}</p>`:''}${gGuide(g.name)}</div>
     </div>
     <div id="en-tabs"></div><div id="en-pane"></div>`;
   RCD.gameTabs(sb,g,document.getElementById('en-tabs'),document.getElementById('en-pane'));
@@ -1115,7 +1119,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(window.RCD) RCD.onOpen=openB
   </div>
 </div>
 
-<script src="details-tabs.js?v=22"></script>
+<script src="details-tabs.js?v=23"></script>
 <script src="site-enhance.js"></script>
 <!-- ENTRY DETAIL MODAL -->
 <div class="cmp-tray" id="cmp-tray"></div>
