@@ -90,6 +90,8 @@ a{color:inherit;text-decoration:none}
 
 /* grid */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;padding-bottom:60px}
+.ed-sep{grid-column:1/-1;font-family:'Orbitron',sans-serif;font-size:.74rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-light);padding:14px 2px 6px;border-bottom:1px solid var(--line);margin-bottom:-4px}
+.ed-sep:first-child{padding-top:0}
 .card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:.18s;cursor:pointer}
 .card:hover{transform:translateY(-4px);border-color:var(--purple);box-shadow:0 12px 28px -10px rgba(123,79,212,.5)}
 .card-cover{width:100%;aspect-ratio:3/4;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
@@ -534,7 +536,7 @@ function openCategory(cat){
   const inCat=ALL.filter(c=>(c.category||'Misc')===cat);
   const counts={};
   inCat.forEach(c=>{ const k=c.platform||'—'; counts[k]=(counts[k]||0)+1; });
-  const plats=Object.keys(counts).sort();
+  const plats=Object.keys(counts).sort((a,b)=>(consoleRank(a)-consoleRank(b))||a.localeCompare(b));
   crumb();
   // If only one platform (or none meaningful), skip straight to regions
   renderMenuCards(plats.map(p=>({
@@ -563,6 +565,50 @@ function openPlatform(plat){
   })), k=>`openRegion('${k.replace(/'/g,"\\'")}')`);
 }
 
+// ══ ORDRE D'AFFICHAGE ══
+// Même ordre que le tracker : édition (standard, rééditions, démos, presse,
+// collectors), puis les jeux dans l'ordre de la série, puis la région.
+const CONSOLES=['playstation 2','psp','playstation 3','ps vita','playstation 4','playstation 5'];
+function consoleRank(p){ const i=CONSOLES.indexOf(String(p||'').trim().toLowerCase()); return i>=0?i:50; }
+function editionRank(e){
+  e=String(e||'').toLowerCase();
+  if(!e||/classique|standard/.test(e)) return 0;
+  if(/platinum|greatest|essential|the best|hit/.test(e)) return 1;
+  if(/d[ée]mo/.test(e)) return 2;
+  if(/press|promo/.test(e)) return 3;
+  if(/collector|limit|sp[ée]ciale/.test(e)) return 4;
+  return 5;
+}
+function editionLabel(c){
+  const e=String(c.edition||'').trim();
+  if(!e||/classique|standard/i.test(e)) return 'Standard edition';
+  if(/d[ée]mo/i.test(e)) return 'Demo';
+  if(/press/i.test(e)) return 'Press only';
+  return e;
+}
+let FIRST_YEAR=null;
+function titleYear(c){
+  if(!FIRST_YEAR){ FIRST_YEAR={}; ALL.forEach(o=>{ const k=String(o.name||'').trim().toLowerCase(); if(o.year && (!FIRST_YEAR[k]||+o.year<FIRST_YEAR[k])) FIRST_YEAR[k]=+o.year; }); }
+  return FIRST_YEAR[String(c.name||'').trim().toLowerCase()]||+c.year||9999;
+}
+const COLL=new Intl.Collator('en',{numeric:true,sensitivity:'base'});
+function sortItems(list){
+  return list.slice().sort((a,b)=>
+    (editionRank(a.edition)-editionRank(b.edition))
+    || COLL.compare(editionLabel(a),editionLabel(b))
+    || (titleYear(a)-titleYear(b))
+    || COLL.compare(a.name||'',b.name||'')
+    || COLL.compare(a.region||'',b.region||''));
+}
+// les vignettes, avec une ligne d'intertitre à chaque changement d'édition
+function gridWithEditions(list){
+  let last=null;
+  return sortItems(list).map(c=>{
+    const ed=editionLabel(c), sep=ed!==last?`<div class="ed-sep">${esc(ed)}</div>`:'';
+    last=ed; return sep+cardHtml(c);
+  }).join('');
+}
+
 // LEVEL 3: the items
 function openRegion(reg){
   navReg=reg;
@@ -571,7 +617,7 @@ function openRegion(reg){
   document.querySelector('.controls').style.display='flex';
   const grid=document.getElementById('grid'); grid.className='grid';
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:40px">No item.</div>'; return; }
-  grid.innerHTML=list.map(cardHtml).join('');
+  grid.innerHTML=gridWithEditions(list);
   window.scrollTo({top:document.getElementById('count').offsetTop-90,behavior:'smooth'});
 }
 
@@ -603,7 +649,7 @@ function applyFilters(){
     && (!q || (c.name||'').toLowerCase().includes(q)));
   const grid=document.getElementById('grid');
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:40px">No item matches.</div>'; return; }
-  grid.innerHTML=list.map(cardHtml).join('');
+  grid.innerHTML=q?sortItems(list).map(cardHtml).join(''):gridWithEditions(list);
 }
 
 // ══ COURBE DE TENDANCE DES PRIX ══
