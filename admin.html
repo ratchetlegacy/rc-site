@@ -792,6 +792,10 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
           <div style="flex:1"><label>Release order</label><input type="number" id="ga-rel" placeholder="13"/></div>
           <div style="flex:1"><label>Story order</label><input type="number" id="ga-storyorder" placeholder="12"/></div>
         </div>
+        <label>Release date(s)</label>
+        <input type="text" id="ga-release" placeholder="11 June 2021 (PS5) · 26 July 2023 (PC)"/>
+        <label>Developer</label>
+        <input type="text" id="ga-dev" placeholder="Insomniac Games"/>
         <label>Photo URL</label>
         <input type="text" id="ga-img" placeholder="https://res.cloudinary.com/..."/>
         <label>Synopsis</label>
@@ -2401,12 +2405,17 @@ function editGame(g){
   document.getElementById('ga-story').value=g.story||'';
   document.getElementById('ga-simg1').value=g.story_img1||'';
   document.getElementById('ga-simg2').value=g.story_img2||'';
+  GA_DETAILS=g.details||{};
+  document.getElementById('ga-release').value=GA_DETAILS.release||'';
+  document.getElementById('ga-dev').value=GA_DETAILS.developer||'';
   document.getElementById('game-msg').style.display='none';
   document.getElementById('game-modal-title').textContent='✏️ Edit game';
   document.getElementById('game-modal').classList.add('open');
 }
+let GA_DETAILS={};
 function clearGameForm(){
-  ['ga-id','ga-name','ga-platform','ga-year','ga-rel','ga-storyorder','ga-img','ga-syn','ga-anec','ga-story','ga-simg1','ga-simg2'].forEach(id=>document.getElementById(id).value='');
+  GA_DETAILS={};
+  ['ga-id','ga-release','ga-dev','ga-name','ga-platform','ga-year','ga-rel','ga-storyorder','ga-img','ga-syn','ga-anec','ga-story','ga-simg1','ga-simg2'].forEach(id=>document.getElementById(id).value='');
 }
 async function saveGame(){
   const id=document.getElementById('ga-id').value;
@@ -2424,6 +2433,8 @@ async function saveGame(){
     story_img1:document.getElementById('ga-simg1').value.trim()||null,
     story_img2:document.getElementById('ga-simg2').value.trim()||null
   };
+  { const d=Object.assign({},GA_DETAILS); const rl=document.getElementById('ga-release').value.trim(), dv=document.getElementById('ga-dev').value.trim();
+    if(rl) d.release=rl; else delete d.release; if(dv) d.developer=dv; else delete d.developer; row.details=d; }
   if(!row.name){ showMsg('game-msg','Name is required.',false); return; }
   let error;
   if(id){ ({error}=await sb.from('site_games').update(row).eq('id',id)); }
