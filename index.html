@@ -524,7 +524,7 @@ for(let i=0;i<70;i++){
     const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
     set('vlt-cats',uniq(c=>c.category)); set('vlt-plats',uniq(c=>c.platform)); set('vlt-regs',uniq(c=>c.region));
     document.querySelectorAll('.rl-count').forEach(e=>e.textContent=data.length);
-    const IC={'Game':'🎮','Console/Pack':'📦','Figure':'🎯','Plush':'🧸','Goodie':'🎁','Clothing':'👕','Print':'🖼️','Book':'📖','Guide':'📗','Media':'🎬'};
+    const IC={'Game':'🎮','Console/Pack':'📦','Figure':'🎯','Plush':'🧸','Goodie':'🎁','Press Kit':'📰','Clothing':'👕','Print':'🖼️','Book':'📖','Guide':'📗','Media':'🎬'};
     const cnt={}; data.forEach(c=>{ const k=c.category||'Misc'; cnt[k]=(cnt[k]||0)+1; });
     const ch=document.getElementById('vlt-chips');
     if(ch) ch.innerHTML=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(k=>'<a href="database.html#cat='+encodeURIComponent(k)+'">'+(IC[k]||'📌')+' '+k+' <small>'+cnt[k]+'</small></a>').join('');
