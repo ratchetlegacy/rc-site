@@ -565,6 +565,32 @@ function openPlatform(plat){
   })), k=>`openRegion('${k.replace(/'/g,"\\'")}')`);
 }
 
+// ══ DEVISE DE LA COTE ══
+// Les cotes sont stockées en euros. On les affiche dans la monnaie du pays de
+// la version (yen pour une version japonaise, dollar pour une version US…),
+// avec l'équivalent en euros à côté. Taux BCE du jour, gardés 12 h.
+const CUR_BY_REGION=[[/jap|ntsc-j/i,'JPY'],[/usa|ntsc-u/i,'USD'],[/\buk\b|royaume/i,'GBP'],[/\bkr\b|cor[ée]e/i,'KRW'],[/\bau\b|austral/i,'AUD'],[/\bbr\b|br[ée]sil/i,'BRL'],[/\bmx\b|mexi/i,'MXN'],[/\bca\b|canad/i,'CAD'],[/asia|hong/i,'HKD']];
+function curOf(c){ const r=String((c&&c.region)||''); for(const [re,cur] of CUR_BY_REGION) if(re.test(r)) return cur; return 'EUR'; }
+let FX={EUR:1};
+(function loadFx(){
+  try{ const s=JSON.parse(localStorage.getItem('rc_fx')||'null'); if(s&&s.t>Date.now()-12*36e5){ FX=s.r; return; } }catch(e){}
+  fetch('https://api.frankfurter.dev/v1/latest?from=EUR&to=JPY,USD,GBP,KRW,AUD,BRL,MXN,CAD,HKD')
+    .then(r=>r.json()).then(d=>{ if(d&&d.rates){ FX=Object.assign({EUR:1},d.rates); try{ localStorage.setItem('rc_fx',JSON.stringify({t:Date.now(),r:FX})); }catch(e){} } })
+    .catch(()=>{});
+})();
+function fmtCur(v,cur){
+  const dec=(cur==='JPY'||cur==='KRW')?0:2;
+  let s=new Intl.NumberFormat('en-GB',{style:'currency',currency:cur,currencyDisplay:'narrowSymbol',minimumFractionDigits:(Number.isInteger(+v)?0:dec),maximumFractionDigits:dec}).format(v);
+  return s.replace(/ | /g,' ');
+}
+// prix en euros → { main: dans la monnaie de la version, eur: équivalent en € ou '' }
+function priceFor(eur,c){
+  eur=parseFloat(eur); const cur=curOf(c);
+  if(cur==='EUR'||!FX[cur]) return {main:fmtCur(eur,'EUR'),eur:''};
+  let v=eur*FX[cur]; if(cur==='JPY'||cur==='KRW') v=Math.round(v/100)*100;
+  return {main:fmtCur(v,cur),eur:'≈ '+fmtCur(eur,'EUR')};
+}
+
 // ══ ORDRE D'AFFICHAGE ══
 // Même ordre que le tracker : édition (standard, rééditions, démos, presse,
 // collectors), puis les jeux dans l'ordre de la série, puis la région.
@@ -632,8 +658,8 @@ function cardHtml(c){
   const rv=(rc.occasion&&rc.occasion.median!=null)?rc.occasion:((rc.neuf&&rc.neuf.median!=null)?rc.neuf:null);
   const ratingChip = rv
     ? (rv.count
-        ? `<div style="margin-top:6px;font-size:.68rem;font-weight:700;color:var(--green)">💰 ${parseFloat(rv.median).toFixed(2).replace(/\.00$/,'')} €</div>`
-        : `<div style="margin-top:6px;font-size:.68rem;font-weight:700;color:#F5B941" title="Estimate from current listings — no completed sale yet">≈ ${parseFloat(rv.median).toFixed(2).replace(/\.00$/,'')} € <span style="font-weight:500;opacity:.8">est.</span></div>`)
+        ? `<div style="margin-top:6px;font-size:.68rem;font-weight:700;color:var(--green)" title="${esc(priceFor(rv.median,c).eur)}">💰 ${priceFor(rv.median,c).main}</div>`
+        : `<div style="margin-top:6px;font-size:.68rem;font-weight:700;color:#F5B941" title="Estimate from current listings — no completed sale yet ${esc(priceFor(rv.median,c).eur)}">≈ ${priceFor(rv.median,c).main} <span style="font-weight:500;opacity:.8">est.</span></div>`)
     : '';
   return `<div class="card" onclick="openLb(${ALL.indexOf(c)})">
     <div class="card-cover">${cover}${editionBadge}${c.category?`<span class="card-cat">${catIcon[c.category]||''} ${esc(c.category)}</span>`:''}</div>
@@ -759,7 +785,8 @@ function openLb(i){
   const rLine=(lbl,r)=> (r&&r.median!=null)
     ? `<div style="flex:1">
         <div style="font-size:.58rem;color:var(--text-dim);letter-spacing:.08em">${lbl}</div>
-        <div style="font-family:Orbitron,sans-serif;font-weight:700;font-size:1.15rem;color:${r.count?'var(--green)':'#F5B941'}">${r.count?'':'≈ '}${parseFloat(r.median).toFixed(2).replace(/\.00$/,'')} €</div>
+        <div style="font-family:Orbitron,sans-serif;font-weight:700;font-size:1.15rem;color:${r.count?'var(--green)':'#F5B941'}">${r.count?'':'≈ '}${priceFor(r.median,c).main}</div>
+        ${priceFor(r.median,c).eur?`<div style="font-size:.62rem;color:var(--text-dim)">${priceFor(r.median,c).eur}</div>`:''}
         <div style="font-size:.56rem;color:var(--text-dim)">${r.count?`based on ${r.count} real price${r.count>1?'s':''}`:'estimate from current listings · no sale yet'}</div>
         ${r.count&&r.sources?`<div style="font-size:.54rem;color:var(--text-dim);margin-top:2px">${esc(r.sources)}</div>`:''}
       </div>` : '';
