@@ -845,7 +845,7 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
         <select id="eb-cat" style="width:auto;padding:8px 10px">
           <option value="Game">Jeux</option><option value="Console/Pack">Packs console</option>
           <option value="Figure">Figurines</option><option value="Plush">Peluches</option>
-          <option value="Media">Médias</option><option value="Book">Livres</option><option value="Guide">Guides</option>
+          <option value="Media">Médias</option><option value="Music">CD / Vinyles</option><option value="Book">Livres</option><option value="Guide">Guides</option>
           <option value="Goodie">Goodies</option><option value="Press Kit">Press kits</option><option value="Clothing">Vêtements</option><option value="">Tout</option>
         </select>
         <button class="btn btn-primary" style="width:auto;padding:8px 14px;font-size:.82rem" onclick="ebLancer()">🔍 Chercher les annonces</button>
@@ -1689,7 +1689,7 @@ async function delChar(id){
 // ── Catalog objects (table: catalog, same as the app) ──
 let ALL_OBJS=[];
 let objNavCat='', objNavPlat='', objNavReg='';
-const OBJ_ICON={'Game':'🎮','Console/Pack':'📦','Figure':'🎯','Plush':'🧸','Goodie':'🎁','Press Kit':'📰','Clothing':'👕','Print':'🖼️','Book':'📖','Guide':'📗','Media':'🎬','Misc':'📌'};
+const OBJ_ICON={'Game':'🎮','Console/Pack':'📦','Figure':'🎯','Plush':'🧸','Goodie':'🎁','Press Kit':'📰','Clothing':'👕','Print':'🖼️','Book':'📖','Guide':'📗','Media':'🎬','Music':'🎵','Misc':'📌'};
 function objQ(s){ return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 function objPlatOf(o){ return (o.platform && o.platform!=='-') ? o.platform : '—'; }
 // Zone = ce qu'il y a entre parentheses dans la region ("NL (PAL)" -> "PAL").
@@ -2912,7 +2912,7 @@ function ebFicheHtml(f, l){
     else if(edVue) chips.push('<span class="eb-chip ok">'+esc(edVue.replace('édition ',''))+'</span>');
     else if(R.includes('édition non précisée')) chips.push(pick('edition','édition ?'));
     if(a.region) chips.push('<span class="eb-chip">'+esc(a.region)+'</span>');
-    else if(['Game','Console/Pack','Guide','Media'].includes(f.category)) chips.push(pick('region','zone ?'));
+    else if(['Game','Console/Pack','Guide','Media','Music'].includes(f.category)) chips.push(pick('region','zone ?'));
     if(a.pays) chips.push('<span class="eb-chip">vendeur '+esc(a.pays)+'</span>');
     (a.raisons||[]).filter(r=>/atypique|incomplet/.test(r)).forEach(r=>chips.push('<span class="eb-chip warn">'+esc(r)+'</span>'));
     if((a.raisons||[]).includes('référence identique')) chips.push('<span class="eb-chip ok">réf. identique</span>');
