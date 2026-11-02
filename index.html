@@ -476,6 +476,7 @@ for(let i=0;i<70;i++){
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="catalog-en.js?v=1"></script>
 <script>
 // ── Compteur de visiteurs ────────────────────────────────────
 // Le numero attribue est garde en local : un habitue retrouve le
@@ -518,8 +519,9 @@ for(let i=0;i<70;i++){
     if(data&&data.value){ const mo=document.getElementById('ab-mosaic'); if(mo){ mo.dataset.custom='1'; mo.style.display='block'; mo.innerHTML='<img src="'+String(data.value).replace(/"/g,'')+'" alt="" style="width:100%;height:100%;object-fit:cover"/>'; } }
   },()=>{});
   // Megacorp Vault : chiffres, categories et pieces rares du jour
-  sb.from('catalog').select('id,name,category,platform,region,edition,image_url,year').then(({data})=>{
+  sb.from('catalog').select('id,name,name_en,category,platform,region,edition,image_url,year').then(({data})=>{
     if(!data||!data.length) return;
+    if(window.RCEN) data=data.map(RCEN.loc);
     const uniq=f=>new Set(data.map(f).filter(Boolean)).size;
     const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
     set('vlt-cats',uniq(c=>c.category)); set('vlt-plats',uniq(c=>c.platform)); set('vlt-regs',uniq(c=>c.region));
@@ -528,7 +530,7 @@ for(let i=0;i<70;i++){
     const cnt={}; data.forEach(c=>{ const k=c.category||'Misc'; cnt[k]=(cnt[k]||0)+1; });
     const ch=document.getElementById('vlt-chips');
     if(ch) ch.innerHTML=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(k=>'<a href="database.html#cat='+encodeURIComponent(k)+'">'+(IC[k]||'📌')+' '+k+' <small>'+cnt[k]+'</small></a>').join('');
-    const RARE=/collector|limit|press|promo|employ|non commerc|demo|démo|exclusive|signed/i;
+    const RARE=/collector|limit|press|promo|employ|non commerc|not for sale|demo|démo|exclusive|signed/i;
     let pool=data.filter(c=>c.image_url&&RARE.test(c.edition||''));
     if(pool.length<6) pool=pool.concat(data.filter(c=>c.image_url&&!pool.includes(c)));
     // tirage stable pour la journee

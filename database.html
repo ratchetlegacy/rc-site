@@ -29,6 +29,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="catalog-en.js?v=1"></script>
 <style>
 :root{
   --bg:#0A0B14;--bg2:#10121F;--bg3:#181B2E;
@@ -447,7 +448,7 @@ async function load(){
   try{
     const {data,error}=await sb.from('catalog').select('*').order('sort_order',{ascending:true}).order('name',{ascending:true});
     if(error){throw error;}
-    ALL=data||[];
+    ALL=(data||[]).map(c=>window.RCEN?RCEN.loc(c):c);
     document.getElementById('state').style.display='none';
     await loadRating();
     await loadVaultImages();
