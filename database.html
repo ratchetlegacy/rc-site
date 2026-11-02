@@ -436,6 +436,7 @@ function vaultSearch(v){
 function vaultDeepLink(){
   const h=decodeURIComponent((location.hash||'').slice(1));
   let m;
+  if(h==='prix'||h==='prices'){ openPrix(); return; }
   if((m=h.match(/^q=(.+)$/))){ const el=document.getElementById('vsearch'); if(el) el.value=m[1]; vaultSearch(m[1]); }
   else if((m=h.match(/^cat=(.+)$/))){ if(ALL.some(c=>(c.category||'Misc')===m[1])) openCategory(m[1]); }
   else if((m=h.match(/^item=(.+)$/))){ const i=ALL.findIndex(c=>String(c.id)===m[1]); if(i>=0){ const c=ALL[i]; if(c.category&&c.platform){ openCategory(c.category); openPlatform(c.platform); } openLb(i); } }
