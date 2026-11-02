@@ -657,7 +657,9 @@ function cardHtml(c){
   const editionBadge = (c.edition && c.edition.trim() && c.edition.toLowerCase()!=='standard')
     ? `<span style="position:absolute;top:6px;right:6px;background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;font-size:.55rem;font-weight:800;padding:2px 7px;border-radius:5px;letter-spacing:.02em">${esc(c.edition)}</span>` : '';
   const rc=RATING[String(c.id)]||{};
-  const rv=(rc.occasion&&rc.occasion.median!=null)?rc.occasion:((rc.neuf&&rc.neuf.median!=null)?rc.neuf:null);
+  // Carte : la cote qui repose sur le plus de prix réels (à égalité : occasion)
+  const okO=rc.occasion&&rc.occasion.median!=null, okN=rc.neuf&&rc.neuf.median!=null;
+  const rv=(okO&&okN) ? ((rc.neuf.count||0)>(rc.occasion.count||0)?rc.neuf:rc.occasion) : (okO?rc.occasion:(okN?rc.neuf:null));
   const ratingChip = rv
     ? (rv.count
         ? `<div style="margin-top:6px;font-size:.68rem;font-weight:700;color:var(--green)" title="${esc(priceFor(rv.median,c).eur)}">💰 ${priceFor(rv.median,c).main}</div>`
