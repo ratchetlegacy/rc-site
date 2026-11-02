@@ -472,3 +472,10 @@ if ('serviceWorker' in navigator) {
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
 })();
+
+/* Tutoriel interactif (visite guidée) : chargé sur toutes les pages qui utilisent ce script */
+(function(){
+  if(document.querySelector('script[data-rl-tour]')) return;
+  var s=document.createElement('script'); s.src='rl-tour.js?v=1'; s.defer=true; s.setAttribute('data-rl-tour','1');
+  (document.head||document.documentElement).appendChild(s);
+})();
