@@ -10,7 +10,10 @@
     'Papeterie':'Stationery','Roman':'Novel','Carte mémoire':'Memory Card',
     'Blue-Ray':'Blu-ray','Cap - Hat':'Caps & Hats','Kit - pencil case':'Pencil Case Kit',
     'Playstation 2':'PlayStation 2','Playstation 3':'PlayStation 3',
-    'Playstation 4':'PlayStation 4','Playstation 5':'PlayStation 5'
+    'Playstation 4':'PlayStation 4','Playstation 5':'PlayStation 5',
+    'Accessoire smartphone':'Phone Accessories','Boutons de manchette':'Cufflinks',
+    'Clé OmniWrench':'OmniWrench','Clé USB':'USB Drive','Collier':'Necklace',
+    'Cuisine':'Kitchenware','Veilleuse':'Night Light'
   };
   const EDITION={
     'Classique':'Standard','Divers':'Misc','Impression Exclusive':'Exclusive Print',
