@@ -823,6 +823,16 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
 
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">🔊 Sons des thèmes</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="saveThemeSfx()">💾 Enregistrer</button>
+      </div>
+      <p class="vf-intro">Pour chaque thème du tracker, envoie un fichier son ou vidéo (mp4, mp3, wav…) : il remplace l'effet synthétisé quand on ouvre une collection. Tu peux ne garder qu'un passage avec <b>Début</b> et <b>Fin</b> (en secondes). Laisse vide pour garder le son actuel. Pense à <b>Enregistrer</b>. N'utilise que des sons dont tu as les droits (créés par toi ou libres de droits).</p>
+      <div id="sfx-liste"></div>
+      <div id="sfx-msgbox" class="msg"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">☕ Donateurs Ko-fi</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadSupporters()">↻ Actualiser</button>
       </div>
@@ -1451,7 +1461,8 @@ const ADMIN_SECTIONS=[
   {key:'valid', ic:'✅', lbl:'À valider', match:['Descriptions à valider']},
   {key:'verif', ic:'🔎', lbl:'À vérifier', match:['À vérifier']},
   {key:'stats', ic:'📊', lbl:'Stats', match:['Statistiques']},
-  {key:'kofi', ic:'☕', lbl:'Donateurs', match:['Donateurs Ko-fi']}
+  {key:'kofi', ic:'☕', lbl:'Donateurs', match:['Donateurs Ko-fi']},
+  {key:'sfx', ic:'🔊', lbl:'Sons', match:['Sons des thèmes']}
 ];
 function buildAdminMenu(){
   const menu=document.getElementById('admin-menu');
@@ -1490,6 +1501,7 @@ function showAdminSection(key){
   if(key==='corbeille') loadCorbeille();
   if(key==='veille')  loadVeille();
   if(key==='kofi')    loadSupporters();
+  if(key==='sfx')     loadThemeSfx();
   if(key==='ebay')    loadEbay();
   if(key==='valid')   loadValid();
   if(key==='verif')   loadVerif();
@@ -3191,6 +3203,76 @@ async function ebLancer(){
   loadEbay();
 }
 
+// === Sons des thèmes (tracker) =======================================
+const SFX_THEMES=[['','🦊 Lombax'],['clank','🤖 Clank'],['gadgetron','🔧 Gadgetron'],['nebula','🌌 Nebula'],['qwark','⚡ Qwark'],['arsenal','🔴 Up Your Arsenal'],['cracktime','⏳ A Crack in Time'],['rivet','🔩 Rivet'],['courtney','💖 Courtney Gears'],['nefarious','👑 Nefarious'],['kit','✨ Kit']];
+window._sfxData={};
+function sfxKey(id){ return id||'lombax'; }
+function sfxPlayUrl(c){
+  if(!c||!c.url) return '';
+  let u=c.url;
+  const m=u.match(/^(https:\/\/res\.cloudinary\.com\/[^/]+\/video\/upload\/)(.*)$/);
+  if(m){
+    const tr=[]; if(c.so) tr.push('so_'+c.so); if(c.eo) tr.push('eo_'+c.eo);
+    let rest=m[2].replace(/^(so_[^/]*|eo_[^/]*)\//,'');
+    rest=rest.replace(/\.[a-z0-9]+$/i,'')+'.mp3';
+    u=m[1]+(tr.length?tr.join(',')+'/':'')+rest;
+  }
+  return u;
+}
+async function loadThemeSfx(){
+  const box=document.getElementById('sfx-liste'); if(!box) return;
+  const {data}=await sb.from('app_settings').select('value').eq('key','theme_sfx').maybeSingle();
+  try{ window._sfxData=JSON.parse((data&&data.value)||'{}')||{}; }catch(e){ window._sfxData={}; }
+  renderThemeSfx();
+}
+function renderThemeSfx(){
+  const box=document.getElementById('sfx-liste');
+  box.innerHTML=SFX_THEMES.map(([id,lbl])=>{const k=sfxKey(id),c=window._sfxData[k]||{};
+    return '<div style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px">'
+     +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b style="flex:1">'+lbl+'</b>'
+     +(c.url?'<span style="font-size:.75rem;color:#7FFFC4">● son perso</span>':'<span style="font-size:.75rem;color:var(--text-dim)">son synthétisé</span>')+'</div>'
+     +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
+     +'<button class="btn btn-primary" style="padding:7px 12px;font-size:.78rem;width:auto" onclick="uploadThemeSfx(\''+k+'\')">📤 Envoyer un fichier</button>'
+     +'<input id="sfx-url-'+k+'" value="'+esc(c.url||'')+'" placeholder="ou colle une URL" style="flex:1;min-width:160px;margin:0" oninput="sfxField(\''+k+'\',\'url\',this.value)"/></div>'
+     +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">'
+     +'<label style="margin:0">Début</label><input type="number" step="0.1" min="0" value="'+(c.so||'')+'" style="width:80px;margin:0" oninput="sfxField(\''+k+'\',\'so\',this.value)"/>'
+     +'<label style="margin:0">Fin</label><input type="number" step="0.1" min="0" value="'+(c.eo||'')+'" style="width:80px;margin:0" oninput="sfxField(\''+k+'\',\'eo\',this.value)"/>'
+     +'<label style="margin:0">Volume</label><input type="range" min="0.1" max="1" step="0.05" value="'+(c.vol||0.6)+'" style="width:100px;margin:0" oninput="sfxField(\''+k+'\',\'vol\',this.value)"/>'
+     +'<button class="btn" style="padding:6px 10px;font-size:.78rem;width:auto;background:var(--bg);color:var(--text)" onclick="testThemeSfx(\''+k+'\')">▶ Écouter</button>'
+     +(c.url?'<button class="btn" style="padding:6px 10px;font-size:.78rem;width:auto;background:var(--bg);color:#FF6A8A" onclick="clearThemeSfx(\''+k+'\')">🗑 Retirer</button>':'')
+     +'</div></div>';}).join('');
+}
+function sfxField(k,f,v){ const c=window._sfxData[k]=window._sfxData[k]||{}; c[f]=(f==='url')?v.trim():(v===''?undefined:parseFloat(v)); if(f==='url'&&!c.url) delete window._sfxData[k]; }
+let _sfxTestAudio=null;
+function testThemeSfx(k){
+  const c=window._sfxData[k]; const u=sfxPlayUrl(c);
+  if(!u){ showMsg('sfx-msgbox','Pas encore de son pour ce thème (le tracker joue le son synthétisé).',false); return; }
+  try{ if(_sfxTestAudio) _sfxTestAudio.pause(); _sfxTestAudio=new Audio(u); _sfxTestAudio.volume=c.vol||0.6; _sfxTestAudio.play().catch(e=>showMsg('sfx-msgbox','Lecture impossible : '+e.message,false)); }catch(e){ showMsg('sfx-msgbox',e.message,false); }
+}
+function clearThemeSfx(k){ delete window._sfxData[k]; renderThemeSfx(); showMsg('sfx-msgbox','Son retiré — clique sur Enregistrer pour valider.',true); }
+function uploadThemeSfx(k){
+  const input=document.createElement('input'); input.type='file'; input.accept='audio/*,video/*,.mp4,.mp3,.wav,.m4a,.ogg';
+  input.onchange=async()=>{
+    const file=input.files&&input.files[0]; if(!file) return;
+    if(file.size>40*1024*1024){ showMsg('sfx-msgbox','Fichier trop lourd (40 Mo max).',false); return; }
+    showMsg('sfx-msgbox','Envoi en cours… 📤',true);
+    try{
+      const form=new FormData(); form.append('file',file); form.append('upload_preset',CLD_UPLOAD_PRESET);
+      const res=await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/video/upload',{method:'POST',body:form});
+      const data=await res.json();
+      if(!data.secure_url){ showMsg('sfx-msgbox','Échec de l’envoi'+(data.error?' : '+data.error.message:'')+'. Tu peux coller une URL à la place.',false); return; }
+      const c=window._sfxData[k]=window._sfxData[k]||{}; c.url=data.secure_url;
+      renderThemeSfx(); showMsg('sfx-msgbox','Fichier envoyé ✓ ('+(data.duration?data.duration.toFixed(1)+' s':'')+'). Règle début/fin, écoute, puis Enregistrer.',true);
+    }catch(e){ showMsg('sfx-msgbox',e.message,false); }
+  };
+  input.click();
+}
+async function saveThemeSfx(){
+  const clean={}; Object.entries(window._sfxData).forEach(([k,c])=>{ if(c&&c.url){ clean[k]={url:c.url}; if(c.so) clean[k].so=c.so; if(c.eo) clean[k].eo=c.eo; if(c.vol) clean[k].vol=c.vol; } });
+  const {error}=await sb.from('app_settings').upsert([{key:'theme_sfx',value:JSON.stringify(clean)}],{onConflict:'key'});
+  if(error){ showMsg('sfx-msgbox',error.message,false); return; }
+  window._sfxData=clean; renderThemeSfx(); showMsg('sfx-msgbox','Enregistré ✓ — le tracker utilisera ces sons au prochain chargement.',true);
+}
 // === Donateurs Ko-fi ==================================================
 const SP_TIER={supporter:'☕ Supporter',gold:'👑 Gold',platinum:'✨ Platinum'};
 window._spProfils=[];
