@@ -425,7 +425,7 @@ const vnorm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase
 function vaultSearch(v){
   const q=vnorm(v).trim();
   if(q.length<2){ if(!navCat) showCategoryMenu(); return; }
-  navCat=''; navPlat=''; navReg='';
+  navCat=''; navPlat=''; navReg=''; navSub='';
   const words=q.split(/\s+/);
   const AL=[[/taille ca compte/,'size matters'],[/operation destruction/,'tools of destruction future'],[/ratchet & clank 2\b|ratchet and clank 2\b/,'going commando locked and loaded'],[/ratchet & clank 3\b|ratchet and clank 3\b/,'up your arsenal'],[/gladiator/,'deadlocked'],[/nexus/,'into the nexus'],[/qforce|q-force/,'full frontal assault'],[/quest for booty|en quete du tresor/,'quest for booty'],[/all 4 one|all for one/,'all 4 one'],[/rift apart/,'rift apart'],[/le film/,'movie'],[/trilogy/,'collection hd']];
   const list=ALL.filter(c=>{ let h=vnorm([c.name,c.platform,c.region,c.edition,c.category,c.year,c.barcode,c.reference,c.languages].join(' ')); AL.forEach(a=>{ if(a[0].test(h)) h+=' '+a[1]; }); return words.every(w=>h.includes(w)); });
@@ -471,7 +471,7 @@ async function load(){
 
 // STEP 1: show the big category menu
 // ===== Cascade nav: Category > Platform > Region > Items =====
-let navCat='', navPlat='', navReg='';
+let navCat='', navPlat='', navReg='', navSub='';
 
 // La zone se lit dans la parenthese de la region : "NL (PAL)" -> "PAL".
 // Rien n'est modifie en base, c'est du regroupement d'affichage.
@@ -528,13 +528,16 @@ function crumb(){
   const parts=['<button class="back-cat" onclick="showCategoryMenu()">🗂️ Categories</button>'];
   if(navCat) parts.push(`<button class="back-cat" onclick="openCategory('${esc(navCat).replace(/'/g,"\\'")}')">${catIcon[navCat]||''} ${esc(navCat)}</button>`);
   if(navPlat) parts.push(`<button class="back-cat" onclick="openPlatform('${esc(navPlat).replace(/'/g,"\\'")}')">${esc(navPlat)}</button>`);
-  if(navReg) parts.push(`<span class="back-cat" style="cursor:default">${esc(navReg)}</span>`);
+  if(navReg) parts.push(navSub
+    ? `<button class="back-cat" onclick="openRegion('${esc(navReg).replace(/'/g,"\\'")}')">${esc(navReg)}</button>`
+    : `<span class="back-cat" style="cursor:default">${esc(navReg)}</span>`);
+  if(navSub) parts.push(`<span class="back-cat" style="cursor:default">${esc(PAL_LABEL[navSub]||navSub)}</span>`);
   document.getElementById('count').innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+parts.join('<span style="color:var(--text-dim)">›</span>')+'</div>';
 }
 
 // LEVEL 0: categories
 function showCategoryMenu(){
-  navCat=''; navPlat=''; navReg='';
+  navCat=''; navPlat=''; navReg=''; navSub='';
   const counts={};
   ALL.forEach(c=>{ const k=c.category||'Misc'; counts[k]=(counts[k]||0)+1; });
   const present=CAT_ORDER.filter(c=>counts[c]);
@@ -548,7 +551,7 @@ function showCategoryMenu(){
 
 // LEVEL 1: platforms within a category
 function openCategory(cat){
-  navCat=cat; navPlat=''; navReg='';
+  navCat=cat; navPlat=''; navReg=''; navSub='';
   const inCat=ALL.filter(c=>(c.category||'Misc')===cat);
   const counts={};
   inCat.forEach(c=>{ const k=c.platform||'—'; counts[k]=(counts[k]||0)+1; });
@@ -563,7 +566,7 @@ function openCategory(cat){
 
 // LEVEL 2: regions/versions within a platform
 function openPlatform(plat){
-  navPlat=plat; navReg='';
+  navPlat=plat; navReg=''; navSub='';
   const inSel=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===plat);
   const counts={}, countries={};
   inSel.forEach(c=>{
@@ -653,15 +656,52 @@ function gridWithEditions(list){
 }
 
 // LEVEL 3: the items
-function openRegion(reg){
-  navReg=reg;
-  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && groupOf(c)===reg);
+// Jeux et consoles PAL : une carte par pays (FR, UK, DE, IT…) et une carte
+// « Multilingual » pour les versions européennes ou en plusieurs langues.
+const PAL_SPLIT_CATS=['Game','Console/Pack'];
+const PAL_LABEL={FR:'🇫🇷 France',UK:'🇬🇧 United Kingdom',DE:'🇩🇪 Germany',IT:'🇮🇹 Italy',ES:'🇪🇸 Spain',NL:'🇳🇱 Netherlands',BE:'🇧🇪 Belgium',PT:'🇵🇹 Portugal',AU:'🇦🇺 Australia',NZ:'🇳🇿 New Zealand',RU:'🇷🇺 Russia',PL:'🇵🇱 Poland',SE:'🇸🇪 Sweden',DK:'🇩🇰 Denmark',NO:'🇳🇴 Norway',FI:'🇫🇮 Finland',GR:'🇬🇷 Greece',CH:'🇨🇭 Switzerland',AT:'🇦🇹 Austria',ME:'🌙 Middle East',MULTI:'🌍 Multilingual'};
+const PAL_ORDER=['FR','UK','DE','IT','ES','NL','BE','PT','CH','AT','AU','NZ','RU','PL','SE','DK','NO','FI','GR','ME'];
+function palSplit(){ return navReg==='PAL' && PAL_SPLIT_CATS.includes(navCat); }
+function palCountryOf(c){
+  const raw=c._raw||c;
+  const pre=String(raw.region||'').replace(/\s*\([^)]*\)/,'').trim().toUpperCase();
+  if(!pre || /^(EU|EUR|EUROPE|WORLD|PAL)$/.test(pre) || langList(raw).length>1) return 'MULTI';
+  return pre;
+}
+function inRegion(c,reg){ return (c.category||'Misc')===navCat && (c.platform||'—')===navPlat && groupOf(c)===reg; }
+function showItems(list){
   crumb();
   document.querySelector('.controls').style.display='flex';
   const grid=document.getElementById('grid'); grid.className='grid';
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:40px">No item.</div>'; return; }
   grid.innerHTML=gridWithEditions(list);
   window.scrollTo({top:document.getElementById('count').offsetTop-90,behavior:'smooth'});
+}
+function openRegion(reg){
+  navReg=reg; navSub='';
+  const list=ALL.filter(c=>inRegion(c,reg));
+  if(palSplit()){
+    const counts={};
+    list.forEach(c=>{ const k=palCountryOf(c); counts[k]=(counts[k]||0)+1; });
+    const keys=Object.keys(counts).sort((a,b)=>{
+      if(a==='MULTI') return 1; if(b==='MULTI') return -1;
+      const ia=PAL_ORDER.indexOf(a), ib=PAL_ORDER.indexOf(b);
+      return ((ia<0?99:ia)-(ib<0?99:ib)) || a.localeCompare(b);
+    });
+    if(keys.length>1){
+      crumb();
+      renderMenuCards(keys.map(k=>({
+        key:k, label:PAL_LABEL[k]||k, icon:'', count:counts[k],
+        sampleImg:(list.find(o=>palCountryOf(o)===k && o.image_url)||{}).image_url
+      })), k=>`openPalCountry('${k.replace(/'/g,"\\'")}')`);
+      return;
+    }
+  }
+  showItems(list);
+}
+function openPalCountry(k){
+  navSub=k;
+  showItems(ALL.filter(c=>inRegion(c,navReg) && palCountryOf(c)===k));
 }
 
 function cardHtml(c){
@@ -690,7 +730,7 @@ function cardHtml(c){
 function applyFilters(){
   if(!navReg){ return; }
   const q=(document.getElementById('search').value||'').toLowerCase().trim();
-  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && groupOf(c)===navReg
+  const list=ALL.filter(c=>inRegion(c,navReg) && (!navSub || palCountryOf(c)===navSub)
     && (!q || (c.name||'').toLowerCase().includes(q)));
   const grid=document.getElementById('grid');
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:40px">No item matches.</div>'; return; }
