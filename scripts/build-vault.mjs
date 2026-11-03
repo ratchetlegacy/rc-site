@@ -264,11 +264,14 @@ function itemPage(it, ctx) {
     `<a class="vcard" href="/vault/${v.slug}.html"><div class="vi" style="${v.raw.image_url ? `background-image:url('${esc(v.raw.image_url)}')` : 'display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:.4'}">${v.raw.image_url ? '' : (CAT_ICON[v.raw.category] || '📦')}</div><div class="vt"><b>${esc([v.c.platform, editionLabel(v.c.edition)].filter(Boolean).join(' · '))}</b>${esc([v.c.region, v.c.year].filter(Boolean).join(' · '))}</div></a>`).join('')}</div>` : '';
 
   const product = {
-    '@context': 'https://schema.org', '@type': 'Product', name: `${c.name} (${subtitle})`,
+    // « Thing » et non « Product » : Google exige un prix de vente ou des avis
+    // pour un Product, ce qui n'a pas de sens pour une fiche de catalogue.
+    '@context': 'https://schema.org', '@type': 'Thing', name: `${c.name} (${subtitle})`,
     description: descText || undefined, image: [raw.image_url, raw.image_back].filter(Boolean),
-    category: catLabel, sku: c.reference || undefined, url: canonical
+    additionalType: catLabel, url: canonical,
+    identifier: [c.reference, gtin(c.barcode)].filter(Boolean)
   };
-  const g = gtin(c.barcode); if (g) product['gtin' + (g.length === 12 ? '12' : g.length)] = g;
+  if (!product.identifier.length) delete product.identifier;
   const crumbs = {
     '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Ratchet Legacy', item: SITE + '/' },
