@@ -330,6 +330,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 
 <footer>
   <div class="foot-logo">RATCHET LEGACY</div>
+  <div class="foot-small" style="margin-bottom:8px"><a href="/vault/" style="color:var(--text-mid)">📋 Full list of every item in the Vault</a></div>
   <div class="foot-small">Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games or Sony. · <a href="legal.html" style="color:var(--text-dim)">Terms &amp; Legal</a></div>
   <div style="margin-top:14px"><a href="admin.html" style="color:var(--text-dim);font-size:.75rem;opacity:.6;text-decoration:none">⚙️ Admin</a></div>
 </footer>
@@ -395,6 +396,9 @@ async function loadVaultImages(){
     });
   }catch(e){ VAULTIMG={}; }
 }
+// Adresses des pages fiches (vault/<slug>.html), générées chaque nuit.
+let SLUGS={};
+async function loadSlugs(){ try{ const r=await fetch('/vault/slugs.json',{cache:'no-cache'}); if(r.ok) SLUGS=await r.json(); }catch(e){ SLUGS={}; } }
 async function loadRating(){
   try{
     const {data}=await sb.from('market_rating').select('*');
@@ -451,6 +455,7 @@ async function load(){
     ALL=(data||[]).map(c=>window.RCEN?RCEN.loc(c):c);
     document.getElementById('state').style.display='none';
     await loadRating();
+    await loadSlugs();
     await loadVaultImages();
     await loadCompletion();
     // fill the stats banner
@@ -857,7 +862,8 @@ function openLb(i){
         <button class="px-link" onclick="openPrix()">How is this calculated?</button>
       </div>` : '';
   const dbox=document.getElementById('lb-desc');
-  dbox.innerHTML = extraRows + ratingHtml + completionHtml(c) + '<div id="lb-trend"></div>' + (c.description?esc(c.description):'');
+  const pageLink = SLUGS[c.id] ? `<a href="/vault/${SLUGS[c.id]}.html" style="display:inline-block;margin-top:10px;font-size:.78rem;font-weight:600;color:var(--purple-light)">🔗 Full item page</a>` : '';
+  dbox.innerHTML = extraRows + ratingHtml + completionHtml(c) + '<div id="lb-trend"></div>' + (c.description?esc(c.description):'') + pageLink;
   loadTrendInto('lb-trend', c.id, sb);
   document.getElementById('lb').classList.add('open');
   document.body.style.overflow='hidden';
