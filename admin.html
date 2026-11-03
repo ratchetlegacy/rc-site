@@ -826,7 +826,7 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
         <h2 style="margin:0">🔊 Sons des thèmes</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="saveThemeSfx()">💾 Enregistrer</button>
       </div>
-      <p class="vf-intro">Pour chaque thème du tracker, envoie un fichier son ou vidéo (mp4, mp3, wav…) : il remplace l'effet synthétisé quand on ouvre une collection. Tu peux ne garder qu'un passage avec <b>Début</b> et <b>Fin</b> (en secondes). Laisse vide pour garder le son actuel. Pense à <b>Enregistrer</b>. N'utilise que des sons dont tu as les droits (créés par toi ou libres de droits).</p>
+      <p class="vf-intro">Pour chaque thème du tracker, envoie un fichier son ou vidéo (mp4, mp3, wav…) : il remplace l'effet synthétisé quand on ouvre la collection Ratchet & Clank depuis l'accueil. Tu peux ne garder qu'un passage avec <b>Début</b> et <b>Fin</b> (en secondes). Laisse vide pour garder le son actuel. Pense à <b>Enregistrer</b>. N'utilise que des sons dont tu as les droits (créés par toi ou libres de droits).</p>
       <div id="sfx-liste"></div>
       <div id="sfx-msgbox" class="msg"></div>
     </div>
@@ -3204,7 +3204,7 @@ async function ebLancer(){
 }
 
 // === Sons des thèmes (tracker) =======================================
-const SFX_THEMES=[['','🦊 Lombax'],['clank','🤖 Clank'],['gadgetron','🔧 Gadgetron'],['nebula','🌌 Nebula'],['qwark','⚡ Qwark'],['arsenal','🔴 Up Your Arsenal'],['cracktime','⏳ A Crack in Time'],['rivet','🔩 Rivet'],['courtney','💖 Courtney Gears'],['nefarious','👑 Nefarious'],['kit','✨ Kit']];
+const SFX_THEMES=[['','🦊 Lombax'],['clank','🤖 Clank'],['gadgetron','🔧 Gadgetron'],['nebula','🌌 Nebula'],['qwark','⚡ Qwark'],['arsenal','🔴 Up Your Arsenal'],['cracktime','⏳ A Crack in Time'],['rivet','🔩 Rivet'],['zoni','🌟 Zoni'],['courtney','💖 Courtney Gears'],['kit','✨ Kit'],['nefarious','👑 Nefarious'],['tachyon','🦎 Emperor Tachyon']];
 window._sfxData={};
 function sfxKey(id){ return id||'lombax'; }
 function sfxPlayUrl(c){
