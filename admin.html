@@ -3219,6 +3219,13 @@ function sfxPlayUrl(c){
   }
   return u;
 }
+function sfxPlay(c,u,vol,onErr){
+  const a=new Audio(u); a.volume=vol;
+  const cloud=/res\.cloudinary\.com\/[^/]+\/video\/upload\//.test(c.url);
+  if(!cloud && c.so){ a.currentTime=c.so; a.addEventListener('loadedmetadata',()=>{ if(a.currentTime<c.so) a.currentTime=c.so; },{once:true}); }
+  if(!cloud && c.eo){ a.addEventListener('timeupdate',()=>{ if(a.currentTime>=c.eo) a.pause(); }); }
+  a.play().catch(e=>onErr&&onErr(e)); return a;
+}
 async function loadThemeSfx(){
   const box=document.getElementById('sfx-liste'); if(!box) return;
   const {data}=await sb.from('app_settings').select('value').eq('key','theme_sfx').maybeSingle();
@@ -3247,7 +3254,7 @@ let _sfxTestAudio=null;
 function testThemeSfx(k){
   const c=window._sfxData[k]; const u=sfxPlayUrl(c);
   if(!u){ showMsg('sfx-msgbox','Pas encore de son pour ce thème (le tracker joue le son synthétisé).',false); return; }
-  try{ if(_sfxTestAudio) _sfxTestAudio.pause(); _sfxTestAudio=new Audio(u); _sfxTestAudio.volume=c.vol||0.6; _sfxTestAudio.play().catch(e=>showMsg('sfx-msgbox','Lecture impossible : '+e.message,false)); }catch(e){ showMsg('sfx-msgbox',e.message,false); }
+  try{ if(_sfxTestAudio) _sfxTestAudio.pause(); _sfxTestAudio=sfxPlay(c,u,c.vol||0.6,e=>showMsg('sfx-msgbox','Lecture impossible : '+e.message,false)); }catch(e){ showMsg('sfx-msgbox',e.message,false); }
 }
 function clearThemeSfx(k){ delete window._sfxData[k]; renderThemeSfx(); showMsg('sfx-msgbox','Son retiré — clique sur Enregistrer pour valider.',true); }
 function uploadThemeSfx(k){
@@ -3257,12 +3264,13 @@ function uploadThemeSfx(k){
     if(file.size>40*1024*1024){ showMsg('sfx-msgbox','Fichier trop lourd (40 Mo max).',false); return; }
     showMsg('sfx-msgbox','Envoi en cours… 📤',true);
     try{
-      const form=new FormData(); form.append('file',file); form.append('upload_preset',CLD_UPLOAD_PRESET);
-      const res=await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/video/upload',{method:'POST',body:form});
-      const data=await res.json();
-      if(!data.secure_url){ showMsg('sfx-msgbox','Échec de l’envoi'+(data.error?' : '+data.error.message:'')+'. Tu peux coller une URL à la place.',false); return; }
-      const c=window._sfxData[k]=window._sfxData[k]||{}; c.url=data.secure_url;
-      renderThemeSfx(); showMsg('sfx-msgbox','Fichier envoyé ✓ ('+(data.duration?data.duration.toFixed(1)+' s':'')+'). Règle début/fin, écoute, puis Enregistrer.',true);
+      const ext=((file.name.match(/\.([a-z0-9]+)$/i)||[])[1]||'mp3').toLowerCase();
+      const path=k+'-'+Date.now()+'.'+ext;
+      const {error}=await sb.storage.from('theme-sounds').upload(path,file,{contentType:file.type||undefined,upsert:true});
+      if(error){ showMsg('sfx-msgbox','Échec de l’envoi : '+error.message,false); return; }
+      const {data}=sb.storage.from('theme-sounds').getPublicUrl(path);
+      const c=window._sfxData[k]=window._sfxData[k]||{}; c.url=data.publicUrl;
+      renderThemeSfx(); showMsg('sfx-msgbox','Fichier envoyé ✓ Règle début/fin, écoute, puis Enregistrer.',true);
     }catch(e){ showMsg('sfx-msgbox',e.message,false); }
   };
   input.click();
