@@ -7,7 +7,7 @@
 // Le cache reste volontairement leger : le site change souvent, et un
 // visiteur doit toujours voir la derniere version.
 
-const CACHE = 'rc-site-v1';
+const CACHE = 'rc-site-v2';
 
 self.addEventListener('install', () => {
   // On prend la main tout de suite, sans attendre la fermeture des onglets.

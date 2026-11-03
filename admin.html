@@ -823,6 +823,25 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
 
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">☕ Donateurs Ko-fi</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadSupporters()">↻ Actualiser</button>
+      </div>
+      <p class="vf-intro">Ajoute ici chaque personne qui a fait un don sur Ko-fi. Elle apparaît sur la page <a href="supporters.html" target="_blank" style="color:var(--orange)">Merci aux donateurs</a> (si « public » est coché). Si tu la relies à son compte du tracker, elle débloque tous les thèmes à paliers ; <b>Gold</b> ajoute 👑 Nefarious, <b>Platinum</b> ajoute ✨ Kit (et Nefarious).</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+        <div><label>Nom affiché</label><input id="sp-nom" placeholder="Pseudo Ko-fi"/></div>
+        <div><label>Compte tracker (optionnel)</label><input id="sp-compte" list="sp-pseudos" placeholder="Pseudo du profil tracker"/><datalist id="sp-pseudos"></datalist></div>
+        <div><label>Niveau</label><select id="sp-tier" style="width:100%;margin-bottom:14px"><option value="supporter">☕ Supporter</option><option value="gold">👑 Gold</option><option value="platinum">✨ Platinum</option></select></div>
+        <div><label>Date du don</label><input id="sp-date" type="date"/></div>
+      </div>
+      <label>Message (optionnel, affiché sur la page)</label><input id="sp-msg" placeholder="Son petit mot sur Ko-fi"/>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><input type="checkbox" id="sp-public" checked style="width:auto;margin:0"/> Afficher sur la page publique</label>
+      <button class="btn btn-primary" onclick="addSupporter()">＋ Ajouter le donateur</button>
+      <div id="sp-msgbox" class="msg"></div>
+      <div id="sp-liste" style="margin-top:16px"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">📡 Veille des sorties</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadVeille()">↻ Actualiser</button>
       </div>
@@ -1431,7 +1450,8 @@ const ADMIN_SECTIONS=[
   {key:'ebay', ic:'🛒', lbl:'eBay', match:['Annonces eBay']},
   {key:'valid', ic:'✅', lbl:'À valider', match:['Descriptions à valider']},
   {key:'verif', ic:'🔎', lbl:'À vérifier', match:['À vérifier']},
-  {key:'stats', ic:'📊', lbl:'Stats', match:['Statistiques']}
+  {key:'stats', ic:'📊', lbl:'Stats', match:['Statistiques']},
+  {key:'kofi', ic:'☕', lbl:'Donateurs', match:['Donateurs Ko-fi']}
 ];
 function buildAdminMenu(){
   const menu=document.getElementById('admin-menu');
@@ -1469,6 +1489,7 @@ function showAdminSection(key){
   }
   if(key==='corbeille') loadCorbeille();
   if(key==='veille')  loadVeille();
+  if(key==='kofi')    loadSupporters();
   if(key==='ebay')    loadEbay();
   if(key==='valid')   loadValid();
   if(key==='verif')   loadVerif();
@@ -3170,6 +3191,50 @@ async function ebLancer(){
   loadEbay();
 }
 
+// === Donateurs Ko-fi ==================================================
+const SP_TIER={supporter:'☕ Supporter',gold:'👑 Gold',platinum:'✨ Platinum'};
+window._spProfils=[];
+async function loadSupporters(){
+  const box=document.getElementById('sp-liste'); if(!box) return;
+  const d=document.getElementById('sp-date'); if(d && !d.value) d.value=new Date().toISOString().slice(0,10);
+  const [{data,error},{data:prof}]=await Promise.all([
+    sb.from('supporters').select('*').order('since',{ascending:false}),
+    sb.from('public_profiles').select('user_id,pseudo').order('pseudo')
+  ]);
+  window._spProfils=(prof||[]).filter(p=>p.pseudo);
+  document.getElementById('sp-pseudos').innerHTML=window._spProfils.map(p=>'<option value="'+esc(p.pseudo)+'">').join('');
+  if(error){box.innerHTML='<div class="msg err" style="display:block">'+esc(error.message)+'</div>';return;}
+  const l=data||[];
+  if(!l.length){box.innerHTML='<div class="vf-vide">Aucun donateur enregistré pour l’instant.</div>';return;}
+  const pseudoDe=id=>{const p=window._spProfils.find(x=>x.user_id===id);return p?p.pseudo:(id?'compte relié':'');};
+  box.innerHTML=l.map(r=>'<div style="display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px">'
+    +'<div style="flex:1;min-width:0"><b>'+esc(r.display_name)+'</b> <span style="font-size:.8rem;opacity:.8">'+SP_TIER[r.tier]+' · '+esc(r.since)+(r.show_public?'':' · masqué')+'</span>'
+    +(r.user_id?'<div style="font-size:.75rem;color:var(--text-dim)">🔗 '+esc(pseudoDe(r.user_id))+'</div>':'<div style="font-size:.75rem;color:var(--text-dim)">Pas de compte tracker relié</div>')
+    +(r.message?'<div style="font-size:.8rem;font-style:italic;margin-top:2px">« '+esc(r.message)+' »</div>':'')+'</div>'
+    +'<select onchange="majSupporter('+r.id+',{tier:this.value})" style="width:auto;margin:0">'+Object.keys(SP_TIER).map(k=>'<option value="'+k+'"'+(k===r.tier?' selected':'')+'>'+SP_TIER[k]+'</option>').join('')+'</select>'
+    +'<button class="btn" style="padding:6px 10px;font-size:.75rem;background:var(--bg);color:var(--text)" onclick="majSupporter('+r.id+',{show_public:'+(!r.show_public)+'})">'+(r.show_public?'Masquer':'Afficher')+'</button>'
+    +'</div>').join('');
+}
+async function addSupporter(){
+  const nom=document.getElementById('sp-nom').value.trim();
+  if(!nom){showMsg('sp-msgbox','Indique au moins le nom affiché.',false);return;}
+  const compte=document.getElementById('sp-compte').value.trim();
+  let user_id=null;
+  if(compte){const p=window._spProfils.find(x=>x.pseudo.toLowerCase()===compte.toLowerCase());
+    if(!p){showMsg('sp-msgbox','Aucun profil tracker avec le pseudo « '+compte+' ».',false);return;} user_id=p.user_id;}
+  const row={display_name:nom,user_id,tier:document.getElementById('sp-tier').value,message:document.getElementById('sp-msg').value.trim()||null,
+    show_public:document.getElementById('sp-public').checked,since:document.getElementById('sp-date').value||undefined};
+  const {error}=await sb.from('supporters').insert(row);
+  if(error){showMsg('sp-msgbox',error.message,false);return;}
+  showMsg('sp-msgbox','Merci à '+nom+' ! Donateur ajouté.',true);
+  ['sp-nom','sp-compte','sp-msg'].forEach(id=>document.getElementById(id).value='');
+  loadSupporters();
+}
+async function majSupporter(id,patch){
+  const {error}=await sb.from('supporters').update(patch).eq('id',id);
+  if(error){showToast2(error.message,true);return;}
+  loadSupporters();
+}
 // === Veille des sorties ==============================================
 // Alimentee une fois par semaine par une tache planifiee. Elle depose
 // ce qu'elle trouve dans la table veille ; ici tu tries.

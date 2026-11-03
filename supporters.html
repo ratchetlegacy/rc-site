@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Thank You, Supporters — Ratchet Legacy</title>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="theme-color" content="#0A0B14"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="R&amp;C Legacy"/>
+<link rel="apple-touch-icon" href="/icon-192.png"/>
+<link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png"/>
+<meta name="description" content="A huge thank you to everyone who supports Ratchet Legacy on Ko-fi."/>
+<link rel="canonical" href="https://ratchetlegacy.com/supporters.html"/>
+<!-- Apercu quand un lien est colle dans Discord, WhatsApp, Twitter... -->
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Ratchet Legacy"/>
+<meta property="og:title" content="Thank You, Supporters — Ratchet Legacy"/>
+<meta property="og:description" content="A huge thank you to everyone who supports Ratchet Legacy on Ko-fi."/>
+<meta property="og:url" content="https://ratchetlegacy.com/supporters.html"/>
+<meta property="og:image" content="https://res.cloudinary.com/dmfq8hkvu/image/upload/c_pad,w_1200,h_630,b_rgb:0A0B14/v1788954181/Ratchet_Legacy_ikwdp6.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:locale" content="en_GB"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Bangers&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0A0B14;--bg2:#10121F;--purple:#7B4FD4;--purple-light:#9B6FF4;--orange:#FF6B1A;--gold:#FFC85A;--plat:#BFEFFF;--text:#EEF0F8;--text-dim:#8B92AD;--text-mid:#B8BED4;--line:rgba(255,255,255,.08)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.6}
+a{color:var(--purple-light);text-decoration:none}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:rgba(10,11,20,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav-logo{display:flex;align-items:center;gap:11px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.02rem;letter-spacing:.06em;color:var(--text)}
+.nav-logo .mark{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+.nav-back{color:var(--text-mid);font-weight:600;font-size:.88rem}
+.hero{position:relative;padding:130px 16px 40px;text-align:center;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(255,200,90,.18),transparent 70%),radial-gradient(ellipse 50% 50% at 50% 30%,rgba(123,79,212,.25),transparent 70%)}
+.hero .tag{position:relative;font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:.3em;color:var(--gold)}
+.hero h1{position:relative;font-family:'Bangers',sans-serif;font-weight:400;font-size:clamp(3.2rem,13vw,6.5rem);line-height:1;letter-spacing:.03em;color:var(--gold);text-shadow:4px 4px 0 var(--purple),8px 8px 0 #000;margin:12px 0 18px;transform:rotate(-2deg)}
+.hero p{position:relative;max-width:560px;margin:0 auto;color:var(--text-mid);font-size:1.02rem}
+.hero>*:not(.bolt){z-index:1}
+.bolt{position:absolute;top:-30px;font-size:1.3rem;opacity:.4;z-index:0;animation:fall linear infinite;pointer-events:none}
+@keyframes fall{to{transform:translateY(520px) rotate(540deg);opacity:0}}
+.wrap{max-width:900px;margin:0 auto;padding:0 16px 80px}
+.perks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:10px 0 44px}
+.perk{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:18px}
+.perk .t{font-family:'Orbitron',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:6px}
+.perk p{color:var(--text-mid);font-size:.88rem}
+.perk.gold{border-color:rgba(255,200,90,.45);box-shadow:0 0 30px rgba(255,200,90,.12)}
+.perk.plat{border-color:rgba(191,239,255,.5);box-shadow:0 0 30px rgba(191,239,255,.12)}
+h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.15rem;letter-spacing:.08em;margin:34px 0 14px;display:flex;align-items:center;gap:10px}
+h2::after{content:'';flex:1;height:1px;background:var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.sup{position:relative;border-radius:18px;padding:18px 16px;background:var(--bg2);border:1px solid var(--line);overflow:hidden;animation:pop .5s ease both}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.96)}}
+.sup .n{font-weight:800;font-size:1.05rem;word-break:break-word}
+.sup .d{color:var(--text-dim);font-size:.75rem;margin-top:2px}
+.sup .m{color:var(--text-mid);font-size:.85rem;font-style:italic;margin-top:10px}
+.sup.platinum{background:linear-gradient(150deg,#16303a,#10121F 60%);border-color:rgba(191,239,255,.55);box-shadow:0 0 34px rgba(191,239,255,.18)}
+.sup.platinum::before{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.18) 50%,transparent 65%);background-size:250% 100%;animation:shine 3.5s linear infinite}
+.sup.gold{background:linear-gradient(150deg,#3a2c10,#10121F 60%);border-color:rgba(255,200,90,.55);box-shadow:0 0 30px rgba(255,200,90,.15)}
+@keyframes shine{from{background-position:150% 0}to{background-position:-100% 0}}
+.empty{color:var(--text-dim);text-align:center;padding:30px 10px;border:1px dashed var(--line);border-radius:18px}
+.cta{text-align:center;margin:50px 0 10px}
+.cta a{display:inline-block;padding:16px 30px;border-radius:999px;background:linear-gradient(135deg,#FF5E5B,#FF8C42);color:#fff;font-weight:800;font-size:1.02rem;box-shadow:0 10px 30px rgba(255,94,91,.35)}
+.cta p{color:var(--text-dim);font-size:.85rem;margin-top:12px}
+footer{border-top:1px solid var(--line);padding:30px 16px;text-align:center;color:var(--text-dim);font-size:.8rem}
+@media (prefers-reduced-motion:reduce){.bolt,.sup.platinum::before{animation:none;display:none}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="nav-logo"><span class="mark">🔧</span> RATCHET LEGACY</a>
+  <a href="index.html" class="nav-back">← Back to site</a>
+</nav>
+<header class="hero" id="hero">
+  <div class="tag">KO-FI SUPPORTERS</div>
+  <h1>THANK YOU!</h1>
+  <p>Ratchet Legacy and the collection tracker are free and ad-free. Every coffee keeps the servers running and the Vault growing. These people made it possible. 💜</p>
+</header>
+<div class="wrap">
+  <div class="perks">
+    <div class="perk"><div class="t">☕ Supporter</div><p>Every tier theme of the tracker unlocked straight away, no need to wait for the pieces.</p></div>
+    <div class="perk gold"><div class="t">👑 Gold</div><p>Everything above, plus the exclusive <b>Nefarious</b> theme.</p></div>
+    <div class="perk plat"><div class="t">✨ Platinum</div><p>Everything above, plus the exclusive <b>Kit</b> warbot theme.</p></div>
+  </div>
+  <div id="list"><div class="empty">Loading…</div></div>
+  <div class="cta">
+    <a href="https://ko-fi.com/ratchetlegacy" target="_blank" rel="noopener">☕ Support Ratchet Legacy on Ko-fi</a>
+    <p>Add your tracker username in your Ko-fi message so your themes can be unlocked on your account.</p>
+  </div>
+</div>
+<footer>Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games or Sony.</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+(function(){const h=document.getElementById('hero');const b=['🔩','⚙️','☕','💜','✨'];for(let i=0;i<16;i++){const e=document.createElement('span');e.className='bolt';e.textContent=b[i%b.length];e.style.left=(Math.random()*100)+'%';e.style.animationDuration=(5+Math.random()*6)+'s';e.style.animationDelay=(-Math.random()*8)+'s';h.appendChild(e);}})();
+(async()=>{
+  const box=document.getElementById('list');
+  try{
+    const sb=window.supabase.createClient(SB_URL,SB_KEY);
+    const {data,error}=await sb.from('supporters').select('display_name,tier,message,since').eq('show_public',true).order('since',{ascending:true});
+    if(error) throw error;
+    const l=data||[];
+    if(!l.length){box.innerHTML='<div class="empty">No supporters listed yet — your name could be the very first one here! ☕</div>';return;}
+    const fmt=d=>{try{return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'})}catch(e){return d}};
+    const grp=[['platinum','✨ Platinum'],['gold','👑 Gold'],['supporter','☕ Supporters']];
+    let i=0;
+    box.innerHTML=grp.map(([k,t])=>{const g=l.filter(r=>r.tier===k);if(!g.length)return'';
+      return '<h2>'+t+'</h2><div class="grid">'+g.map(r=>'<div class="sup '+k+'" style="animation-delay:'+(i++*0.06)+'s"><div class="n">'+esc(r.display_name)+'</div><div class="d">Since '+esc(fmt(r.since))+'</div>'+(r.message?'<div class="m">“'+esc(r.message)+'”</div>':'')+'</div>').join('')+'</div>';}).join('');
+  }catch(e){box.innerHTML='<div class="empty">The list could not be loaded right now. Please try again later.</div>';}
+})();
+</script>
+</body>
+</html>
