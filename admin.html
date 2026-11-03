@@ -823,6 +823,16 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
 
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">🆕 Nouvelles fiches suggérées</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadAddSugg()">↻ Actualiser</button>
+      </div>
+      <p class="vf-intro">Les objets que les utilisateurs du tracker voulaient ajouter mais qui n'existent pas dans le Vault. Pour chacun : <b>relie-le à une fiche existante</b> si c'est un doublon, ou <b>crée la fiche</b>. Dans les deux cas, l'objet s'ajoute tout seul à la collection de la personne. Si tu refuses, elle est prévenue.</p>
+      <div id="as-msg" class="msg"></div>
+      <div id="as-list"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">🔊 Sons des thèmes</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="saveThemeSfx()">💾 Enregistrer</button>
       </div>
@@ -1462,7 +1472,8 @@ const ADMIN_SECTIONS=[
   {key:'verif', ic:'🔎', lbl:'À vérifier', match:['À vérifier']},
   {key:'stats', ic:'📊', lbl:'Stats', match:['Statistiques']},
   {key:'kofi', ic:'☕', lbl:'Donateurs', match:['Donateurs Ko-fi']},
-  {key:'sfx', ic:'🔊', lbl:'Sons', match:['Sons des thèmes']}
+  {key:'sfx', ic:'🔊', lbl:'Sons', match:['Sons des thèmes']},
+  {key:'sugg', ic:'🆕', lbl:'Suggestions', match:['Nouvelles fiches suggérées']}
 ];
 function buildAdminMenu(){
   const menu=document.getElementById('admin-menu');
@@ -1502,6 +1513,7 @@ function showAdminSection(key){
   if(key==='veille')  loadVeille();
   if(key==='kofi')    loadSupporters();
   if(key==='sfx')     loadThemeSfx();
+  if(key==='sugg')    loadAddSugg();
   if(key==='ebay')    loadEbay();
   if(key==='valid')   loadValid();
   if(key==='verif')   loadVerif();
@@ -3203,6 +3215,63 @@ async function ebLancer(){
   loadEbay();
 }
 
+// === Nouvelles fiches suggérées (depuis le tracker) ====================
+window._asData=[];
+function asTok(s){ return [...new Set(String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()
+  .replace(/ratchet\s*(&|and|et)\s*clank|r\s*&\s*c/g,' ').replace(/[^a-z0-9]+/g,' ').split(' ').filter(t=>t&&!['the','de','la','le','et','and','of','1','edition'].includes(t)))]; }
+function asSim(a,b){ const A=asTok(a),B=new Set(asTok(b)); if(!A.length&&!B.size) return 1; let i=0; A.forEach(t=>{ if(B.has(t)) i++; }); return 2*i/((A.length+B.size)||1); }
+async function loadAddSugg(){
+  const box=document.getElementById('as-list'); if(!box) return;
+  box.innerHTML='<div class="vf-vide">Chargement…</div>';
+  if(!ALL_OBJS||!ALL_OBJS.length){ try{ const {data}=await sb.from('catalog').select('*'); ALL_OBJS=data||[]; }catch(e){} }
+  const {data,error}=await sb.from('catalog_suggestions').select('*').eq('kind','add').eq('status','pending').order('created_at',{ascending:true});
+  if(error){ box.innerHTML='<div class="msg err" style="display:block">'+esc(error.message)+'</div>'; return; }
+  window._asData=data||[];
+  if(!window._asData.length){ box.innerHTML='<div class="vf-vide">Aucune suggestion en attente. ✓</div>'; return; }
+  box.innerHTML=window._asData.map((g,i)=>{
+    const p=g.proposed||{}, it=p.item||{};
+    const plat=g.platform||it.platform||'';
+    const near=(ALL_OBJS||[]).map(o=>({o,s:asSim(g.name,o.name)+(plat&&o.platform===plat?.2:0)+(p.region&&o.region===p.region?.05:0)})).filter(x=>x.s>=.45).sort((a,b)=>b.s-a.s).slice(0,4);
+    const photo=p.image_url||it.img_url;
+    return '<div style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px">'
+      +'<div style="display:flex;gap:10px">'+(photo?'<img src="'+esc(photo)+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px"/>':'')
+      +'<div style="flex:1;min-width:0"><b>'+esc(g.name)+'</b><div style="font-size:.78rem;color:var(--text-dim)">'+esc([g.category,plat,p.region,p.edition,p.manufacturer].filter(Boolean).join(' · '))+'</div>'
+      +'<div style="font-size:.72rem;color:var(--text-dim)">par '+esc(g.suggested_by||'?')+' · '+esc(String(g.created_at||'').slice(0,10))+(g.item_id?' · objet déjà dans sa collection':' · nouvel ajout')+'</div>'
+      +(g.note?'<div style="font-size:.76rem;font-style:italic;margin-top:4px">« '+esc(g.note)+' »</div>':'')+'</div></div>'
+      +(near.length?'<div style="font-size:.74rem;color:var(--text-dim);margin:10px 0 4px">Fiches proches dans le Vault :</div>'+near.map(x=>'<div style="display:flex;gap:8px;align-items:center;padding:5px 0;border-top:1px dashed var(--line)">'
+        +(x.o.image_url?'<img src="'+esc(x.o.image_url)+'" style="width:34px;height:34px;object-fit:cover;border-radius:6px"/>':'')
+        +'<span style="flex:1;font-size:.8rem">#'+x.o.id+' '+esc(x.o.name)+' <span style="color:var(--text-dim)">'+esc([x.o.platform,x.o.region,x.o.edition].filter(Boolean).join(' · '))+'</span></span>'
+        +'<button class="btn" style="padding:5px 9px;font-size:.72rem;width:auto;background:var(--bg);color:var(--text)" onclick="asLink('+i+','+x.o.id+')">🔗 C\'est celle-ci</button></div>').join(''):'<div style="font-size:.74rem;color:var(--text-dim);margin-top:8px">Aucune fiche proche trouvée.</div>')
+      +'<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'
+      +'<button class="btn btn-primary" style="padding:7px 12px;font-size:.78rem;width:auto" onclick="asCreate('+i+')">✓ Créer la fiche</button>'
+      +'<input id="as-link-'+i+'" type="number" placeholder="ou n° de fiche" style="width:130px;margin:0"/><button class="btn" style="padding:7px 10px;font-size:.78rem;width:auto;background:var(--bg);color:var(--text)" onclick="asLink('+i+',parseInt(document.getElementById(\'as-link-'+i+'\').value,10))">🔗 Relier</button>'
+      +'<button class="btn" style="padding:7px 12px;font-size:.78rem;width:auto;background:var(--bg);color:#FF6A8A" onclick="asReject('+i+')">✕ Refuser</button></div></div>';
+  }).join('');
+}
+async function asLink(i,cid){
+  const g=window._asData[i]; if(!g||!cid){ showMsg('as-msg','Indique un numéro de fiche.',false); return; }
+  if(!(ALL_OBJS||[]).some(o=>o.id===cid)){ showMsg('as-msg','La fiche #'+cid+' n’existe pas.',false); return; }
+  const {error}=await sb.from('catalog_suggestions').update({status:'approved',catalog_id:cid}).eq('id',g.id);
+  if(error){ showMsg('as-msg',error.message,false); return; }
+  showMsg('as-msg','Relié à la fiche #'+cid+' ✓ — l’objet arrive dans sa collection à sa prochaine ouverture du tracker.',true); loadAddSugg();
+}
+async function asCreate(i){
+  const g=window._asData[i]; if(!g) return;
+  const p=g.proposed||{}, it=p.item||{};
+  const entry={name:g.name,category:g.category||'Misc',platform:g.platform||it.platform||null,region:p.region||it.region||null,edition:p.edition||it.edition||null,image_url:p.image_url||it.img_url||null};
+  const {data:ins,error}=await sb.from('catalog').insert([entry]).select('id').single();
+  if(error){ showMsg('as-msg','Création impossible : '+error.message,false); return; }
+  const {error:e2}=await sb.from('catalog_suggestions').update({status:'approved',catalog_id:ins.id}).eq('id',g.id);
+  if(e2){ showMsg('as-msg',e2.message,false); return; }
+  ALL_OBJS.push(Object.assign({id:ins.id},entry));
+  showMsg('as-msg','Fiche #'+ins.id+' créée ✓ — complète-la dans Catalog (description, année, codes-barres…). L’objet arrive dans sa collection à sa prochaine ouverture du tracker.',true); loadAddSugg();
+}
+async function asReject(i){
+  const g=window._asData[i]; if(!g) return;
+  const {error}=await sb.from('catalog_suggestions').update({status:'rejected'}).eq('id',g.id);
+  if(error){ showMsg('as-msg',error.message,false); return; }
+  showMsg('as-msg','Suggestion refusée.',true); loadAddSugg();
+}
 // === Sons des thèmes (tracker) =======================================
 const SFX_THEMES=[['','🦊 Lombax'],['clank','🤖 Clank'],['gadgetron','🔧 Gadgetron'],['nebula','🌌 Nebula'],['qwark','⚡ Qwark'],['arsenal','🔴 Up Your Arsenal'],['cracktime','⏳ A Crack in Time'],['rivet','🔩 Rivet'],['zoni','🌟 Zoni'],['courtney','💖 Courtney Gears'],['kit','✨ Kit'],['nefarious','👑 Nefarious'],['tachyon','🦎 Emperor Tachyon']];
 window._sfxData={};
