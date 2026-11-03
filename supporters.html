@@ -50,6 +50,8 @@ a{color:var(--purple-light);text-decoration:none}
 .perk p{color:var(--text-mid);font-size:.88rem}
 .perk.gold{border-color:rgba(255,200,90,.45);box-shadow:0 0 30px rgba(255,200,90,.12)}
 .perk.plat{border-color:rgba(191,239,255,.5);box-shadow:0 0 30px rgba(191,239,255,.12)}
+.perk.bronze{border-color:rgba(205,127,50,.5);box-shadow:0 0 30px rgba(205,127,50,.12)}
+.perk.silver{border-color:rgba(200,210,225,.5);box-shadow:0 0 30px rgba(200,210,225,.12)}
 h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.15rem;letter-spacing:.08em;margin:34px 0 14px;display:flex;align-items:center;gap:10px}
 h2::after{content:'';flex:1;height:1px;background:var(--line)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
@@ -61,6 +63,8 @@ h2::after{content:'';flex:1;height:1px;background:var(--line)}
 .sup.platinum{background:linear-gradient(150deg,#16303a,#10121F 60%);border-color:rgba(191,239,255,.55);box-shadow:0 0 34px rgba(191,239,255,.18)}
 .sup.platinum::before{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.18) 50%,transparent 65%);background-size:250% 100%;animation:shine 3.5s linear infinite}
 .sup.gold{background:linear-gradient(150deg,#3a2c10,#10121F 60%);border-color:rgba(255,200,90,.55);box-shadow:0 0 30px rgba(255,200,90,.15)}
+.sup.silver{background:linear-gradient(150deg,#2a2f38,#10121F 60%);border-color:rgba(200,210,225,.55)}
+.sup.bronze{background:linear-gradient(150deg,#33210f,#10121F 60%);border-color:rgba(205,127,50,.55)}
 @keyframes shine{from{background-position:150% 0}to{background-position:-100% 0}}
 .empty{color:var(--text-dim);text-align:center;padding:30px 10px;border:1px dashed var(--line);border-radius:18px}
 .cta{text-align:center;margin:50px 0 10px}
@@ -82,10 +86,12 @@ footer{border-top:1px solid var(--line);padding:30px 16px;text-align:center;colo
 </header>
 <div class="wrap">
   <div class="perks">
-    <div class="perk"><div class="t">☕ Supporter</div><p>Every tier theme of the tracker unlocked straight away, no need to wait for the pieces.</p></div>
-    <div class="perk gold"><div class="t">👑 Gold</div><p>Everything above, plus the exclusive <b>Nefarious</b> and <b>Courtney Gears</b> themes.</p></div>
-    <div class="perk plat"><div class="t">✨ Platinum</div><p>Everything above, plus the exclusive <b>Kit</b> warbot theme (and both Gold themes).</p></div>
+    <div class="perk bronze"><div class="t">🥉 Bronze · from €3</div><p>Every tier theme of the tracker unlocked straight away, plus the exclusive <b>Courtney Gears</b> theme.</p></div>
+    <div class="perk silver"><div class="t">🥈 Silver · from €10</div><p>Everything in Bronze, plus the exclusive <b>Kit</b> warbot theme.</p></div>
+    <div class="perk gold"><div class="t">🥇 Gold · from €25</div><p>Everything in Silver, plus the exclusive <b>Nefarious</b> theme.</p></div>
+    <div class="perk plat"><div class="t">🏆 Platinum · from €50</div><p>Everything in Gold, plus the exclusive <b>Emperor Tachyon</b> theme — and every future exclusive.</p></div>
   </div>
+  <p style="color:var(--text-dim);font-size:.82rem;text-align:center;margin:-30px 0 40px">Trophies are based on the total of your Ko-fi donations.</p>
   <div id="list"><div class="empty">Loading…</div></div>
   <div class="cta">
     <a href="https://ko-fi.com/ratchetlegacy" target="_blank" rel="noopener">☕ Support Ratchet Legacy on Ko-fi</a>
@@ -108,7 +114,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
     const l=data||[];
     if(!l.length){box.innerHTML='<div class="empty">No supporters listed yet — your name could be the very first one here! ☕</div>';return;}
     const fmt=d=>{try{return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'})}catch(e){return d}};
-    const grp=[['platinum','✨ Platinum'],['gold','👑 Gold'],['supporter','☕ Supporters']];
+    const grp=[['platinum','🏆 Platinum'],['gold','🥇 Gold'],['silver','🥈 Silver'],['bronze','🥉 Bronze']];
     let i=0;
     box.innerHTML=grp.map(([k,t])=>{const g=l.filter(r=>r.tier===k);if(!g.length)return'';
       return '<h2>'+t+'</h2><div class="grid">'+g.map(r=>'<div class="sup '+k+'" style="animation-delay:'+(i++*0.06)+'s"><div class="n">'+esc(r.display_name)+'</div><div class="d">Since '+esc(fmt(r.since))+'</div>'+(r.message?'<div class="m">“'+esc(r.message)+'”</div>':'')+'</div>').join('')+'</div>';}).join('');

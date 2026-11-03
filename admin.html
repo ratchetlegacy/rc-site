@@ -836,11 +836,11 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
         <h2 style="margin:0">☕ Donateurs Ko-fi</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadSupporters()">↻ Actualiser</button>
       </div>
-      <p class="vf-intro">Ajoute ici chaque personne qui a fait un don sur Ko-fi. Elle apparaît sur la page <a href="supporters.html" target="_blank" style="color:var(--orange)">Merci aux donateurs</a> (si « public » est coché). Si tu la relies à son compte du tracker, elle débloque tous les thèmes à paliers ; <b>Gold</b> ajoute 👑 Nefarious et 💖 Courtney Gears, <b>Platinum</b> ajoute ✨ Kit (en plus des thèmes Gold).</p>
+      <p class="vf-intro">Ajoute ici chaque personne qui a fait un don sur Ko-fi. Elle apparaît sur la page <a href="supporters.html" target="_blank" style="color:var(--orange)">Merci aux donateurs</a> (si « public » est coché). Si tu la relies à son compte du tracker, elle débloque ses thèmes selon son trophée (total de ses dons) : <b>🥉 Bronze</b> dès 3 € = tous les thèmes à paliers + 💖 Courtney Gears · <b>🥈 Argent</b> dès 10 € = + ✨ Kit · <b>🥇 Or</b> dès 25 € = + 👑 Nefarious · <b>🏆 Platine</b> dès 50 € = + 🦎 Emperor Tachyon.</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
         <div><label>Nom affiché</label><input id="sp-nom" placeholder="Pseudo Ko-fi"/></div>
         <div><label>Compte tracker (optionnel)</label><input id="sp-compte" list="sp-pseudos" placeholder="Pseudo du profil tracker"/><datalist id="sp-pseudos"></datalist></div>
-        <div><label>Niveau</label><select id="sp-tier" style="width:100%;margin-bottom:14px"><option value="supporter">☕ Supporter</option><option value="gold">👑 Gold</option><option value="platinum">✨ Platinum</option></select></div>
+        <div><label>Niveau</label><select id="sp-tier" style="width:100%;margin-bottom:14px"><option value="bronze">🥉 Bronze (3 €+)</option><option value="silver">🥈 Argent (10 €+)</option><option value="gold">🥇 Or (25 €+)</option><option value="platinum">🏆 Platine (50 €+)</option></select></div>
         <div><label>Date du don</label><input id="sp-date" type="date"/></div>
       </div>
       <label>Message (optionnel, affiché sur la page)</label><input id="sp-msg" placeholder="Son petit mot sur Ko-fi"/>
@@ -3282,7 +3282,7 @@ async function saveThemeSfx(){
   window._sfxData=clean; renderThemeSfx(); showMsg('sfx-msgbox','Enregistré ✓ — le tracker utilisera ces sons au prochain chargement.',true);
 }
 // === Donateurs Ko-fi ==================================================
-const SP_TIER={supporter:'☕ Supporter',gold:'👑 Gold',platinum:'✨ Platinum'};
+const SP_TIER={bronze:'🥉 Bronze',silver:'🥈 Argent',gold:'🥇 Or',platinum:'🏆 Platine'};
 window._spProfils=[];
 async function loadSupporters(){
   const box=document.getElementById('sp-liste'); if(!box) return;
