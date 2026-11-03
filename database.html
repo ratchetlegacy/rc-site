@@ -29,7 +29,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="catalog-en.js?v=1"></script>
+<script src="catalog-en.js?v=2"></script>
 <style>
 :root{
   --bg:#0A0B14;--bg2:#10121F;--bg3:#181B2E;
@@ -481,6 +481,20 @@ function zoneOf(c){
   if(m) return m[1].trim().toUpperCase();
   return r.trim() ? r.trim() : '—';
 }
+// Blind bags ESC-Toy : on range par coloris (Normal, Insomniac, Gold),
+// puis les pièces limitées et les sachets, au lieu de la zone.
+const BB_GROUPS=['Normal','Insomniac','Gold','Limited','Bags & more'];
+const BB_ICON={'Normal':'🎲','Insomniac':'🟣','Gold':'🏆','Limited':'💎','Bags & more':'🛍️'};
+function isBlindBagSeries(plat){ return /^blind bag\s*[–-]\s*esc/i.test(String(plat||'')); }
+function bbGroupOf(c){
+  const e=String(c.edition||'').toLowerCase();
+  if(/gold|dor[ée]/.test(e)) return 'Gold';
+  if(/insomniac/.test(e)) return 'Insomniac';
+  if(/limit|non commerc|not for sale|prototype/.test(e)) return 'Limited';
+  if(/sachet|sealed|bag|lot/.test(e)) return 'Bags & more';
+  return 'Normal';
+}
+function groupOf(c){ return isBlindBagSeries(c.platform) ? bbGroupOf(c) : zoneOf(c); }
 function langList(c){
   return String((c&&c.languages)||'').split(/[,;/]/).map(x=>x.trim().toUpperCase()).filter(Boolean);
 }
@@ -553,17 +567,18 @@ function openPlatform(plat){
   const inSel=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===plat);
   const counts={}, countries={};
   inSel.forEach(c=>{
-    const k=zoneOf(c); counts[k]=(counts[k]||0)+1;
+    const k=groupOf(c); counts[k]=(counts[k]||0)+1;
     const r=(c.region||'').replace(/\s*\([^)]*\)/,'').trim();
     if(r){ (countries[k]=countries[k]||{})[r]=true; }
   });
-  const zones=Object.keys(counts).sort();
+  const bb=isBlindBagSeries(plat);
+  const zones=bb ? BB_GROUPS.filter(g=>counts[g]) : Object.keys(counts).sort();
   crumb();
   if(zones.length<=1){ openRegion(zones[0]||'—'); return; }
   renderMenuCards(zones.map(z=>({
-    key:z, label:z==='—'?'(no version)':z, icon:'🌍', count:counts[z],
-    sub:Object.keys(countries[z]||{}).sort().slice(0,4).join(' · '),
-    sampleImg:(inSel.find(o=>zoneOf(o)===z && o.image_url)||{}).image_url
+    key:z, label:z==='—'?'(no version)':z, icon:bb?(BB_ICON[z]||'🎲'):'🌍', count:counts[z],
+    sub:bb?'':Object.keys(countries[z]||{}).sort().slice(0,4).join(' · '),
+    sampleImg:(inSel.find(o=>groupOf(o)===z && o.image_url)||{}).image_url
   })), k=>`openRegion('${k.replace(/'/g,"\\'")}')`);
 }
 
@@ -640,7 +655,7 @@ function gridWithEditions(list){
 // LEVEL 3: the items
 function openRegion(reg){
   navReg=reg;
-  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && zoneOf(c)===reg);
+  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && groupOf(c)===reg);
   crumb();
   document.querySelector('.controls').style.display='flex';
   const grid=document.getElementById('grid'); grid.className='grid';
@@ -675,7 +690,7 @@ function cardHtml(c){
 function applyFilters(){
   if(!navReg){ return; }
   const q=(document.getElementById('search').value||'').toLowerCase().trim();
-  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && zoneOf(c)===navReg
+  const list=ALL.filter(c=>(c.category||'Misc')===navCat && (c.platform||'—')===navPlat && groupOf(c)===navReg
     && (!q || (c.name||'').toLowerCase().includes(q)));
   const grid=document.getElementById('grid');
   if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:40px">No item matches.</div>'; return; }

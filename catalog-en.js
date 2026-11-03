@@ -19,7 +19,8 @@
     'Classique':'Standard','Divers':'Misc','Impression Exclusive':'Exclusive Print',
     'Limitée':'Limited','Démo Only':'Demo Only','Non Commercialisé':'Not for Sale',
     'Dématérialisé':'Digital','Employés Only':'Employees Only','Serie 1':'Series 1',
-    'Serie 2':'Series 2','Playstation Hit':'PlayStation Hits'
+    'Serie 2':'Series 2','Playstation Hit':'PlayStation Hits',
+    'Coloris Insomniac':'Insomniac Colorway','Coloris Gold':'Gold Colorway','Sachet':'Sealed Bag'
   };
   const REGION={'JAP (NTSC-J)':'JP (NTSC-J)'};
   function loc(c){
