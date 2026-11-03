@@ -483,15 +483,15 @@ function zoneOf(c){
 }
 // Blind bags ESC-Toy : on range par coloris (Normal, Insomniac, Gold),
 // puis les pièces limitées et les sachets, au lieu de la zone.
-const BB_GROUPS=['Normal','Insomniac','Gold','Limited','Bags & more'];
-const BB_ICON={'Normal':'🎲','Insomniac':'🟣','Gold':'🏆','Limited':'💎','Bags & more':'🛍️'};
+const BB_GROUPS=['Normal','Insomniac','Gold','Limited','Bags & boxes'];
+const BB_ICON={'Normal':'🎲','Insomniac':'🟣','Gold':'🏆','Limited':'💎','Bags & boxes':'🛍️'};
 function isBlindBagSeries(plat){ return /^blind bag\s*[–-]\s*esc/i.test(String(plat||'')); }
 function bbGroupOf(c){
   const e=String(c.edition||'').toLowerCase();
   if(/gold|dor[ée]/.test(e)) return 'Gold';
   if(/insomniac/.test(e)) return 'Insomniac';
   if(/limit|non commerc|not for sale|prototype/.test(e)) return 'Limited';
-  if(/sachet|sealed|bag|lot/.test(e)) return 'Bags & more';
+  if(/sachet|sealed|bag|lot/.test(e)) return 'Bags & boxes';
   return 'Normal';
 }
 function groupOf(c){ return isBlindBagSeries(c.platform) ? bbGroupOf(c) : zoneOf(c); }
