@@ -625,6 +625,7 @@ function editionRank(e){
   e=String(e||'').toLowerCase();
   if(!e||/classique|standard/.test(e)) return 0;
   if(/platinum|greatest|essential|the best|hit/.test(e)) return 1;
+  if(/magazine/.test(e)) return 2.5;
   if(/d[ée]mo/.test(e)) return 2;
   if(/press|promo/.test(e)) return 3;
   if(/collector|limit|sp[ée]ciale/.test(e)) return 4;
@@ -633,6 +634,7 @@ function editionRank(e){
 function editionLabel(c){
   const e=String(c.edition||'').trim();
   if(!e||/classique|standard/i.test(e)) return 'Standard edition';
+  if(/magazine/i.test(e)) return 'Magazine demo discs';
   if(/d[ée]mo/i.test(e)) return 'Demo';
   if(/press/i.test(e)) return 'Press only';
   return e;
