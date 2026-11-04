@@ -736,6 +736,9 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
         <label>Barcode (EAN / UPC / ISBN)</label>
         <input type="text" id="o-barcode" placeholder="711719391227" inputmode="numeric" oninput="checkBarcode()"/>
         <div id="o-barcode-msg" style="font-size:.72rem;margin:-8px 0 12px;min-height:1em"></div>
+        <label>📖 Read online (link)</label>
+        <input type="url" id="o-read" placeholder="https://archive.org/details/..."/>
+        <div style="font-size:.72rem;color:var(--text-dim);margin:-8px 0 12px">Shows a « Read online » button on the Vault. Internet Archive page, or your Drive for your own guides.</div>
         <label>💰 Rating estimate (€)</label>
         <div style="display:flex;gap:10px">
           <div style="flex:1"><input type="number" step="0.01" id="o-price-new" placeholder="New / sealed"/></div>
@@ -2299,6 +2302,7 @@ function editObj(o){
   const gs=document.getElementById('o-game'); if(gs) gs.value=o.game_id!=null?String(o.game_id):'';
   document.getElementById('o-reference').value=o.reference||'';
   document.getElementById('o-barcode').value=o.barcode||'';
+  document.getElementById('o-read').value=o.read_url||'';
   checkBarcode();
   setLangs(o.languages);
   document.getElementById('o-price-new').value=(o.price_new!=null?o.price_new:'');
@@ -2343,7 +2347,7 @@ function checkBarcode(){
 }
 
 function clearObjForm(){
-  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition','o-region','o-price-new','o-price-used','o-game','o-reference','o-barcode'].forEach(id=>document.getElementById(id).value='');
+  ['o-id','o-name','o-category','o-platform','o-year','o-image','o-imageback','o-desc','o-edition','o-region','o-price-new','o-price-used','o-game','o-reference','o-barcode','o-read'].forEach(id=>document.getElementById(id).value='');
   taMaj('o-desc');
   checkBarcode();
   setLangs('');
@@ -2365,6 +2369,7 @@ async function saveObj(){
     languages:CUR_LANGS.length?CUR_LANGS.join(', '):null,
     reference:document.getElementById('o-reference').value.trim()||null,
     barcode:document.getElementById('o-barcode').value.replace(/\s/g,'')||null,
+    read_url:document.getElementById('o-read').value.trim()||null,
     price_new:document.getElementById('o-price-new').value!==''?parseFloat(document.getElementById('o-price-new').value):null,
     price_used:document.getElementById('o-price-used').value!==''?parseFloat(document.getElementById('o-price-used').value):null,
     image_back:document.getElementById('o-imageback').value.trim()||null,
@@ -3497,7 +3502,7 @@ document.getElementById('ve-filtres')?.addEventListener('click',e=>{
 const CB_COLS = ['id','name','category','platform','year','region','image_url',
   'description','sort_order','price_new','price_used','image_back','edition',
   'game_id','languages','reference','barcode','barcode_supplement',
-  'description_attente'];
+  'description_attente','read_url'];
 
 async function loadCorbeille(){
   const box=document.getElementById('cb-contenu'); if(!box) return;

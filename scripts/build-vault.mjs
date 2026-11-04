@@ -52,7 +52,7 @@ async function sbAll(table, select) {
 async function loadData() {
   const i = process.argv.indexOf('--data');
   if (i > 0) return JSON.parse(fs.readFileSync(process.argv[i + 1], 'utf8'));
-  const cols = 'id,name,name_en,category,platform,edition,region,year,languages,reference,barcode,image_url,image_back,description,description_en,sort_order';
+  const cols = 'id,name,name_en,category,platform,edition,region,year,languages,reference,barcode,image_url,image_back,description,description_en,sort_order,read_url';
   const [catalog, rating, sales] = await Promise.all([
     sbAll('catalog', cols),
     sbAll('market_rating', '*'),
@@ -181,7 +181,7 @@ const T = {
     median: n => `Median of ${n} real price${n > 1 ? 's' : ''}`, estimate: 'Estimate from current listings · no sale yet',
     marketNote: 'Values are medians of completed sales and collectors\' purchase prices, updated daily. <a href="/database.html#prix">How is this calculated?</a>',
     sources: s => s.replace(/collectionneurs/g, 'collectors'),
-    track: '➕ Track it in your collection', openVault: '🗂️ Open in the Megacorp Vault',
+    track: '➕ Track it in your collection', readOnline: '📖 Read online', openVault: '🗂️ Open in the Megacorp Vault',
     recent: '🧾 Recent sales', versions: 'Other versions',
     cat: { 'Game': 'Games', 'Console/Pack': 'Consoles & bundles', 'Figure': 'Figures', 'Plush': 'Plush', 'Goodie': 'Goodies', 'Press Kit': 'Press kits', 'Clothing': 'Clothing', 'Print': 'Prints', 'Book': 'Books', 'Guide': 'Strategy guides', 'Media': 'Media', 'Music': 'Music', 'Misc': 'Misc' },
     idxTitle: 'All Ratchet & Clank Collectibles — Megacorp Vault | Ratchet Legacy',
@@ -203,7 +203,7 @@ const T = {
     median: n => `Médiane de ${n} prix réel${n > 1 ? 's' : ''}`, estimate: 'Estimation d\'après les annonces en cours · aucune vente pour l\'instant',
     marketNote: 'Les cotes sont les médianes des ventes conclues et des prix d\'achat des collectionneurs, mises à jour chaque jour. <a href="/database.html#prix">Comment est-ce calculé ?</a>',
     sources: s => s,
-    track: '➕ Suivre dans ma collection', openVault: '🗂️ Voir dans le Megacorp Vault',
+    track: '➕ Suivre dans ma collection', readOnline: '📖 Consulter en ligne', openVault: '🗂️ Voir dans le Megacorp Vault',
     recent: '🧾 Ventes récentes', versions: 'Autres versions',
     cat: { 'Game': 'Jeux', 'Console/Pack': 'Consoles et packs', 'Figure': 'Figurines', 'Plush': 'Peluches', 'Goodie': 'Goodies', 'Press Kit': 'Kits presse', 'Clothing': 'Vêtements', 'Print': 'Affiches et impressions', 'Book': 'Livres', 'Guide': 'Guides stratégiques', 'Media': 'Médias', 'Music': 'Musique', 'Misc': 'Divers' },
     idxTitle: 'Tous les objets Ratchet & Clank — Megacorp Vault | Ratchet Legacy',
@@ -357,6 +357,7 @@ function itemPage(lang, it, ctx) {
     <table class="facts">${facts}</table>
     ${ratingHtml}
     <div class="actions">
+      ${/^https:\/\//.test(raw.read_url || '') ? `<a class="btn" href="${esc(raw.read_url)}" target="_blank" rel="noopener">${L.readOnline}</a>` : ''}
       <a class="btn main" href="https://tracker.ratchetlegacy.com">${L.track}</a>
       <a class="btn" href="/database.html#item=${raw.id}">${L.openVault}</a>
     </div>
