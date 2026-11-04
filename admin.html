@@ -138,6 +138,39 @@ body.menu-only .card{display:none}
 .tb-case .l{color:var(--text-dim);font-size:.72rem;margin-top:6px;line-height:1.35}
 .tb-titre{font-family:Orbitron,sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-mid);margin:18px 0 10px}
 .tb-titre:first-of-type{margin-top:0}
+/* Chantiers : un bloc par chantier, chiffres en direct + liste à faire */
+.ch-maj{font-size:.72rem;color:var(--text-dim);margin:-6px 0 12px;font-variant-numeric:tabular-nums}
+.ch-maj.err{color:var(--orange)}
+.ch-grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:22px}
+.ch-bloc{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:8px;align-content:start;min-width:0}
+.ch-tete{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ch-tete b{font-family:Orbitron,sans-serif;font-size:.82rem;letter-spacing:.04em}
+.ch-tete span{font-size:.7rem;color:var(--text-dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ch-etat{font-size:.8rem;color:var(--text-mid);line-height:1.45}
+.ch-etat a{color:var(--purple-light);cursor:pointer;text-decoration:underline}
+.ch-jauge{height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.ch-jauge i{display:block;height:100%;background:var(--green)}
+.ch-next{font-size:.78rem;border-left:3px solid var(--gold);padding:4px 0 4px 9px;color:var(--text)}
+.ch-next small{display:block;color:var(--text-dim);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase}
+.ch-next.vide{border-color:var(--green);color:var(--text-dim)}
+.ch-liste{display:grid;gap:2px;margin:2px 0 0;padding:0;list-style:none}
+.ch-liste li{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start;padding:5px 4px;border-radius:6px;font-size:.8rem}
+.ch-liste li:hover{background:rgba(255,255,255,.03)}
+.ch-liste input[type=checkbox]{width:16px;height:16px;margin:1px 0 0;accent-color:var(--green);cursor:pointer}
+.ch-liste label{cursor:pointer;min-width:0}
+.ch-liste .d{display:block;color:var(--text-dim);font-size:.72rem;line-height:1.35;margin-top:1px}
+.ch-liste li.fait label{color:var(--text-dim);text-decoration:line-through}
+.ch-pill{font-size:.62rem;font-weight:700;border-radius:999px;padding:2px 7px;white-space:nowrap;border:1px solid var(--line);background:none;color:var(--text-dim);cursor:pointer;font-family:Inter,sans-serif}
+.ch-pill.en_cours{color:var(--gold);border-color:var(--gold)}
+.ch-add{display:flex;gap:6px}
+.ch-add input{flex:1;min-width:0;margin:0;padding:7px 10px;font-size:.78rem}
+.ch-add button,.ch-add .btn{width:auto;flex:0 0 auto;margin:0;padding:7px 12px;font-size:.75rem}
+.ch-add input{width:auto}
+.ch-plus{background:none;border:0;color:var(--text-dim);font-size:.72rem;cursor:pointer;text-align:left;padding:2px 0;font-family:Inter,sans-serif}
+.ch-chasse{display:flex;justify-content:space-between;gap:8px;font-size:.76rem;padding:4px 0;border-top:1px dashed var(--line)}
+.ch-chasse .on{color:var(--green);font-weight:700}
+.ch-chasse .off{color:var(--orange);font-weight:700}
+.ch-chasse .q{color:var(--text-dim);font-size:.7rem}
 .tb-liste{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
 .tb-liste .tl-tete{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .tb-liste .tl-tete b{font-size:.86rem}
@@ -270,6 +303,9 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
         <h2 style="margin:0">🏠 Tableau de bord</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadTableauBord()">↻ Actualiser</button>
       </div>
+      <div class="tb-titre">Chantiers en cours</div>
+      <div class="ch-maj" id="ch-maj" aria-live="polite"></div>
+      <div id="ch-contenu"><div style="color:var(--text-dim);font-size:.85rem">Chargement…</div></div>
       <div id="tb-contenu"><div style="color:var(--text-dim);font-size:.85rem">Chargement…</div></div>
       <div id="tb-liste"></div>
     </div>
@@ -2634,7 +2670,122 @@ async function tbCompte(table, f){
   const {count,error}=await q;
   return error?null:(count||0);
 }
-async function loadTableauBord(){
+// ── Chantiers ─────────────────────────────────────────────────────────
+// Chaque chantier montre où on en est (chiffres calculés par la base au
+// moment de la lecture, vue suivi_chiffres), la prochaine étape et la
+// liste à faire (table suivi_taches), que Claude et toi tenez à jour.
+// La vue est relue toute seule chaque minute tant que l'accueil est
+// affiché, et dès que tu reviens sur l'onglet.
+const CHANTIERS=[
+  {cle:'fiches', ic:'🗂️', t:'Fiches du catalogue', lien:"showAdminSection('catalog')",
+   etat:c=>`<b>${c.fiches}</b> fiches · ${c.fiches_7j} ajoutées en 7 jours · ${c.sans_annee} sans année`},
+  {cle:'photos', ic:'📸', t:'Photos',
+   etat:c=>`<b>${c.avec_photo}</b> / ${c.fiches} fiches ont une photo (${c.fiches-c.avec_photo} sans) · ${c.avec_dos} avec le dos`,
+   jauge:c=>[c.avec_photo,c.fiches], liste:"tbListe('image')"},
+  {cle:'verif', ic:'✅', t:'Descriptions et vérifications', lien:"showAdminSection('valid')",
+   etat:c=>`<b>${c.desc_attente}</b> descriptions à valider · <b>${c.verif_ouvertes}</b> points à vérifier · ${c.verif_7j} réglés en 7 jours`},
+  {cle:'cotes', ic:'💰', t:'Cotes et prix',
+   etat:c=>`<b>${c.fiches_cotees}</b> fiches cotées par des ventes réelles · ${c.avec_estimation} avec une estimation · ${c.ventes_7j} ventes relevées en 7 jours`,
+   jauge:c=>[c.fiches_cotees,c.fiches]},
+  {cle:'chasse', ic:'🎯', t:'Chasse et veille', lien:"showAdminSection('veille')", chasses:true,
+   etat:c=>`<b>${c.veille_a_trier}</b> sorties à trier · ${c.veille_7j} repérées en 7 jours`},
+  {cle:'magazines', ic:'📰', t:'Magazines et démos',
+   etat:c=>`<b>${c.magazines}</b> magazines · <b>${c.demos_magazine}</b> disques démo · ${c.lecture_en_ligne} lisibles en ligne`,
+   jauge:c=>[c.lecture_en_ligne,c.magazines+c.demos_magazine]},
+  {cle:'seo', ic:'🔎', t:'Référencement Google'},
+  {cle:'collection', ic:'🧳', t:'Ma collection'}
+];
+let CH_TACHES=[], CH_CHASSES=[], CH_OUVERTS={}, CH_TIMER=null;
+const CH_RANG={en_cours:0,a_faire:1,fait:2};
+function chDepuis(d){
+  if(!d) return 'jamais';
+  const m=Math.round((Date.now()-new Date(d))/60000);
+  if(m<60) return 'il y a '+m+' min';
+  const h=Math.round(m/60); if(h<36) return 'il y a '+h+' h';
+  return 'il y a '+Math.round(h/24)+' j';
+}
+async function loadChantiers(){
+  const box=document.getElementById('ch-contenu'), maj=document.getElementById('ch-maj');
+  if(!box) return;
+  const [ch, ta, cs] = await Promise.all([
+    sb.from('suivi_chiffres').select('*').single(),
+    sb.from('suivi_taches').select('*').order('ordre').order('id'),
+    sb.from('suivi_chasses').select('*').order('nom')
+  ]);
+  const err=ch.error||ta.error||cs.error;
+  if(err){
+    maj.className='ch-maj err';
+    maj.textContent='Impossible de lire le suivi : '+err.message+'. Les chiffres affichés peuvent dater.';
+    if(!CH_TACHES.length) box.innerHTML='';
+    return;
+  }
+  CH_TACHES=ta.data||[]; CH_CHASSES=cs.data||[];
+  const c=ch.data;
+  maj.className='ch-maj';
+  maj.textContent='Chiffres calculés à '+new Date(c.calcule_le).toLocaleTimeString('fr-FR')+' · relus automatiquement chaque minute';
+  box.innerHTML='<div class="ch-grille">'+CHANTIERS.map(k=>chBloc(k,c)).join('')+'</div>';
+}
+function chBloc(k,c){
+  const t=CH_TACHES.filter(x=>x.chantier===k.cle)
+    .sort((a,b)=>(CH_RANG[a.statut]-CH_RANG[b.statut])||(a.ordre-b.ordre)||(a.id-b.id));
+  const ouvertes=t.filter(x=>x.statut!=='fait'), faites=t.filter(x=>x.statut==='fait');
+  const next=ouvertes[0];
+  let h='<div class="ch-bloc"><div class="ch-tete"><b>'+k.ic+' '+esc(k.t)+'</b><span>'+faites.length+' / '+t.length+' faites</span></div>';
+  if(k.etat){
+    h+='<div class="ch-etat">'+k.etat(c)
+      +(k.lien?' · <a onclick="'+k.lien+'">ouvrir</a>':'')
+      +(k.liste?' · <a onclick="'+k.liste+'">voir la liste</a>':'')+'</div>';
+  }
+  if(k.jauge){ const [a,b]=k.jauge(c); const p=b?Math.round(a/b*100):0;
+    h+='<div class="ch-jauge" title="'+p+' %"><i style="width:'+p+'%"></i></div>'; }
+  if(k.chasses){
+    h+=CH_CHASSES.map(x=>'<div class="ch-chasse"><span>'+esc(x.nom)+'<br><span class="q">'+esc(x.frequence||'')
+      +(x.dernier_resume?' · '+esc(x.dernier_resume):'')+'</span></span><span style="text-align:right">'
+      +(x.actif?'<span class="on">● active</span>':'<span class="off">⏸ arrêtée</span>')
+      +'<br><span class="q">dernier passage '+chDepuis(x.dernier_passage)+'</span></span></div>').join('');
+  }
+  h+= next
+    ? '<div class="ch-next"><small>Prochaine étape</small>'+esc(next.titre)+'</div>'
+    : '<div class="ch-next vide"><small>Prochaine étape</small>Rien en attente.</div>';
+  const montrer=CH_OUVERTS[k.cle]?t:ouvertes;
+  h+='<ul class="ch-liste">'+montrer.map(x=>
+     '<li class="'+(x.statut==='fait'?'fait':'')+'"><input type="checkbox" id="ch-'+x.id+'"'+(x.statut==='fait'?' checked':'')
+     +' onchange="chCocher('+x.id+',this.checked)"><label for="ch-'+x.id+'">'+esc(x.titre)
+     +(x.detail?'<span class="d">'+esc(x.detail)+'</span>':'')+'</label>'
+     +(x.statut==='fait'?'<span></span>':'<button type="button" class="ch-pill '+x.statut+'" title="Marquer en cours / à faire" onclick="chEnCours('+x.id+')">'+(x.statut==='en_cours'?'en cours':'à faire')+'</button>')
+     +'</li>').join('')+'</ul>';
+  if(faites.length) h+='<button type="button" class="ch-plus" onclick="CH_OUVERTS[\''+k.cle+'\']=!CH_OUVERTS[\''+k.cle+'\'];loadChantiers()">'
+     +(CH_OUVERTS[k.cle]?'Masquer les tâches faites':'Voir les '+faites.length+' tâches faites')+'</button>';
+  h+='<form class="ch-add" onsubmit="event.preventDefault();chAjouter(\''+k.cle+'\',this)"><input id="ch-add-'+k.cle
+     +'" placeholder="Ajouter une tâche…" aria-label="Ajouter une tâche dans '+esc(k.t)+'"><button class="btn btn-primary" type="submit">Ajouter</button></form>';
+  return h+'</div>';
+}
+async function chCocher(id, fait){
+  const {error}=await sb.from('suivi_taches').update({statut:fait?'fait':'a_faire'}).eq('id',id);
+  if(error){ alertMaj(error.message); }
+  loadChantiers();
+}
+async function chEnCours(id){
+  const x=CH_TACHES.find(t=>t.id===id); if(!x) return;
+  const {error}=await sb.from('suivi_taches').update({statut:x.statut==='en_cours'?'a_faire':'en_cours'}).eq('id',id);
+  if(error){ alertMaj(error.message); }
+  loadChantiers();
+}
+async function chAjouter(cle, form){
+  const inp=form.querySelector('input'), v=inp.value.trim(); if(!v) return;
+  const {error}=await sb.from('suivi_taches').insert([{chantier:cle,titre:v,ordre:200}]);
+  if(error){ alertMaj(error.message); return; }
+  inp.value=''; loadChantiers();
+}
+function alertMaj(m){ const e=document.getElementById('ch-maj'); if(e){ e.className='ch-maj err'; e.textContent='Enregistrement impossible : '+m; } }
+function chVisible(){ const b=document.getElementById('ch-contenu'); return b && b.offsetParent!==null && document.visibilityState==='visible'; }
+if(!CH_TIMER){
+  CH_TIMER=setInterval(()=>{ if(chVisible()) loadChantiers(); }, 60000);
+  document.addEventListener('visibilitychange',()=>{ if(chVisible()) { loadChantiers(); loadTableauBord(true); } });
+}
+
+async function loadTableauBord(sansChantiers){
+  if(!sansChantiers) loadChantiers();
   const box=document.getElementById('tb-contenu'); if(!box) return;
   document.getElementById('tb-liste').innerHTML='';
   const [total, manques, sugg, ventes, trades, jeux, we, guides, news, chars, verif, attente, veille, corbeille, ebay] = await Promise.all([
