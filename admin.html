@@ -162,6 +162,9 @@ body.menu-only .card{display:none}
 .ch-liste li.fait label{color:var(--text-dim);text-decoration:line-through}
 .ch-pill{font-size:.62rem;font-weight:700;border-radius:999px;padding:2px 7px;white-space:nowrap;border:1px solid var(--line);background:none;color:var(--text-dim);cursor:pointer;font-family:Inter,sans-serif}
 .ch-pill.en_cours{color:var(--gold);border-color:var(--gold)}
+.ch-compte{font-size:.66rem;font-weight:700;color:var(--green);white-space:nowrap}
+.ch-compte.on{color:var(--orange)}
+.ch-liste input[disabled]{cursor:default;opacity:.8}
 .ch-add{display:flex;gap:6px}
 .ch-add input{flex:1;min-width:0;margin:0;padding:7px 10px;font-size:.78rem}
 .ch-add button,.ch-add .btn{width:auto;flex:0 0 auto;margin:0;padding:7px 12px;font-size:.75rem}
@@ -2709,7 +2712,7 @@ async function loadChantiers(){
   if(!box) return;
   const [ch, ta, cs] = await Promise.all([
     sb.from('suivi_chiffres').select('*').single(),
-    sb.from('suivi_taches').select('*').order('ordre').order('id'),
+    sb.from('suivi_taches_vue').select('*').order('ordre').order('id'),
     sb.from('suivi_chasses').select('*').order('nom')
   ]);
   const err=ch.error||ta.error||cs.error;
@@ -2719,7 +2722,10 @@ async function loadChantiers(){
     if(!CH_TACHES.length) box.innerHTML='';
     return;
   }
-  CH_TACHES=ta.data||[]; CH_CHASSES=cs.data||[];
+  // statut_reel : une tâche liée à un compteur revient « à faire » dès
+  // que de nouveaux éléments arrivent, et se coche seule à zéro.
+  CH_TACHES=(ta.data||[]).map(x=>Object.assign({},x,{statut:x.statut_reel||x.statut}));
+  CH_CHASSES=cs.data||[];
   const c=ch.data;
   maj.className='ch-maj';
   maj.textContent='Chiffres calculés à '+new Date(c.calcule_le).toLocaleTimeString('fr-FR')+' · relus automatiquement chaque minute';
@@ -2745,12 +2751,14 @@ function chBloc(k,c){
       +'<br><span class="q">dernier passage '+chDepuis(x.dernier_passage)+'</span></span></div>').join('');
   }
   h+= next
-    ? '<div class="ch-next"><small>Prochaine étape</small>'+esc(next.titre)+'</div>'
+    ? '<div class="ch-next"><small>Prochaine étape</small>'+esc(next.titre)+(next.compte>0?' ('+next.compte+')':'')+'</div>'
     : '<div class="ch-next vide"><small>Prochaine étape</small>Rien en attente.</div>';
   const montrer=CH_OUVERTS[k.cle]?t:ouvertes;
   h+='<ul class="ch-liste">'+montrer.map(x=>
      '<li class="'+(x.statut==='fait'?'fait':'')+'"><input type="checkbox" id="ch-'+x.id+'"'+(x.statut==='fait'?' checked':'')
-     +' onchange="chCocher('+x.id+',this.checked)"><label for="ch-'+x.id+'">'+esc(x.titre)
+     +(x.indicateur?' disabled title="Se coche toute seule quand il ne reste rien"':' onchange="chCocher('+x.id+',this.checked)"')
+     +'><label for="ch-'+x.id+'">'+esc(x.titre)
+     +(x.indicateur?' <span class="ch-compte'+(x.compte>0?' on':'')+'">'+(x.compte>0?x.compte+' à traiter':'à jour')+' · auto</span>':'')
      +(x.detail?'<span class="d">'+esc(x.detail)+'</span>':'')+'</label>'
      +(x.statut==='fait'?'<span></span>':'<button type="button" class="ch-pill '+x.statut+'" title="Marquer en cours / à faire" onclick="chEnCours('+x.id+')">'+(x.statut==='en_cours'?'en cours':'à faire')+'</button>')
      +'</li>').join('')+'</ul>';
