@@ -885,6 +885,36 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
 
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">💾 Projet Sauvegarde</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadSauvegarde()">↻ Actualiser</button>
+      </div>
+      <p class="vf-intro">Tout ce qui s'affiche sur la page <a href="ranger-rumble.html" target="_blank" style="color:var(--orange)">Ranger Rumble – Projet Sauvegarde</a>. Coche les étapes au fur et à mesure (la barre d'avancement suit toute seule) et ajoute tes vidéos et captures : depuis ton téléphone, tu peux en envoyer plusieurs d'un coup.</p>
+
+      <h3 style="font-size:.95rem;margin:4px 0 10px">Étapes</h3>
+      <div id="sv-etapes"></div>
+
+      <h3 style="font-size:.95rem;margin:22px 0 10px">Ajouter des médias</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+        <div><label>Rubrique</label><select id="sv-section" style="width:100%;margin-bottom:14px">
+          <option value="gameplay">Gameplay</option><option value="heroes">Héros</option><option value="maps">Cartes</option>
+          <option value="menus">Menus et interface</option><option value="events">Événements et passes</option>
+          <option value="final">Derniers jours</option><option value="official">Officiel</option></select></div>
+        <div><label>Lien YouTube ou adresse (optionnel)</label><input id="sv-url" placeholder="https://youtu.be/…"/></div>
+        <div><label>Titre FR (optionnel)</label><input id="sv-titre-fr" placeholder="Ex. : Partie en mode Rumble"/></div>
+        <div><label>Titre EN (optionnel)</label><input id="sv-titre-en" placeholder="Ex. : Rumble mode match"/></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="svEnvoyerFichiers()">📤 Envoyer photos / vidéos</button>
+        <button class="btn" style="background:var(--bg);color:var(--text)" onclick="svAjouterLien()">🔗 Ajouter le lien</button>
+      </div>
+      <div id="sv-msgbox" class="msg"></div>
+
+      <h3 style="font-size:.95rem;margin:22px 0 10px">Médias en ligne</h3>
+      <div id="sv-medias"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">☕ Donateurs Ko-fi</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadSupporters()">↻ Actualiser</button>
       </div>
@@ -1515,7 +1545,8 @@ const ADMIN_SECTIONS=[
   {key:'stats', ic:'📊', lbl:'Stats', match:['Statistiques']},
   {key:'kofi', ic:'☕', lbl:'Donateurs', match:['Donateurs Ko-fi']},
   {key:'sfx', ic:'🔊', lbl:'Sons', match:['Sons des thèmes']},
-  {key:'sugg', ic:'🆕', lbl:'Suggestions', match:['Nouvelles fiches suggérées']}
+  {key:'sugg', ic:'🆕', lbl:'Suggestions', match:['Nouvelles fiches suggérées']},
+  {key:'sauvegarde', ic:'💾', lbl:'Sauvegarde', match:['Projet Sauvegarde']}
 ];
 function buildAdminMenu(){
   const menu=document.getElementById('admin-menu');
@@ -1561,6 +1592,7 @@ function showAdminSection(key){
   if(key==='verif')   loadVerif();
   if(key==='stats')   loadStats(window._stPeriode||30);
   if(key==='accueil') loadTableauBord();
+  if(key==='sauvegarde') loadSauvegarde();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function setupCardToggle(card){
@@ -3520,6 +3552,111 @@ async function saveThemeSfx(){
   const {error}=await sb.from('app_settings').upsert([{key:'theme_sfx',value:JSON.stringify(clean)}],{onConflict:'key'});
   if(error){ showMsg('sfx-msgbox',error.message,false); return; }
   window._sfxData=clean; renderThemeSfx(); showMsg('sfx-msgbox','Enregistré ✓ — le tracker utilisera ces sons au prochain chargement.',true);
+}
+// === Projet Sauvegarde (page ranger-rumble.html) ======================
+// Tables sauvegarde_etapes et sauvegarde_medias, lues par la page publique.
+const SV_PROJET='ranger-rumble';
+const SV_STATUTS={a_faire:'⬜ À faire',en_cours:'⏳ En cours',fait:'✅ Fait'};
+const SV_SECTIONS={gameplay:'Gameplay',heroes:'Héros',maps:'Cartes',menus:'Menus et interface',events:'Événements et passes',final:'Derniers jours',official:'Officiel'};
+async function loadSauvegarde(){
+  const be=document.getElementById('sv-etapes'), bm=document.getElementById('sv-medias'); if(!be) return;
+  const [et,md]=await Promise.all([
+    sb.from('sauvegarde_etapes').select('*').eq('projet',SV_PROJET).order('ordre'),
+    sb.from('sauvegarde_medias').select('*').eq('projet',SV_PROJET).order('ordre').order('id')
+  ]);
+  if(et.error){be.innerHTML='<div class="msg err" style="display:block">'+esc(et.error.message)+'</div>';}
+  else{
+    const l=et.data||[], f=l.filter(x=>x.statut==='fait').length;
+    be.innerHTML='<div style="font-size:.8rem;color:var(--text-dim);margin-bottom:8px">'+f+' / '+l.length+' terminées</div>'
+      +l.map(x=>'<div style="display:flex;gap:10px;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:6px">'
+      +'<div style="flex:1;min-width:0">'+esc(x.titre_fr)+'</div>'
+      +'<select onchange="svMajEtape('+x.id+',this.value)" style="width:auto;margin:0">'+Object.keys(SV_STATUTS).map(k=>'<option value="'+k+'"'+(k===x.statut?' selected':'')+'>'+SV_STATUTS[k]+'</option>').join('')+'</select></div>').join('');
+  }
+  if(md.error){bm.innerHTML='<div class="msg err" style="display:block">'+esc(md.error.message)+'</div>';return;}
+  const m=md.data||[];
+  if(!m.length){bm.innerHTML='<div class="vf-vide">Aucun média pour l’instant.</div>';return;}
+  bm.innerHTML=m.map(x=>{
+    const mini=svMiniature(x);
+    return '<div style="display:flex;gap:10px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:12px;margin-bottom:6px;'+(x.visible?'':'opacity:.5')+'">'
+      +(mini?'<img src="'+esc(mini)+'" style="width:72px;height:48px;object-fit:cover;border-radius:8px;flex:none"/>':'<div style="width:72px;height:48px;border-radius:8px;background:var(--bg);flex:none"></div>')
+      +'<div style="flex:1;min-width:0;font-size:.85rem"><b>'+(x.type==='image'?'🖼️':'🎬')+' '+esc(x.titre_fr||x.titre_en||'(sans titre)')+'</b>'
+      +'<div style="font-size:.75rem;color:var(--text-dim)">'+esc(SV_SECTIONS[x.section]||x.section)+' · n°'+x.ordre+(x.visible?'':' · masqué')+'</div></div>'
+      +'<button class="btn" style="padding:6px 9px;font-size:.75rem;background:var(--bg);color:var(--text)" title="Monter" onclick="svMajMedia('+x.id+',{ordre:'+(x.ordre-1)+'})">▲</button>'
+      +'<button class="btn" style="padding:6px 9px;font-size:.75rem;background:var(--bg);color:var(--text)" title="Descendre" onclick="svMajMedia('+x.id+',{ordre:'+(x.ordre+1)+'})">▼</button>'
+      +'<button class="btn" style="padding:6px 10px;font-size:.75rem;background:var(--bg);color:var(--text)" onclick="svMajMedia('+x.id+',{visible:'+(!x.visible)+'})">'+(x.visible?'Masquer':'Afficher')+'</button>'
+      +'<button class="btn" style="padding:6px 10px;font-size:.75rem;background:var(--bg);color:var(--text)" onclick="svSupprMedia('+x.id+')">🗑️</button></div>';
+  }).join('');
+}
+function svMiniature(x){
+  if(x.miniature) return x.miniature;
+  if(x.type==='youtube'){const m=String(x.url).match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);return m?'https://i.ytimg.com/vi/'+m[1]+'/default.jpg':'';}
+  if(/res\.cloudinary\.com/.test(x.url)){
+    if(x.type==='video') return x.url.replace('/video/upload/','/video/upload/so_2,w_160,f_jpg/').replace(/\.\w+$/,'.jpg');
+    return x.url.replace('/image/upload/','/image/upload/w_160,f_auto,q_auto/');
+  }
+  return x.type==='image'?x.url:'';
+}
+function svChamps(){
+  return {projet:SV_PROJET,section:document.getElementById('sv-section').value,
+    titre_fr:document.getElementById('sv-titre-fr').value.trim()||null,
+    titre_en:document.getElementById('sv-titre-en').value.trim()||null};
+}
+async function svProchainOrdre(){
+  const {data}=await sb.from('sauvegarde_medias').select('ordre').eq('projet',SV_PROJET).order('ordre',{ascending:false}).limit(1);
+  return data&&data.length?data[0].ordre+1:1;
+}
+async function svAjouterLien(){
+  const url=document.getElementById('sv-url').value.trim();
+  if(!/^https?:\/\//.test(url)){showMsg('sv-msgbox','Colle un lien qui commence par https://',false);return;}
+  const type=/youtu\.?be/.test(url)?'youtube':(/\.(mp4|webm|mov)(\?|$)/i.test(url)||/\/video\/upload\//.test(url)?'video':'image');
+  const row=Object.assign(svChamps(),{type,url,ordre:await svProchainOrdre()});
+  const {error}=await sb.from('sauvegarde_medias').insert(row);
+  if(error){showMsg('sv-msgbox',error.message,false);return;}
+  showMsg('sv-msgbox','Ajouté ✓',true);
+  ['sv-url','sv-titre-fr','sv-titre-en'].forEach(id=>document.getElementById(id).value='');
+  loadSauvegarde();
+}
+function svEnvoyerFichiers(){
+  const input=document.createElement('input');
+  input.type='file'; input.accept='image/*,video/*'; input.multiple=true;
+  input.onchange=async()=>{
+    const files=[...(input.files||[])]; if(!files.length) return;
+    let ordre=await svProchainOrdre(), ok=0;
+    for(const [i,file] of files.entries()){
+      showMsg('sv-msgbox','Envoi '+(i+1)+' / '+files.length+'… 📤',true);
+      try{
+        const form=new FormData();
+        form.append('file',file);
+        form.append('upload_preset',CLD_UPLOAD_PRESET);
+        const res=await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/auto/upload',{method:'POST',body:form});
+        const data=await res.json();
+        if(!data.secure_url){showMsg('sv-msgbox','Échec de l’envoi de '+file.name+(data.error?' : '+data.error.message:''),false);continue;}
+        const row=Object.assign(svChamps(),{type:data.resource_type==='video'?'video':'image',url:data.secure_url,ordre:ordre++});
+        const {error}=await sb.from('sauvegarde_medias').insert(row);
+        if(error){showMsg('sv-msgbox',error.message,false);continue;}
+        ok++;
+      }catch(e){showMsg('sv-msgbox',e.message,false);}
+    }
+    if(ok) showMsg('sv-msgbox',ok+' média'+(ok>1?'s':'')+' ajouté'+(ok>1?'s':'')+' ✓',true);
+    loadSauvegarde();
+  };
+  input.click();
+}
+async function svMajEtape(id,statut){
+  const {error}=await sb.from('sauvegarde_etapes').update({statut}).eq('id',id);
+  if(error){showToast2(error.message,true);return;}
+  loadSauvegarde();
+}
+async function svMajMedia(id,patch){
+  const {error}=await sb.from('sauvegarde_medias').update(patch).eq('id',id);
+  if(error){showToast2(error.message,true);return;}
+  loadSauvegarde();
+}
+async function svSupprMedia(id){
+  if(!confirm('Retirer ce média de la page ? (le fichier reste sur Cloudinary)')) return;
+  const {error}=await sb.from('sauvegarde_medias').delete().eq('id',id);
+  if(error){showToast2(error.message,true);return;}
+  loadSauvegarde();
 }
 // === Donateurs Ko-fi ==================================================
 const SP_TIER={bronze:'🥉 Bronze',silver:'🥈 Argent',gold:'🥇 Or',platinum:'🏆 Platine'};
