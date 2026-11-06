@@ -87,6 +87,21 @@ a{color:inherit;text-decoration:none}
 .art-src a{color:var(--purple-light);font-weight:600}
 .news-link{margin-top:6px;color:var(--purple-light);font-weight:700;font-size:.82rem}
 
+.news-tabs{display:flex;gap:8px;justify-content:center;margin:0 auto 26px;flex-wrap:wrap}
+.news-tab{background:var(--bg2);border:1px solid var(--line);color:var(--text-mid);padding:10px 18px;border-radius:999px;font-weight:700;font-size:.86rem;cursor:pointer;font-family:inherit;transition:.18s}
+.news-tab:hover{color:var(--text)}
+.news-tab.on{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;border-color:transparent}
+.voices-intro{max-width:720px;margin:0 auto 30px;padding:22px 24px;background:linear-gradient(135deg,rgba(255,107,26,.10),rgba(123,79,212,.12));border:1px solid rgba(255,138,61,.35);border-radius:18px}
+.voices-intro h2{font-family:'Orbitron',sans-serif;font-size:1.05rem;letter-spacing:.04em;margin-bottom:10px}
+.voices-intro p{color:var(--text-mid);font-size:.92rem;margin-bottom:10px}
+.voices-intro ul{color:var(--text-mid);font-size:.88rem;margin:0 0 4px 18px}
+.voices-intro li{margin-bottom:4px}
+.voices-intro .vi-small{font-size:.8rem;color:var(--text-dim);margin:10px 0 0}
+.news-author{font-size:.78rem;color:var(--gold);font-weight:600}
+.news-rating{position:absolute;top:10px;right:10px;background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;font-family:'Orbitron',sans-serif;font-weight:900;font-size:.78rem;padding:5px 10px;border-radius:8px}
+.art-voice{margin-top:30px;padding:16px 18px;border-radius:14px;background:rgba(255,138,61,.08);border:1px solid rgba(255,138,61,.3);font-size:.84rem;color:var(--text-mid)}
+.art-rating{display:inline-block;margin-left:8px;background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;font-family:'Orbitron',sans-serif;font-weight:900;font-size:.75rem;padding:3px 9px;border-radius:7px}
+
 .state{text-align:center;padding:60px;color:var(--text-dim)}
 .spin{display:inline-block;animation:sp 1s linear infinite;font-size:1.6rem}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -128,7 +143,22 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 </header>
 
 <div class="wrap">
-  <div class="disclaimer">📰 We link to original articles on their source sites. All credit goes to the original publishers — tap a card to read the full story there.</div>
+  <div class="news-tabs" role="tablist">
+    <button class="news-tab on" id="tab-news" onclick="setTab('news')">📰 News</button>
+    <button class="news-tab" id="tab-voices" onclick="setTab('voices')">🗣️ Lombax Voices</button>
+  </div>
+  <div class="disclaimer" id="news-disclaimer">📰 We link to original articles on their source sites. All credit goes to the original publishers — tap a card to read the full story there.</div>
+  <div class="voices-intro" id="voices-intro" style="display:none">
+    <h2>🗣️ Lombax Voices</h2>
+    <p>This is the community's corner. Here, fans of the series write their own reviews, opinions and stories about Ratchet &amp; Clank games, merch and everything around them. It's a chance to hear other voices than mine, sometimes calmer, sometimes different. Disagreeing is welcome!</p>
+    <ul>
+      <li>Every article is signed by its author, and the opinions in it are theirs.</li>
+      <li>Criticism is welcome, as long as it stays respectful and kind.</li>
+      <li>I read every text before it goes online, and I can accept or decline it.</li>
+      <li>Everyone here writes as a volunteer: articles are free and unpaid.</li>
+    </ul>
+    <p class="vi-small">Want to write one? Send me a message on <a href="https://instagram.com/ratchetlegacy" target="_blank" rel="noopener" style="color:var(--purple-light);font-weight:600">Instagram</a>.</p>
+  </div>
   <div class="news-grid" id="news-grid">
     <div class="state" style="grid-column:1/-1"><span class="spin">⚙️</span><div style="margin-top:10px">Loading news…</div></div>
   </div>
@@ -172,14 +202,17 @@ function openArticle(i,fromHistory){
   const box=document.getElementById('art');
   const paras=String(n.body||'').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
   document.getElementById('art-content').innerHTML =
-      (n.date_label?`<div class="art-tag">${esc(n.date_label)}</div>`:'<div class="art-tag">NEWS</div>')
+      (n.date_label?`<div class="art-tag">${isVoice(n)?'LOMBAX VOICES · ':''}${esc(n.date_label)}</div>`:`<div class="art-tag">${isVoice(n)?'LOMBAX VOICES':'NEWS'}</div>`)
     + `<h1>${esc(n.title)}</h1>`
-    + (n.source?`<div class="art-meta">Source · ${esc(n.source)}</div>`:'')
+    + (isVoice(n)
+        ? `<div class="art-meta">By <b style="color:var(--gold)">${esc(n.author||'a fan')}</b>${n.rating?`<span class="art-rating">${esc(n.rating)}</span>`:''}</div>`
+        : (n.source?`<div class="art-meta">Source · ${esc(n.source)}</div>`:''))
     + (n.image_url?`<img class="art-cover" src="${esc(n.image_url)}" onerror="this.remove()"/>`:'')
     + '<div class="art-body">' + paras.map(p=>`<p>${esc(p)}</p>`).join('') + '</div>'
     + ((n.source_url||n.url)
         ? `<div class="art-src">Originally reported by <a href="${esc(n.source_url||n.url)}" target="_blank" rel="noopener">${esc(n.source||'the source')} →</a></div>`
-        : '');
+        : '')
+    + (isVoice(n)?`<div class="art-voice">🗣️ <b>Lombax Voices</b> — this article was written by ${esc(n.author||'a member of the community')}, as a volunteer. The opinions here are the author's own.</div>`:'');
   box.classList.add('open');
   box.scrollTop=0;
   document.body.style.overflow='hidden';
@@ -202,7 +235,7 @@ function closeArticle(){
   // retour reste coherent. Sinon (arrivee directe par lien partage)
   // on nettoie juste l'adresse.
   if(ART_PUSHED){ ART_PUSHED=false; history.back(); }
-  else if(location.search) history.replaceState({},'',location.pathname);
+  else if(location.search) history.replaceState({},'',TAB==='voices'?location.pathname+'?tab=voices':location.pathname);
 }
 
 window.addEventListener('popstate',e=>{
@@ -246,41 +279,65 @@ async function shareArticle(){
   }
 }
 
+function isVoice(n){ return n && n.kind==='voices'; }
+let TAB='news';
+function setTab(t,noUrl){
+  TAB=t==='voices'?'voices':'news';
+  document.getElementById('tab-news').classList.toggle('on',TAB==='news');
+  document.getElementById('tab-voices').classList.toggle('on',TAB==='voices');
+  document.getElementById('news-disclaimer').style.display=TAB==='news'?'':'none';
+  document.getElementById('voices-intro').style.display=TAB==='voices'?'':'none';
+  if(!noUrl && !location.search.includes('a=')) history.replaceState(history.state,'',TAB==='voices'?'news.html?tab=voices':'news.html');
+  render();
+}
+function render(){
+  const box=document.getElementById('news-grid');
+  const list=NEWS.map((n,i)=>[n,i]).filter(([n])=>TAB==='voices'?isVoice(n):!isVoice(n));
+  if(!list.length){
+    box.innerHTML=`<div class="state" style="grid-column:1/-1">${TAB==='voices'?'No community article yet — the first one is coming soon!':'No news yet — check back soon!'}</div>`;
+    return;
+  }
+  box.innerHTML=list.map(([n,i])=>{
+    const ph=isVoice(n)?'🗣️':'📰';
+    const img=n.image_url?`<img src="${esc(n.image_url)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ni-ph" style="display:none">${ph}</span>`:`<span class="ni-ph">${ph}</span>`;
+    const hasArticle = n.body && n.body.trim();
+    const open = hasArticle
+      ? `href="#" onclick="event.preventDefault();openArticle(${i})"`
+      : `href="${esc(n.url)}" target="_blank" rel="noopener"`;
+    const cta = hasArticle
+      ? 'Read the article →'
+      : `Read on ${esc(n.source||'source')} →`;
+    const badge = isVoice(n)
+      ? (n.rating?`<span class="news-rating">${esc(n.rating)}</span>`:'')
+      : (n.source?`<span class="news-src">${esc(n.source)}</span>`:'');
+    return `<a class="news-card" ${open}>
+      <div class="news-img">${img}${badge}</div>
+      <div class="news-body">
+        ${n.date_label?`<div class="news-date">${esc(n.date_label)}</div>`:''}
+        <h3>${esc(n.title)}</h3>
+        ${isVoice(n)?`<div class="news-author">✍️ By ${esc(n.author||'a fan')}</div>`:''}
+        ${n.summary?`<p>${esc(n.summary)}</p>`:'<p></p>'}
+        <span class="news-link">${cta}</span>
+      </div>
+    </a>`;
+  }).join('');
+}
 async function load(){
   const box=document.getElementById('news-grid');
   try{
     const {data,error}=await sb.from('site_news').select('*').order('sort_order').order('created_at',{ascending:false});
     if(error) throw error;
-    if(!data||!data.length){ box.innerHTML='<div class="state" style="grid-column:1/-1">No news yet — check back soon!</div>'; return; }
-    NEWS=data;
-    box.innerHTML=data.map((n,i)=>{
-      const img=n.image_url?`<img src="${esc(n.image_url)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span class="ni-ph" style="display:none">📰</span>`:`<span class="ni-ph">📰</span>`;
-      const hasArticle = n.body && n.body.trim();
-      const open = hasArticle
-        ? `href="#" onclick="event.preventDefault();openArticle(${i})"`
-        : `href="${esc(n.url)}" target="_blank" rel="noopener"`;
-      const cta = hasArticle
-        ? 'Read the article →'
-        : `Read on ${esc(n.source||'source')} →`;
-      return `<a class="news-card" ${open}>
-        <div class="news-img">${img}${n.source?`<span class="news-src">${esc(n.source)}</span>`:''}</div>
-        <div class="news-body">
-          ${n.date_label?`<div class="news-date">${esc(n.date_label)}</div>`:''}
-          <h3>${esc(n.title)}</h3>
-          ${n.summary?`<p>${esc(n.summary)}</p>`:'<p></p>'}
-          <span class="news-link">${cta}</span>
-        </div>
-      </a>`;
-    }).join('');
+    NEWS=data||[];
+    const q=new URLSearchParams(location.search);
+    const want=q.get('a');
+    const target=want?NEWS.find(n=>String(n.id)===String(want)):null;
+    setTab(q.get('tab')==='voices'||isVoice(target)?'voices':'news',true);
 
     // Arrivee par un lien partage : on ouvre l'article tout de suite.
-    const want=new URLSearchParams(location.search).get('a');
-    if(want){
-      const i=NEWS.findIndex(n=>String(n.id)===String(want));
-      if(i>=0 && NEWS[i].body && NEWS[i].body.trim()){
-        history.replaceState({art:NEWS[i].id},'',location.pathname+'?a='+encodeURIComponent(NEWS[i].id));
-        openArticle(i,true);
-      }
+    if(target && target.body && target.body.trim()){
+      const i=NEWS.indexOf(target);
+      history.replaceState({art:target.id},'',location.pathname+'?a='+encodeURIComponent(target.id));
+      openArticle(i,true);
     }
   }catch(e){
     box.innerHTML='<div class="state" style="grid-column:1/-1">Could not load news right now.</div>';

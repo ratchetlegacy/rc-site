@@ -444,6 +444,17 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
         <div class="fmodal-head"><h2 id="news-modal-title">📰 Add news</h2><button onclick="closeNewsForm()">✕</button></div>
         <div class="msg" id="news-msg"></div>
         <input type="hidden" id="n-id"/>
+        <label>Type</label>
+        <select id="n-kind" onchange="newsKindUI()" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);margin-bottom:10px">
+          <option value="news">📰 News (onglet News)</option>
+          <option value="voices">🗣️ Lombax Voices (article d'un membre)</option>
+        </select>
+        <div id="n-voice-fields" style="display:none">
+          <label>Auteur * (nom ou pseudo affiché)</label>
+          <input type="text" id="n-author" placeholder="Pseudo de la personne"/>
+          <label>Note (facultatif)</label>
+          <input type="text" id="n-rating" placeholder="8/10, 4/5…"/>
+        </div>
         <label>Title *</label>
         <input type="text" id="n-title" placeholder="Article title"/>
         <label>Your short summary</label>
@@ -1470,8 +1481,8 @@ async function loadNews(){
   if(!data||!data.length){ box.innerHTML='<div style="color:var(--text-dim);font-size:.85rem">No news yet.</div>'; return; }
   box.innerHTML=data.map(n=>
     `<div class="guide-row">
-      <span class="gi">${n.image_url?'🖼️':'📰'}</span>
-      <div class="gt"><b>${esc(n.title)}</b><span>${esc(n.source||'—')} · ${esc(n.date_label||'')}</span></div>
+      <span class="gi">${n.kind==='voices'?'🗣️':(n.image_url?'🖼️':'📰')}</span>
+      <div class="gt"><b>${esc(n.title)}</b><span>${n.kind==='voices'?'Lombax Voices · '+esc(n.author||'?'):esc(n.source||'—')} · ${esc(n.date_label||'')}</span></div>
       <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editNewsById('${esc(n.id)}')">Edit</button>
       <button class="btn btn-danger" onclick="delNews('${esc(n.id)}')">Del</button>
     </div>`
@@ -1479,12 +1490,17 @@ async function loadNews(){
   window._NEWS=data;
 }
 function openNewsForm(){
-  ['n-id','n-title','n-summary','n-source','n-url','n-image','n-date','n-body'].forEach(id=>{
+  ['n-id','n-title','n-summary','n-source','n-url','n-image','n-date','n-body','n-author','n-rating'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
+  document.getElementById('n-kind').value='news'; newsKindUI();
   document.getElementById('news-msg').style.display='none';
   document.getElementById('news-modal-title').textContent='📰 Add news';
   document.getElementById('news-modal').classList.add('open');
+}
+function newsKindUI(){
+  const v=document.getElementById('n-kind').value==='voices';
+  document.getElementById('n-voice-fields').style.display=v?'':'none';
 }
 function closeNewsForm(){ document.getElementById('news-modal').classList.remove('open'); }
 function editNewsById(id){
@@ -1497,6 +1513,10 @@ function editNewsById(id){
   document.getElementById('n-image').value=n.image_url||'';
   document.getElementById('n-date').value=n.date_label||'';
   const _b=document.getElementById('n-body'); if(_b) _b.value=n.body||'';
+  document.getElementById('n-kind').value=n.kind==='voices'?'voices':'news';
+  document.getElementById('n-author').value=n.author||'';
+  document.getElementById('n-rating').value=n.rating||'';
+  newsKindUI();
   document.getElementById('news-msg').style.display='none';
   document.getElementById('news-modal-title').textContent='✏️ Edit news';
   document.getElementById('news-modal').classList.add('open');
@@ -1511,9 +1531,15 @@ async function saveNews(){
     source_url:document.getElementById('n-url').value.trim()||null,
     image_url:document.getElementById('n-image').value.trim()||null,
     date_label:document.getElementById('n-date').value.trim()||null,
-    body:(document.getElementById('n-body')||{value:''}).value.trim()||null
+    body:(document.getElementById('n-body')||{value:''}).value.trim()||null,
+    kind:document.getElementById('n-kind').value==='voices'?'voices':'news',
+    author:document.getElementById('n-author').value.trim()||null,
+    rating:document.getElementById('n-rating').value.trim()||null
   };
+  if(row.kind==='news'){ row.author=null; row.rating=null; }
   if(!row.title){ showMsg('news-msg','A title is required.',false); return; }
+  if(row.kind==='voices' && !row.author){ showMsg('news-msg','Indique l\'auteur de l\'article.',false); return; }
+  if(row.kind==='voices' && !row.body){ showMsg('news-msg','Colle le texte de l\'article.',false); return; }
   if(!row.body && !row.url){ showMsg('news-msg','Write an article, or give a link.',false); return; }
   let error;
   if(id){ ({error}=await sb.from('site_news').update(row).eq('id',id)); }
