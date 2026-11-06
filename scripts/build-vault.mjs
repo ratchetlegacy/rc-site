@@ -402,7 +402,7 @@ function indexPage(lang, items) {
 }
 
 // ── Sitemap ──
-const STATIC = [['', '1.0', 'weekly'], ['database.html', '0.9', 'daily'], ['vault/', '0.9', 'daily'], ['fr/vault/', '0.9', 'daily'], ['wiki.html', '0.8', 'weekly'], ['guides.html', '0.8', 'monthly'], ['map.html', '0.7', 'monthly'], ['story.html', '0.7', 'monthly'], ['news.html', '0.7', 'weekly'], ['trades.html', '0.6', 'weekly'], ['arcade.html', '0.5', 'monthly'], ['supporters.html', '0.3', 'monthly'], ['legal.html', '0.2', 'yearly']];
+const STATIC = [['', '1.0', 'weekly'], ['database.html', '0.9', 'daily'], ['vault/', '0.9', 'daily'], ['fr/vault/', '0.9', 'daily'], ['wiki.html', '0.8', 'weekly'], ['guides.html', '0.8', 'monthly'], ['map.html', '0.7', 'monthly'], ['story.html', '0.7', 'monthly'], ['ranger-rumble.html', '0.8', 'weekly'], ['news.html', '0.7', 'weekly'], ['trades.html', '0.6', 'weekly'], ['arcade.html', '0.5', 'monthly'], ['supporters.html', '0.3', 'monthly'], ['legal.html', '0.2', 'yearly']];
 function sitemap(items) {
   const u = (loc, pr, cf) => `  <url><loc>${SITE}/${loc}</loc><lastmod>${TODAY}</lastmod><changefreq>${cf}</changefreq><priority>${pr}</priority></url>`;
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
