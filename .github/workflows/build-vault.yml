@@ -12,6 +12,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/build-vault.mjs'
+      - 'scripts/build-wiki.mjs'
       - 'catalog-en.js'
       - '.github/workflows/build-vault.yml'
 
@@ -32,13 +33,15 @@ jobs:
           node-version: 22
       - name: Générer les pages
         run: node scripts/build-vault.mjs
+      - name: Générer les pages du wiki et des articles
+        run: node scripts/build-wiki.mjs
       - name: Publier s'il y a du changement
         run: |
           git config user.name "Ratchet Legacy (auto)"
           git config user.email "ratchetlegacy@users.noreply.github.com"
-          git add -A vault fr sitemap.xml
+          git add -A vault fr wiki news sitemap.xml sitemap-wiki.xml
           # La date du sitemap change chaque jour : on ne publie que si une page a changé.
-          if git diff --cached --quiet -- vault fr; then
+          if git diff --cached --quiet -- vault fr wiki news; then
             echo "Aucune fiche modifiée."
             exit 0
           fi
