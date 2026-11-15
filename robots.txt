@@ -5,3 +5,4 @@ Disallow: /stats.html
 Disallow: /stats-mesure.html
 
 Sitemap: https://ratchetlegacy.com/sitemap.xml
+Sitemap: https://ratchetlegacy.com/sitemap-wiki.xml
