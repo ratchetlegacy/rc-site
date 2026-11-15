@@ -47,3 +47,5 @@ jobs:
           fi
           git commit -m "Vault : pages fiches mises à jour"
           git push
+          # Prévient Bing (IndexNow) que des pages ont changé
+          node scripts/indexnow.mjs || true
