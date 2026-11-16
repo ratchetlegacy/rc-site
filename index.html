@@ -289,13 +289,22 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
 .rr-alert .rr-dot{width:8px;height:8px;border-radius:50%;background:#FF4D6A;box-shadow:0 0 10px #FF4D6A;flex:none;animation:rrBlink 1.2s steps(2) infinite}
 .rr-alert .rr-cd{font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:.08em;color:#FF4D6A;white-space:nowrap}
 .rr-alert .rr-go{color:var(--orange-light);white-space:nowrap}
-.rr-alert .rr-txt{position:relative;display:inline-block}
-.rr-alert .rr-txt::before,.rr-alert .rr-txt::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;opacity:.65;pointer-events:none;clip-path:inset(0 0 100% 0)}
-.rr-alert .rr-txt::before{color:#3cf;animation:rrG1 3.2s steps(1) infinite}
-.rr-alert .rr-txt::after{color:#FF4D6A;animation:rrG2 2.7s steps(1) infinite}
-@keyframes rrG1{0%,86%,100%{transform:none;clip-path:inset(0 0 100% 0)}88%{transform:translate(-2px,1px);clip-path:inset(15% 0 55% 0)}92%{transform:translate(2px,-1px);clip-path:inset(60% 0 10% 0)}}
-@keyframes rrG2{0%,80%,100%{transform:none;clip-path:inset(0 0 100% 0)}83%{transform:translate(2px,0);clip-path:inset(40% 0 35% 0)}87%{transform:translate(-2px,1px);clip-path:inset(5% 0 80% 0)}}
-@media(prefers-reduced-motion:reduce){.rr-alert .rr-txt::before,.rr-alert .rr-txt::after{animation:none}}
+.rr-alert .rr-txt{position:relative;display:inline-block;animation:rrShake 2.2s steps(1) infinite}
+.rr-alert .rr-txt::before,.rr-alert .rr-txt::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;opacity:.85;pointer-events:none;clip-path:inset(0 0 100% 0)}
+.rr-alert .rr-txt::before{color:#3cf;animation:rrG1 2.2s steps(1) infinite}
+.rr-alert .rr-txt::after{color:#FF4D6A;animation:rrG2 2.2s steps(1) infinite}
+@keyframes rrG1{0%,64%,100%{transform:none;clip-path:inset(0 0 100% 0)}66%{transform:translate(-4px,1px);clip-path:inset(10% 0 60% 0)}70%{transform:translate(4px,-1px);clip-path:inset(55% 0 15% 0)}74%{transform:translate(-3px,0);clip-path:inset(30% 0 40% 0)}78%{transform:translate(5px,1px);clip-path:inset(75% 0 0 0)}82%{transform:none;clip-path:inset(0 0 100% 0)}}
+@keyframes rrG2{0%,60%,100%{transform:none;clip-path:inset(0 0 100% 0)}62%{transform:translate(4px,0);clip-path:inset(40% 0 30% 0)}67%{transform:translate(-5px,1px);clip-path:inset(0 0 70% 0)}72%{transform:translate(3px,-1px);clip-path:inset(65% 0 5% 0)}77%{transform:translate(-4px,0);clip-path:inset(20% 0 55% 0)}81%{transform:none;clip-path:inset(0 0 100% 0)}}
+@keyframes rrShake{0%,64%,100%{transform:none}66%{transform:translate(1px,0) skewX(-4deg)}70%{transform:translate(-1px,0)}74%{transform:translate(1px,0) skewX(3deg)}78%{transform:none}}
+@media(prefers-reduced-motion:reduce){.rr-alert .rr-txt,.rr-alert .rr-txt::before,.rr-alert .rr-txt::after,.hgl,.hgl .gl-layer{animation:none!important}}
+.hero h1.hgl{position:relative;animation:hglShake 3s steps(1) infinite}
+.hgl .gl-layer{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;clip-path:inset(0 0 100% 0);opacity:.85}
+.hgl .gl-layer .grad{background:none;-webkit-text-fill-color:currentColor}
+.hgl .gl-a{color:#33ccff;animation:hglA 3s steps(1) infinite}
+.hgl .gl-b{color:#FF4D6A;animation:hglB 3s steps(1) infinite}
+@keyframes hglA{0%,70%,100%{transform:none;clip-path:inset(0 0 100% 0)}71%{transform:translate(-8px,2px);clip-path:inset(8% 0 72% 0)}74%{transform:translate(7px,-2px);clip-path:inset(52% 0 28% 0)}77%{transform:translate(-5px,0);clip-path:inset(30% 0 52% 0)}80%{transform:translate(9px,1px);clip-path:inset(78% 0 4% 0)}83%{transform:none;clip-path:inset(0 0 100% 0)}91%{transform:translate(-6px,0);clip-path:inset(40% 0 45% 0)}93%{transform:none;clip-path:inset(0 0 100% 0)}}
+@keyframes hglB{0%,69%,100%{transform:none;clip-path:inset(0 0 100% 0)}70%{transform:translate(7px,0);clip-path:inset(38% 0 40% 0)}73%{transform:translate(-9px,2px);clip-path:inset(2% 0 80% 0)}76%{transform:translate(6px,-1px);clip-path:inset(64% 0 12% 0)}79%{transform:translate(-7px,0);clip-path:inset(18% 0 62% 0)}82%{transform:none;clip-path:inset(0 0 100% 0)}92%{transform:translate(6px,1px);clip-path:inset(70% 0 15% 0)}94%{transform:none;clip-path:inset(0 0 100% 0)}}
+@keyframes hglShake{0%,70%,100%{transform:none}71%{transform:translate(2px,0) skewX(-3deg)}74%{transform:translate(-2px,0)}77%{transform:translate(1px,0) skewX(2deg)}80%{transform:none}91%{transform:translate(-2px,0)}93%{transform:none}}
 @keyframes rrBlink{50%{opacity:.15}}
 @media(max-width:560px){.rr-alert{font-size:.78rem;flex-wrap:wrap;justify-content:center;border-radius:16px}}
 </style>
@@ -764,6 +773,11 @@ for(let i=0;i<70;i++){
  function f(){var n=Date.now();for(var i=0;i<t.length;i++){var d=Math.ceil((t[i][0]-n)/864e5);if(d>0){el.textContent='· '+d+' day'+(d>1?'s':'')+' '+t[i][1];return;}}
   var a=el.parentNode;if(a){var x=a.querySelector('.rr-txt');x.textContent='Ranger Rumble is offline: see the archive';x.setAttribute('data-t',x.textContent);}el.textContent='';}
  f();setInterval(f,60000);})();
+</script>
+<script>
+(function(){var h=document.querySelector('.hero h1');if(!h||h.classList.contains('hgl'))return;
+ var html=h.innerHTML;h.classList.add('hgl');
+ ['gl-a','gl-b'].forEach(function(c){var s=document.createElement('span');s.className='gl-layer '+c;s.setAttribute('aria-hidden','true');s.innerHTML=html;h.appendChild(s);});})();
 </script>
 </body>
 </html>
