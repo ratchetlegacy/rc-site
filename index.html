@@ -289,6 +289,13 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
 .rr-alert .rr-dot{width:8px;height:8px;border-radius:50%;background:#FF4D6A;box-shadow:0 0 10px #FF4D6A;flex:none;animation:rrBlink 1.2s steps(2) infinite}
 .rr-alert .rr-cd{font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:.08em;color:#FF4D6A;white-space:nowrap}
 .rr-alert .rr-go{color:var(--orange-light);white-space:nowrap}
+.rr-alert .rr-txt{position:relative;display:inline-block}
+.rr-alert .rr-txt::before,.rr-alert .rr-txt::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;opacity:.65;pointer-events:none;clip-path:inset(0 0 100% 0)}
+.rr-alert .rr-txt::before{color:#3cf;animation:rrG1 3.2s steps(1) infinite}
+.rr-alert .rr-txt::after{color:#FF4D6A;animation:rrG2 2.7s steps(1) infinite}
+@keyframes rrG1{0%,86%,100%{transform:none;clip-path:inset(0 0 100% 0)}88%{transform:translate(-2px,1px);clip-path:inset(15% 0 55% 0)}92%{transform:translate(2px,-1px);clip-path:inset(60% 0 10% 0)}}
+@keyframes rrG2{0%,80%,100%{transform:none;clip-path:inset(0 0 100% 0)}83%{transform:translate(2px,0);clip-path:inset(40% 0 35% 0)}87%{transform:translate(-2px,1px);clip-path:inset(5% 0 80% 0)}}
+@media(prefers-reduced-motion:reduce){.rr-alert .rr-txt::before,.rr-alert .rr-txt::after{animation:none}}
 @keyframes rrBlink{50%{opacity:.15}}
 @media(max-width:560px){.rr-alert{font-size:.78rem;flex-wrap:wrap;justify-content:center;border-radius:16px}}
 </style>
@@ -320,7 +327,7 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
   <div class="hero-bg"></div>
   <div class="stars" id="stars"></div>
   <div class="hero-inner">
-    <a href="ranger-rumble.html" class="rr-alert"><span class="rr-dot"></span><span>Ranger Rumble is shutting down: we're saving everything</span><span class="rr-cd" id="rr-cd"></span><span class="rr-go">→</span></a><br>
+    <a href="ranger-rumble.html" class="rr-alert"><span class="rr-dot"></span><span class="rr-txt" data-t="Ranger Rumble is shutting down: we're saving everything">Ranger Rumble is shutting down: we're saving everything</span><span class="rr-cd" id="rr-cd"></span><span class="rr-go">→</span></a><br>
     <span class="hero-eyebrow">◆ THE R&C COLLECTOR'S HUB</span>
     <h1>Every corner of the<br><span class="grad">Ratchet &amp; Clank</span> galaxy</h1>
     <p>The home for collectors: explore the universe, track your collection, trade with fellow fans, and dive into everything R&amp;C.</p>
@@ -755,7 +762,7 @@ for(let i=0;i<70;i++){
 (function(){var el=document.getElementById('rr-cd');if(!el)return;
  var t=[[Date.parse('2026-11-21T00:00:00Z'),'before store removal'],[Date.parse('2027-05-01T00:00:00Z'),'before servers shut down']];
  function f(){var n=Date.now();for(var i=0;i<t.length;i++){var d=Math.ceil((t[i][0]-n)/864e5);if(d>0){el.textContent='· '+d+' day'+(d>1?'s':'')+' '+t[i][1];return;}}
-  var a=el.parentNode;if(a)a.querySelector('span:nth-child(2)').textContent='Ranger Rumble is offline: see the archive';el.textContent='';}
+  var a=el.parentNode;if(a){var x=a.querySelector('.rr-txt');x.textContent='Ranger Rumble is offline: see the archive';x.setAttribute('data-t',x.textContent);}el.textContent='';}
  f();setInterval(f,60000);})();
 </script>
 </body>
