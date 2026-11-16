@@ -26,7 +26,8 @@ a{color:inherit;text-decoration:none}
 .btn.grad{background:linear-gradient(135deg,var(--purple),var(--orange));border:none;color:#fff}
 .frame{flex:1;position:relative;background:#fff}
 .frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--text-dim);font-size:.9rem;pointer-events:none;transition:opacity .4s}
+.loading{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;background:var(--bg);color:var(--text-dim);font-size:.9rem;pointer-events:none;transition:opacity .4s}
+.loading small{font-size:.75rem;max-width:420px;text-align:center;line-height:1.5}
 .err{margin:auto;max-width:520px;text-align:center;padding:40px 20px;color:var(--text-mid)}
 .note{font-size:.7rem;color:var(--text-dim);padding:6px 18px;background:var(--bg2);border-top:1px solid var(--line);text-align:center}
 @media(max-width:600px){.logo .t{display:none}.btn .l{display:none}}
@@ -44,9 +45,9 @@ a{color:inherit;text-decoration:none}
   <a class="btn grad" id="wb" href="#" target="_blank" rel="noopener">↗ <span class="l">Wayback Machine</span></a>
 </div>
 <div class="frame" id="frame">
-  <div class="loading" id="ld">Loading the archived page…</div>
+  <div class="loading" id="ld">Loading the archived page…<small>The Wayback Machine can take a few seconds to answer.</small></div>
 </div>
-<div class="note">Archived copy of rangerrumble.com, served by the Internet Archive's Wayback Machine. © Sony Interactive Entertainment. Ratchet Legacy is a fan project.</div>
+<div class="note">Archived copy of rangerrumble.com, served by the Internet Archive's Wayback Machine: some images and styles were not archived, so pages may look incomplete. © Sony Interactive Entertainment. Ratchet Legacy is a fan project.</div>
 <script>
 (function(){
   var q=new URLSearchParams(location.search);
@@ -69,7 +70,8 @@ a{color:inherit;text-decoration:none}
   document.getElementById('wb').href=full;
   var f=document.createElement('iframe');
   f.src=view; f.title=title; f.referrerPolicy='no-referrer';
-  f.onload=function(){ var l=document.getElementById('ld'); l.style.opacity=0; setTimeout(function(){l.remove();},400); };
+  var hide=function(){ var l=document.getElementById('ld'); if(!l) return; l.style.opacity=0; setTimeout(function(){ if(l.parentNode) l.remove(); },400); };
+  f.onload=hide; setTimeout(hide,6000);
   document.getElementById('frame').appendChild(f);
 })();
 </script>
