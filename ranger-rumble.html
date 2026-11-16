@@ -111,6 +111,26 @@ h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.5rem,3.6v
 .btn:hover{border-color:var(--purple-light)}
 .btn.grad{background:linear-gradient(135deg,var(--purple),var(--orange));border:none;color:#fff}
 
+/* inside the game */
+.heroes{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:34px}
+.hero-c{background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden;text-align:center;transition:.25s}
+.hero-c:hover{transform:translateY(-4px);border-color:rgba(155,111,244,.5)}
+.hero-c .im{aspect-ratio:1;background:radial-gradient(circle at 50% 30%,rgba(123,79,212,.35),transparent 70%),var(--bg3);overflow:hidden}
+.hero-c img{width:100%;height:100%;object-fit:cover;object-position:top}
+.hero-c b{display:block;font-size:.88rem;margin-top:8px}
+.hero-c small{display:block;font-size:.68rem;color:var(--text-dim);padding:0 8px 10px;line-height:1.35}
+.rar-epic small{color:var(--purple-light)}.rar-rare small{color:#5aa9ff}
+.modes{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.mode{display:flex;gap:14px;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:16px}
+.mode img{width:54px;height:54px;flex:none;object-fit:contain}
+.mode h3{font-family:'Orbitron',sans-serif;font-size:.92rem;margin-bottom:2px}
+.mode .inf{font-size:.72rem;color:var(--orange-light);letter-spacing:.04em;margin-bottom:6px}
+.mode p{font-size:.86rem;color:var(--text-mid);line-height:1.5}
+.mode .maps{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.mode .maps span{font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--bg3);color:var(--text-dim)}
+.sub-h{font-family:'Orbitron',sans-serif;font-size:1rem;margin:0 0 14px;color:var(--gold);letter-spacing:.06em}
+.src-note{font-size:.75rem;color:var(--text-dim);margin-top:14px}
+
 /* progress */
 .progress-wrap{background:var(--bg2);border:1px solid var(--line);border-radius:22px;padding:26px 28px}
 .bar{height:14px;background:var(--bg3);border-radius:10px;overflow:hidden;margin:6px 0 8px}
@@ -263,7 +283,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
       <p data-l="fr">Un hero shooter multijoueur gratuit sur iOS et Android, développé par Oh BiBi en collaboration avec PlayStation Studios et Insomniac Games. Dans la simulation de combat du Capitaine Qwark, les héros de la série s'affrontent en arènes PvP en temps réel, pimentées d'éléments PvE.</p>
       <div class="facts">
         <div class="fact"><div class="k"><span data-l="en">Heroes</span><span data-l="fr">Héros</span></div><div class="v">12</div></div>
-        <div class="fact"><div class="k"><span data-l="en">Game modes</span><span data-l="fr">Modes de jeu</span></div><div class="v">6</div></div>
+        <div class="fact"><div class="k"><span data-l="en">Game modes</span><span data-l="fr">Modes de jeu</span></div><div class="v">7</div></div>
         <div class="fact"><div class="k"><span data-l="en">Developer</span><span data-l="fr">Développeur</span></div><div class="v">Oh BiBi</div></div>
         <div class="fact"><div class="k"><span data-l="en">Platforms</span><span data-l="fr">Plateformes</span></div><div class="v">iOS · Android</div></div>
       </div>
@@ -272,6 +292,18 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
       <a class="btn" href="/vault/ratchet-clank-ranger-rumble-mobile-digital-world-1415.html">🗄️ <span data-l="en">See it in the Megacorp Vault</span><span data-l="fr">Voir la fiche du Megacorp Vault</span></a>
     </div>
   </div>
+</section>
+
+<!-- INSIDE THE GAME -->
+<section class="reveal" id="inside">
+  <div class="kicker"><span data-l="en">WHAT WE'RE SAVING</span><span data-l="fr">CE QU'ON SAUVEGARDE</span></div>
+  <h2><span data-l="en">Inside Ranger Rumble</span><span data-l="fr">Le contenu de Ranger Rumble</span></h2>
+  <p class="intro"><span data-l="en">The heroes, modes and maps documented so far: everything the archive has to cover before 1 May 2027.</span><span data-l="fr">Les héros, modes et cartes documentés jusqu'ici : tout ce que les archives doivent couvrir avant le 1er mai 2027.</span></p>
+  <div class="sub-h"><span data-l="en">THE HEROES</span><span data-l="fr">LES HÉROS</span></div>
+  <div class="heroes" id="heroes"></div>
+  <div class="sub-h"><span data-l="en">THE GAME MODES</span><span data-l="fr">LES MODES DE JEU</span></div>
+  <div class="modes" id="modes"></div>
+  <div class="src-note"><span data-l="en">More on every hero, weapon and map in the</span><span data-l="fr">Plus de détails sur chaque héros, arme et carte dans le</span> <a href="wiki.html" style="color:var(--orange-light)">Ratchet Legacy Wiki</a>.</div>
 </section>
 
 <!-- PROGRESS -->
@@ -299,8 +331,11 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <div class="kicker"><span data-l="en">HISTORY</span><span data-l="fr">HISTOIRE</span></div>
   <h2><span data-l="en">A short life</span><span data-l="fr">Une courte vie</span></h2>
   <div class="timeline" id="tl">
-    <div class="tl" data-date="2025-11-01"><div class="d"><span data-l="en">LATE 2025</span><span data-l="fr">FIN 2025</span></div><h3><span data-l="en">Soft launch</span><span data-l="fr">Lancement test</span></h3><p><span data-l="en">The game opens in a handful of countries for a testing phase shaped by player feedback.</span><span data-l="fr">Le jeu ouvre dans quelques pays pour une phase de test nourrie par les retours des joueurs.</span></p></div>
+    <div class="tl" data-date="2025-11-12"><div class="d"><span data-l="en">12 NOVEMBER 2025</span><span data-l="fr">12 NOVEMBRE 2025</span></div><h3><span data-l="en">Revealed</span><span data-l="fr">Annonce</span></h3><p><span data-l="en">Ranger Rumble is revealed: a mobile hero shooter developed by the French studio Oh BiBi, with Insomniac supervising.</span><span data-l="fr">Ranger Rumble est dévoilé : un hero shooter mobile développé par le studio français Oh BiBi, sous la supervision d'Insomniac.</span></p></div>
+    <div class="tl" data-date="2025-12-01"><div class="d"><span data-l="en">LATE 2025</span><span data-l="fr">FIN 2025</span></div><h3><span data-l="en">Soft launch</span><span data-l="fr">Lancement test</span></h3><p><span data-l="en">A test launch in the Philippines and Indonesia, then in Norway, Sweden, Finland and Denmark in December 2025.</span><span data-l="fr">Un lancement test aux Philippines et en Indonésie, puis en Norvège, en Suède, en Finlande et au Danemark en décembre 2025.</span></p></div>
     <div class="tl" data-date="2026-07-15"><div class="d"><span data-l="en">15 JULY 2026</span><span data-l="fr">15 JUILLET 2026</span></div><h3><span data-l="en">Worldwide pre-registration</span><span data-l="fr">Pré-inscription mondiale</span></h3><p><span data-l="en">Pre-registration opens on the App Store and Google Play, with community milestones unlocking the exclusive Clank Suit for Widget.</span><span data-l="fr">Les pré-inscriptions ouvrent sur l'App Store et Google Play, avec des paliers communautaires qui débloquent le costume Clank exclusif pour Widget.</span></p></div>
+    <div class="tl" data-date="2026-08-01"><div class="d"><span data-l="en">AUGUST 2026</span><span data-l="fr">AOÛT 2026</span></div><h3><span data-l="en">Ratchet joins the simulation</span><span data-l="fr">Ratchet rejoint la simulation</span></h3><p><span data-l="en">Ratchet arrives as a limited-time event hero, with a Triple Barrel talent that fires three shots at once.</span><span data-l="fr">Ratchet arrive comme héros d'événement temporaire, avec un talent Triple Barrel qui tire trois coups d'un coup.</span></p></div>
+    <div class="tl" data-date="2026-09-28"><div class="d"><span data-l="en">28 SEPTEMBER 2026</span><span data-l="fr">28 SEPTEMBRE 2026</span></div><h3><span data-l="en">Update 1.10.3</span><span data-l="fr">Mise à jour 1.10.3</span></h3><p><span data-l="en">The biggest balance pass: headshots removed, hero stats rebuilt around archetypes, every weapon retuned.</span><span data-l="fr">Le plus gros rééquilibrage : fin des tirs à la tête, statistiques des héros revues par archétype, toutes les armes ajustées.</span></p></div>
     <div class="tl" data-date="2026-10-05"><div class="d"><span data-l="en">5 OCTOBER 2026</span><span data-l="fr">5 OCTOBRE 2026</span></div><h3><span data-l="en">Global launch</span><span data-l="fr">Sortie mondiale</span></h3><p><span data-l="en">Ranger Rumble launches worldwide on iOS and Android.</span><span data-l="fr">Ranger Rumble sort dans le monde entier sur iOS et Android.</span></p></div>
     <div class="tl" data-date="2026-11-06" style="--c:var(--red)"><div class="d"><span data-l="en">6 NOVEMBER 2026</span><span data-l="fr">6 NOVEMBRE 2026</span></div><h3><span data-l="en">End of development</span><span data-l="fr">Fin du développement</span></h3><p><span data-l="en">Final update. Purchases are removed and the Super Pass becomes free. The Save Project begins.</span><span data-l="fr">Dernière mise à jour. Les achats disparaissent et le Super Pass devient gratuit. Le Projet Sauvegarde démarre.</span></p></div>
     <div class="tl" data-date="2026-11-21" style="--c:var(--orange)"><div class="d"><span data-l="en">21 NOVEMBER 2026</span><span data-l="fr">21 NOVEMBRE 2026</span></div><h3><span data-l="en">Removed from stores</span><span data-l="fr">Retrait des stores</span></h3><p><span data-l="en">The game can no longer be downloaded or reinstalled. Existing installs keep working.</span><span data-l="fr">Le jeu ne peut plus être téléchargé ni réinstallé. Les installations existantes fonctionnent encore.</span></p></div>
@@ -366,7 +401,7 @@ function setLang(l){
   document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l));
   try{localStorage.setItem('rl-lang',l);}catch(e){}
   const g=document.querySelector('.glitch'); if(g) g.dataset.t=T('SAVE PROJECT','PROJET SAUVEGARDE');
-  renderSteps(); renderTabs(); renderMedia(); tick();
+  renderSteps(); renderTabs(); renderMedia(); renderInside(); tick();
 }
 document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.set));
 const T=(en,fr)=>LANG==='fr'?fr:en;
@@ -464,9 +499,34 @@ lb.querySelector('.n').onclick=e=>{e.stopPropagation();openLb(cur+1);};
 lb.onclick=e=>{ if(e.target===lb) closeLb(); };
 document.addEventListener('keydown',e=>{ if(!lb.classList.contains('open'))return; if(e.key==='Escape')closeLb(); if(e.key==='ArrowLeft')openLb(cur-1); if(e.key==='ArrowRight')openLb(cur+1); });
 
+/* ---------- inside the game (wiki data) ---------- */
+let GAME=null, HEROES=[];
+const ROLE_FR={Allrounder:'Polyvalent',Disruptor:'Perturbateur',Stalker:'Traqueur',Juggernaut:'Colosse',Cannoneer:'Canonnier',Runner:'Coureur',Deadeye:'Tireur d\'élite',Common:'Commun',Rare:'Rare',Epic:'Épique'};
+function roleTxt(r){ r=String(r||'').split('·')[0].trim(); if(LANG!=='fr') return r; return r.split(' ').map(w=>ROLE_FR[w]||w).join(' '); }
+function renderInside(){
+  const hb=document.getElementById('heroes'), mb=document.getElementById('modes'); if(!hb) return;
+  const d=(GAME&&GAME.details)||{};
+  const names=d.heroes||[];
+  hb.innerHTML=names.map(n=>{
+    const c=HEROES.find(h=>h.name===n)||{}; const nm=n.replace(/ \(Ranger Rumble\)$/,'');
+    const r=String(c.role||''); const rar=/Epic/.test(r)?'rar-epic':(/Rare/.test(r)?'rar-rare':'');
+    const img=c.image_url?String(c.image_url).replace('/image/upload/','/image/upload/w_300,f_auto,q_auto/'):'';
+    const role=/Ranger Rumble/.test(r)?roleTxt(r):T('Event hero','Héros d\'événement');
+    return `<div class="hero-c ${rar}"><div class="im">${img?`<img loading="lazy" src="${esc(img)}" alt="${esc(nm)}"/>`:''}</div><b>${esc(nm)}</b><small>${esc(role)}</small></div>`;
+  }).join('');
+  mb.innerHTML=(d.modes||[]).map(m=>`<div class="mode">${m.icon?`<img loading="lazy" src="${esc(m.icon)}" alt=""/>`:''}<div><h3>${esc(m.name)}</h3>${m.info?`<div class="inf">${esc(m.info)}</div>`:''}<p>${esc(m.text||'')}</p>${(m.maps||[]).length?`<div class="maps">${m.maps.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}</div></div>`).join('');
+}
+
 /* ---------- load ---------- */
 async function load(){
   if(!sb){renderSteps();renderTabs();renderMedia();return;}
+  try{
+    const g=await sb.from('site_games').select('details').eq('id','51cbf92f-d447-493e-a695-b09f76122679').single();
+    GAME=g.data||null;
+    const names=(GAME&&GAME.details&&GAME.details.heroes)||[];
+    if(names.length){ const h=await sb.from('site_characters').select('name,role,image_url').in('name',names); HEROES=h.data||[]; }
+    renderInside();
+  }catch(e){ console.warn(e); }
   try{
     const [st,md]=await Promise.all([
       sb.from('sauvegarde_etapes').select('*').eq('projet','ranger-rumble').order('ordre'),
