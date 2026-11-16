@@ -1482,7 +1482,8 @@ async function loadNews(){
   box.innerHTML=data.map(n=>
     `<div class="guide-row">
       <span class="gi">${n.kind==='voices'?'🗣️':(n.image_url?'🖼️':'📰')}</span>
-      <div class="gt"><b>${esc(n.title)}</b><span>${n.kind==='voices'?'Lombax Voices · '+esc(n.author||'?'):esc(n.source||'—')} · ${esc(n.date_label||'')}</span></div>
+      <div class="gt"><b>${n.a_valider?'<span style="color:var(--orange)">⏳ À valider · </span>':''}${esc(n.title)}</b><span>${n.kind==='voices'?'Lombax Voices · '+esc(n.author||'?'):esc(n.source||'—')} · ${esc(n.date_label||'')}</span></div>
+      ${n.a_valider?`<button class="btn btn-primary" style="padding:6px 12px;font-size:.78rem" onclick="publierNews('${esc(n.id)}')">✅ Publier</button>`:''}
       <button class="btn btn-ghost" style="padding:6px 12px;font-size:.78rem" onclick="editNewsById('${esc(n.id)}')">Edit</button>
       <button class="btn btn-danger" onclick="delNews('${esc(n.id)}')">Del</button>
     </div>`
@@ -1547,6 +1548,11 @@ async function saveNews(){
   if(error){ showMsg('news-msg',error.message,false); return; }
   showMsg('news-msg',id?'News updated! ✓':'News added! ✓',true);
   setTimeout(()=>{ closeNewsForm(); loadNews(); }, 700);
+}
+async function publierNews(id){
+  const {error}=await sb.from('site_news').update({a_valider:false}).eq('id',id);
+  if(error){ alert(error.message); return; }
+  loadNews();
 }
 async function delNews(id){
   if(!confirm('Delete this news item?')) return;
