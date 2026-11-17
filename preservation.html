@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Preservation: the Ratchet &amp; Clank mobile games | Ratchet Legacy</title>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="theme-color" content="#0A0B14"/>
+<link rel="apple-touch-icon" href="/icon-192.png"/>
+<link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png"/>
+<meta name="description" content="Going Mobile, Clone Home, Before the Nexus and Ranger Rumble: the history and preservation status of every Ratchet &amp; Clank mobile game."/>
+<link rel="canonical" href="https://ratchetlegacy.com/preservation.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Ratchet Legacy"/>
+<meta property="og:title" content="Ratchet &amp; Clank mobile games preservation | Ratchet Legacy"/>
+<meta property="og:description" content="Four mobile games, four stories: archived, recovered, delisted and shutting down."/>
+<meta property="og:url" content="https://ratchetlegacy.com/preservation.html"/>
+<meta property="og:image" content="https://ratchetlegacy.com/img/mobile/btn-shot-rails.webp"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+
+:root{
+  --bg:#0A0B14;--bg2:#10121F;--bg3:#181B2E;
+  --purple:#7B4FD4;--purple-light:#9B6FF4;--orange:#FF6B1A;--orange-light:#FF8A3D;
+  --gold:#FFC85A;--green:#3DD68C;--red:#FF4D6A;--text:#EEF0F8;--text-dim:#8B92AD;--text-mid:#B8BED4;--line:rgba(255,255,255,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.7}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+
+/* nav (same as the rest of the site) */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(10,11,20,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav-logo{display:flex;align-items:center;gap:11px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.02rem;letter-spacing:.06em}
+.nav-logo .mark{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+.nav-links{display:flex;gap:6px;align-items:center;scrollbar-width:none}.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{padding:8px 15px;border-radius:8px;font-size:.86rem;font-weight:500;color:var(--text-mid);transition:.18s}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.nav-cta{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff!important;font-weight:700!important}
+.lang{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-left:8px}
+.lang button{background:none;border:none;color:var(--text-dim);font:600 .75rem 'Orbitron',sans-serif;padding:7px 10px;cursor:pointer;letter-spacing:.08em}
+.lang button.on{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff}
+
+/* language switch */
+[data-l]{display:none}
+html[lang="en"] [data-l="en"],html[lang="fr"] [data-l="fr"]{display:revert}
+
+/* HERO */
+.hero{position:relative;min-height:92vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:120px 24px 60px;overflow:hidden;isolation:isolate}
+.hero-bg{position:absolute;inset:-20px;background:var(--cover) center/cover no-repeat;filter:blur(6px) saturate(1.2) brightness(.32);transform:scale(1.06);z-index:-3}
+.hero::before{content:'';position:absolute;inset:0;z-index:-2;background:
+  radial-gradient(ellipse 70% 55% at 50% 30%,rgba(123,79,212,.35),transparent 70%),
+  radial-gradient(ellipse 50% 40% at 80% 90%,rgba(255,107,26,.22),transparent 70%),
+  linear-gradient(180deg,transparent 60%,var(--bg))}
+.hero::after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);mix-blend-mode:overlay;animation:scan 8s linear infinite}
+@keyframes scan{to{background-position:0 300px}}
+.hero-inner{max-width:900px}
+.eos{display:inline-flex;align-items:center;gap:10px;font:700 .72rem 'Orbitron',sans-serif;letter-spacing:.28em;color:var(--red);border:1px solid rgba(255,77,106,.45);background:rgba(255,77,106,.08);padding:8px 16px;border-radius:30px;margin-bottom:22px}
+.eos .dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 12px var(--red);animation:blink 1.2s steps(2) infinite}
+@keyframes blink{50%{opacity:.15}}
+.hero h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2.2rem,7vw,4.8rem);line-height:1.02;margin-bottom:10px;text-shadow:0 6px 40px rgba(0,0,0,.6)}
+.glitch{position:relative;display:inline-block;background:linear-gradient(120deg,var(--purple-light),var(--orange));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.glitch::before,.glitch::after{content:attr(data-t);position:absolute;inset:0;-webkit-text-fill-color:currentColor;opacity:.55;pointer-events:none}
+.glitch::before{color:#3cf;animation:gl1 3.2s infinite steps(1)}
+.glitch::after{color:var(--red);animation:gl2 2.7s infinite steps(1)}
+@keyframes gl1{0%,86%,100%{transform:none;clip-path:inset(0 0 100% 0)}88%{transform:translate(-3px,1px);clip-path:inset(15% 0 55% 0)}92%{transform:translate(2px,-1px);clip-path:inset(60% 0 10% 0)}}
+@keyframes gl2{0%,80%,100%{transform:none;clip-path:inset(0 0 100% 0)}83%{transform:translate(3px,0);clip-path:inset(40% 0 35% 0)}87%{transform:translate(-2px,1px);clip-path:inset(5% 0 80% 0)}}
+.hero .sub{font-family:'Orbitron',sans-serif;font-size:clamp(.8rem,1.8vw,1rem);letter-spacing:.3em;color:var(--gold);margin-bottom:22px}
+.hero p.lead{color:var(--text-mid);max-width:640px;margin:0 auto 34px;font-size:1.06rem}
+
+.countdowns{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:820px;margin:0 auto}
+.cd{background:rgba(16,18,31,.72);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:18px;padding:18px 16px 16px;position:relative;overflow:hidden}
+.cd::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,var(--orange))}
+.cd.servers{--c:var(--red)}
+.cd .lbl{font:700 .66rem 'Orbitron',sans-serif;letter-spacing:.2em;color:var(--text-dim);margin-bottom:6px}
+.cd .date{font-weight:700;color:var(--c,var(--orange));font-size:.92rem;margin-bottom:10px}
+.cd .units{display:flex;justify-content:center;gap:10px}
+.cd .u{min-width:58px}
+.cd .n{font:900 clamp(1.5rem,4vw,2.3rem) 'Orbitron',sans-serif;line-height:1;font-variant-numeric:tabular-nums}
+.cd .t{font-size:.62rem;letter-spacing:.16em;color:var(--text-dim);text-transform:uppercase;margin-top:4px}
+.cd.done .units{display:none}
+.cd .over{display:none;font:900 1.3rem 'Orbitron',sans-serif;color:var(--c)}
+.cd.done .over{display:block}
+.scroll-hint{margin-top:40px;color:var(--text-dim);font-size:.8rem;letter-spacing:.2em;animation:bob 2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(6px)}}
+
+/* SECTIONS */
+section{max-width:1120px;margin:0 auto;padding:70px 24px 10px}
+.kicker{font:700 .7rem 'Orbitron',sans-serif;letter-spacing:.26em;color:var(--orange-light);margin-bottom:10px}
+h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.5rem,3.6vw,2.3rem);margin-bottom:16px;line-height:1.15}
+.intro{color:var(--text-mid);max-width:720px;margin-bottom:30px}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+
+/* about */
+.about{display:grid;grid-template-columns:320px 1fr;gap:36px;align-items:start}
+.about .cover{border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 60px -30px rgba(123,79,212,.7);transform:rotate(-2deg);transition:.4s}
+.about .cover:hover{transform:rotate(0) scale(1.02)}
+.about .cover img{display:block;width:100%}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px 0}
+.fact{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.fact .k{font-size:.68rem;letter-spacing:.14em;color:var(--text-dim);text-transform:uppercase}
+.fact .v{font:700 1.05rem 'Orbitron',sans-serif;margin-top:4px}
+.about p{color:var(--text-mid);margin-bottom:14px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:11px;font-weight:600;font-size:.9rem;border:1px solid var(--line);background:var(--bg3);transition:.18s}
+.btn:hover{border-color:var(--purple-light)}
+.btn.grad{background:linear-gradient(135deg,var(--purple),var(--orange));border:none;color:#fff}
+
+/* inside the game */
+.heroes{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:34px}
+.hero-c{background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden;text-align:center;transition:.25s}
+.hero-c:hover{transform:translateY(-4px);border-color:rgba(155,111,244,.5)}
+.hero-c .im{aspect-ratio:1;background:radial-gradient(circle at 50% 30%,rgba(123,79,212,.35),transparent 70%),var(--bg3);overflow:hidden}
+.hero-c img{width:100%;height:100%;object-fit:cover;object-position:top}
+.hero-c b{display:block;font-size:.88rem;margin-top:8px}
+.hero-c small{display:block;font-size:.68rem;color:var(--text-dim);padding:0 8px 10px;line-height:1.35}
+.rar-epic small{color:var(--purple-light)}.rar-rare small{color:#5aa9ff}
+.modes{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.mode{display:flex;gap:14px;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:16px}
+.mode img{width:54px;height:54px;flex:none;object-fit:contain}
+.mode h3{font-family:'Orbitron',sans-serif;font-size:.92rem;margin-bottom:2px}
+.mode .inf{font-size:.72rem;color:var(--orange-light);letter-spacing:.04em;margin-bottom:6px}
+.mode p{font-size:.86rem;color:var(--text-mid);line-height:1.5}
+.mode .maps{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.mode .maps span{font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--bg3);color:var(--text-dim)}
+.sub-h{font-family:'Orbitron',sans-serif;font-size:1rem;margin:0 0 14px;color:var(--gold);letter-spacing:.06em}
+.src-note{font-size:.75rem;color:var(--text-dim);margin-top:14px}
+
+/* official archive */
+.archs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.arch{display:flex;flex-direction:column;gap:4px;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:16px;transition:.2s}
+.arch:hover{border-color:rgba(255,107,26,.5);transform:translateY(-3px)}
+.arch .ad{font:700 .66rem 'Orbitron',sans-serif;letter-spacing:.16em;color:var(--orange-light)}
+.arch b{font-size:.98rem}
+.arch .at{font-size:.84rem;color:var(--text-mid)}
+.arch .ag{font-size:.7rem;color:var(--text-dim);margin-top:auto;padding-top:6px}
+.posts{list-style:none;columns:2 280px;column-gap:14px}
+.posts li{break-inside:avoid;margin-bottom:8px}
+.posts a{display:flex;gap:10px;align-items:baseline;padding:9px 12px;border-radius:10px;background:var(--bg2);border:1px solid var(--line);font-size:.88rem;transition:.2s}
+.posts a:hover{border-color:rgba(155,111,244,.5)}
+.posts a span{font:700 .64rem 'Orbitron',sans-serif;color:var(--text-dim);white-space:nowrap;min-width:66px}
+
+/* progress */
+.progress-wrap{background:var(--bg2);border:1px solid var(--line);border-radius:22px;padding:26px 28px}
+.bar{height:14px;background:var(--bg3);border-radius:10px;overflow:hidden;margin:6px 0 8px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--purple),var(--orange));border-radius:10px;transition:width 1.4s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 18px rgba(255,107,26,.5)}
+.pct{font:900 2rem 'Orbitron',sans-serif}
+.pct small{font-size:.8rem;color:var(--text-dim);font-family:Inter,sans-serif;font-weight:500;margin-left:8px}
+.steps{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:18px}
+.steps li{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--bg3);border:1px solid var(--line);font-size:.92rem;color:var(--text-mid)}
+.steps .ic{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:.8rem;border:2px solid var(--text-dim)}
+.steps li.fait{color:var(--text)}
+.steps li.fait .ic{background:var(--green);border-color:var(--green);color:#0A0B14;font-weight:900}
+.steps li.en_cours .ic{border-color:var(--gold);border-top-color:transparent;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* timeline */
+.timeline{position:relative;margin-left:10px;padding-left:30px;border-left:2px solid var(--line)}
+.tl{position:relative;padding:4px 0 26px}
+.tl::before{content:'';position:absolute;left:-38px;top:9px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid var(--c,var(--purple-light))}
+.tl.past::before{background:var(--c,var(--purple-light))}
+.tl.now::before{box-shadow:0 0 0 6px rgba(255,77,106,.18);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 12px rgba(255,77,106,0)}}
+.tl .d{font:700 .78rem 'Orbitron',sans-serif;letter-spacing:.1em;color:var(--c,var(--purple-light))}
+.tl h3{font-size:1.06rem;margin:2px 0 4px}
+.tl p{color:var(--text-mid);font-size:.94rem}
+
+/* media */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tabs button{background:var(--bg2);border:1px solid var(--line);color:var(--text-mid);padding:9px 16px;border-radius:30px;cursor:pointer;font:600 .84rem Inter,sans-serif}
+.tabs button.on{background:linear-gradient(135deg,rgba(123,79,212,.3),rgba(255,107,26,.2));color:var(--text);border-color:rgba(155,111,244,.5)}
+.grid{columns:3 280px;column-gap:14px}
+.tile{break-inside:avoid;margin-bottom:14px;border-radius:14px;overflow:hidden;position:relative;cursor:zoom-in;border:1px solid var(--line);background:var(--bg2);display:block;width:100%}
+.tile img,.tile video{display:block;width:100%;transition:transform .5s}
+.tile:hover img{transform:scale(1.05)}
+.tile .cap{position:absolute;left:0;right:0;bottom:0;padding:24px 12px 10px;font-size:.82rem;background:linear-gradient(transparent,rgba(0,0,0,.8));opacity:0;transition:.25s}
+.tile:hover .cap{opacity:1}
+.tile .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3rem;text-shadow:0 4px 20px rgba(0,0,0,.8);pointer-events:none}
+.empty{border:2px dashed rgba(255,255,255,.12);border-radius:20px;padding:46px 24px;text-align:center;color:var(--text-dim)}
+.empty .big{font-size:2.4rem;margin-bottom:8px}
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:22px}
+.slot{aspect-ratio:16/9;border-radius:12px;background:linear-gradient(110deg,var(--bg2) 30%,var(--bg3) 50%,var(--bg2) 70%);background-size:300% 100%;animation:shim 2.4s linear infinite;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font:700 .66rem 'Orbitron',sans-serif;letter-spacing:.18em;color:var(--text-dim)}
+@keyframes shim{to{background-position:-300% 0}}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:300;background:rgba(5,6,12,.94);display:none;align-items:center;justify-content:center;padding:30px}
+.lb.open{display:flex}
+.lb .box{max-width:min(1200px,96vw);max-height:88vh;width:100%;display:flex;flex-direction:column;align-items:center}
+.lb img,.lb video{max-width:100%;max-height:80vh;border-radius:12px}
+.lb iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:12px;max-height:80vh}
+.lb .cap{margin-top:12px;color:var(--text-mid);text-align:center}
+.lb .x,.lb .nv{position:absolute;background:rgba(255,255,255,.08);border:1px solid var(--line);color:#fff;width:46px;height:46px;border-radius:50%;cursor:pointer;font-size:1.3rem}
+.lb .x{top:18px;right:18px}
+.lb .nv.p{left:18px;top:50%}.lb .nv.n{right:18px;top:50%}
+
+/* mobile lineage */
+.lineage{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.lg{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:20px;position:relative;overflow:hidden}
+.lg .y{font:900 2rem 'Orbitron',sans-serif;color:rgba(255,255,255,.08);position:absolute;right:12px;top:6px}
+.lg h3{font-family:'Orbitron',sans-serif;font-size:.98rem;margin-bottom:4px}
+.lg .s{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;margin:6px 0 10px}
+.s.saved{background:rgba(61,214,140,.14);color:var(--green)}
+.s.risk{background:rgba(255,77,106,.14);color:var(--red)}
+.s.gone{background:rgba(255,200,90,.12);color:var(--gold)}
+.lg p{color:var(--text-mid);font-size:.88rem}
+.lg.cur{border-color:rgba(255,77,106,.5);box-shadow:0 0 0 1px rgba(255,77,106,.2),0 20px 50px -25px rgba(255,77,106,.6)}
+
+/* help */
+.help{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.hc{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:22px}
+.hc .e{font-size:1.8rem;margin-bottom:10px}
+.hc h3{font-size:1rem;margin-bottom:6px}
+.hc p{color:var(--text-mid);font-size:.9rem}
+.cta-band{margin:40px auto 0;max-width:1072px;border-radius:22px;padding:30px;text-align:center;background:linear-gradient(135deg,rgba(123,79,212,.25),rgba(255,107,26,.18));border:1px solid rgba(155,111,244,.35)}
+.cta-band p{color:var(--text-mid);margin:8px 0 18px}
+.note{font-size:.78rem;color:var(--text-dim);margin-top:14px}
+
+footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;color:var(--text-dim);margin-top:70px}
+.foot-logo{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.06em;color:var(--text);margin-bottom:12px}
+.foot-small{font-size:.8rem}
+
+@media(max-width:900px){
+  .nav-links{overflow-x:auto;gap:2px;max-width:62vw}
+  .about{grid-template-columns:1fr}.about .cover{max-width:320px;margin:0 auto}
+  .lineage{grid-template-columns:1fr 1fr}.help{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .nav{padding:12px 14px}
+  .countdowns{grid-template-columns:1fr}
+  .lineage{grid-template-columns:1fr}
+  .cd .u{min-width:48px}
+  .nav{gap:8px}.nl-txt{display:none}
+  .nav-links{max-width:none;flex:1;min-width:0}.lang{flex:none;margin-left:0}
+  .slots{grid-template-columns:1fr 1fr}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+
+
+/* preservation */
+.games{display:grid;gap:26px}
+.game{display:grid;grid-template-columns:230px 1fr;gap:28px;background:var(--bg2);border:1px solid var(--line);border-radius:22px;padding:24px;position:relative;overflow:hidden}
+.game::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,var(--purple-light))}
+.game .cover{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000;align-self:start}
+.game .cover img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover}
+.game .cover img.px,.mini img.px{image-rendering:pixelated}
+.badge{display:inline-flex;align-items:center;gap:8px;font:700 .64rem 'Orbitron',sans-serif;letter-spacing:.18em;color:var(--c);border:1px solid var(--c);border-radius:30px;padding:5px 12px;margin-bottom:10px}
+.badge .dot{width:7px;height:7px;border-radius:50%;background:var(--c)}
+.game h3{font-family:'Orbitron',sans-serif;font-size:1.35rem;margin-bottom:4px}
+.game .meta{color:var(--gold);font-size:.82rem;letter-spacing:.06em;margin-bottom:12px}
+.game p{color:var(--text-mid);margin-bottom:12px;font-size:.95rem}
+.game .facts{margin:14px 0}
+.mini{display:flex;gap:10px;margin:6px 0 16px;flex-wrap:wrap}
+.mini img{height:96px;border-radius:10px;border:1px solid var(--line);background:#000}
+.links{display:flex;gap:10px;flex-wrap:wrap}
+.c-saved{--c:var(--gold)}.c-urgent{--c:var(--red)}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:34px}
+.sum{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center;border-top:3px solid var(--c)}
+.sum b{display:block;font-family:'Orbitron',sans-serif;font-size:.86rem;margin-bottom:4px}
+.sum span{font-size:.78rem;color:var(--text-dim)}
+.src{font-size:.8rem;color:var(--text-dim)}
+.src a{color:var(--text-mid);text-decoration:underline}
+@media(max-width:900px){.game{grid-template-columns:1fr}.game .cover{max-width:220px}.summary{grid-template-columns:1fr 1fr}}
+
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="nav-logo"><span class="mark">🔧</span> <span class="nl-txt">RATCHET LEGACY</span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="wiki.html">Wiki</a>
+    <a href="story.html">Story</a>
+    <a href="news.html">News</a>
+    <a href="database.html">Megacorp Vault</a>
+    <a href="guides.html">Guides</a>
+    <a href="https://tracker.ratchetlegacy.com" target="_blank" class="nav-cta">Open the tracker</a>
+  </div>
+  <div class="lang"><button data-set="en">EN</button><button data-set="fr">FR</button></div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-bg"></div>
+  <div class="hero-inner">
+    <div class="eos"><span class="dot"></span><span data-l="en">MOBILE GAMES ARCHIVE</span><span data-l="fr">ARCHIVES DES JEUX MOBILES</span></div>
+    <h1>Ratchet &amp; Clank<br/><span class="glitch" data-t="PRESERVATION"><span data-l="en">PRESERVATION</span><span data-l="fr">PRÉSERVATION</span></span></h1>
+    <div class="sub"><span data-l="en">NO GAME LEFT BEHIND</span><span data-l="fr">AUCUN JEU LAISSÉ DE CÔTÉ</span></div>
+    <p class="lead"><span data-l="en">Phone games disappear: stores close, servers shut down, phones end up in drawers. Four Ratchet &amp; Clank games were made for mobile. Here is the story of each one and what has been done to keep it alive.</span><span data-l="fr">Les jeux sur téléphone disparaissent : les boutiques ferment, les serveurs s'éteignent, les téléphones finissent dans un tiroir. Quatre jeux Ratchet &amp; Clank ont été conçus pour mobile. Voici l'histoire de chacun et ce qui a été fait pour le garder en vie.</span></p>
+    <div class="scroll-hint">▼ <span data-l="en">SCROLL</span><span data-l="fr">DÉFILER</span></div>
+  </div>
+</header>
+
+<section>
+  <div class="kicker reveal"><span data-l="en">STATUS</span><span data-l="fr">ÉTAT DES LIEUX</span></div>
+  <h2 class="reveal"><span data-l="en">Four games, four stories</span><span data-l="fr">Quatre jeux, quatre histoires</span></h2>
+  <div class="summary reveal">
+ <div class="sum c-saved"><b>Going Mobile</b><span><span data-l="en">Archived</span><span data-l="fr">Archivé</span></span></div>
+ <div class="sum c-saved"><b>Clone Home</b><span><span data-l="en">Recovered in 2025</span><span data-l="fr">Retrouvé en 2025</span></span></div>
+ <div class="sum c-saved"><b>Before the Nexus</b><span><span data-l="en">Preserved offline</span><span data-l="fr">Préservé hors ligne</span></span></div>
+ <div class="sum c-urgent"><b>Ranger Rumble</b><span><span data-l="en">Save in progress</span><span data-l="fr">Sauvegarde en cours</span></span></div></div>
+  <div class="games"><article class="game c-saved reveal" id="going-mobile">
+ <div class="cover"><img class="px" src="img/mobile/gm-title.webp" alt="Ratchet &amp; Clank: Going Mobile" loading="lazy"></div>
+ <div>
+  <div class="badge"><span class="dot"></span><span data-l="en">PRESERVED</span><span data-l="fr">PRÉSERVÉ</span></div>
+  <h3>Going Mobile</h3>
+  <div class="meta">2005 · <span data-l="en">Java (J2ME) phones</span><span data-l="fr">Téléphones Java (J2ME)</span> · Handheld Games / Sony Pictures Mobile</div>
+  <p><span data-l="en">The very first Ratchet &amp; Clank game on a phone, and the only one in 2D: the duo is digitised into a Secret Agent Clank vid-comic and must rebuild the MCGuFIN to get back to the real world. It won Best Action Game at the 2005 Mobile Entertainment Awards.</span><span data-l="fr">Le tout premier Ratchet &amp; Clank sur téléphone, et le seul en 2D : le duo est numérisé dans une vid-comic de l'Agent secret Clank et doit reconstituer le MCGuFIN pour revenir dans le monde réel. Il a reçu le prix du meilleur jeu d'action aux Mobile Entertainment Awards 2005.</span></p>
+  <div class="facts"><div class="fact"><div class="k"><span data-l="en">Status</span><span data-l="fr">Statut</span></div><div class="v"><span data-l="en">Archived</span><span data-l="fr">Archivé</span></div></div><div class="fact"><div class="k"><span data-l="en">Format</span><span data-l="fr">Format</span></div><div class="v">.jar (J2ME)</div></div><div class="fact"><div class="k"><span data-l="en">Plays today</span><span data-l="fr">Jouable aujourd’hui</span></div><div class="v"><span data-l="en">Via a J2ME emulator</span><span data-l="fr">Via un émulateur J2ME</span></div></div></div>
+  <div class="mini"><img class="px" src="img/mobile/gm-maximillian.png" alt="Maximillian" loading="lazy"><img class="px" src="img/mobile/gm-defragmenter.png" alt="Defragmenter" loading="lazy"><img class="px" src="img/mobile/gm-boar-zooka.png" alt="Boar-Zooka" loading="lazy"><img class="px" src="img/mobile/gm-patrolbot.png" alt="Patrol bot" loading="lazy"></div>
+  <div class="links"><a class="btn grad" href="wiki/games/ratchet-clank-going-mobile.html">📖 <span data-l="en">Wiki page</span><span data-l="fr">Fiche wiki</span></a></div>
+ </div></article><article class="game c-saved reveal" id="clone-home">
+ <div class="cover"><img class="px" src="img/mobile/ch-title.webp" alt="Ratchet &amp; Clank: Clone Home" loading="lazy"></div>
+ <div>
+  <div class="badge"><span class="dot"></span><span data-l="en">RECOVERED</span><span data-l="fr">RETROUVÉ</span></div>
+  <h3>Clone Home</h3>
+  <div class="meta">2006 · <span data-l="en">Java (J2ME) phones</span><span data-l="fr">Téléphones Java (J2ME)</span> · Javaground / Sony Pictures Mobile</div>
+  <p><span data-l="en">The sequel to Going Mobile was finished in 2006, then cancelled before release. For almost twenty years it was lost media, until fans found a copy on an old Sony Ericsson W880i, got past the phone's protection and archived a complete, playable build in October 2025.</span><span data-l="fr">La suite de Going Mobile était terminée en 2006, puis annulée avant sa sortie. Pendant près de vingt ans, elle a été considérée comme perdue, jusqu'à ce que des fans en retrouvent une copie sur un vieux Sony Ericsson W880i, contournent la protection du téléphone et archivent une version complète et jouable en octobre 2025.</span></p>
+  <div class="timeline">
+   <div class="tl past"><div class="d">2006</div><p><span data-l="en">Finished, then cancelled before release.</span><span data-l="fr">Terminé, puis annulé avant sa sortie.</span></p></div>
+   <div class="tl past"><div class="d">2019</div><p><span data-l="en">The search for the lost game starts again.</span><span data-l="fr">Les recherches du jeu perdu reprennent.</span></p></div>
+   <div class="tl past"><div class="d">2021</div><p><span data-l="en">A copy is located on a Sony Ericsson W880i.</span><span data-l="fr">Une copie est repérée sur un Sony Ericsson W880i.</span></p></div>
+   <div class="tl now"><div class="d">10/2025</div><p><span data-l="en">The full game is extracted and archived.</span><span data-l="fr">Le jeu complet est extrait et archivé.</span></p></div>
+  </div>
+  <div class="mini"><img class="px" src="img/mobile/ch-portraits.png" alt="Clone Home portraits" loading="lazy" style="height:72px"></div>
+  <div class="links"><a class="btn grad" href="wiki/games/ratchet-clank-clone-home.html">📖 <span data-l="en">Wiki page</span><span data-l="fr">Fiche wiki</span></a></div>
+ </div></article><article class="game c-saved reveal" id="before-the-nexus">
+ <div class="cover"><img src="img/mobile/btn-cover.webp" alt="Ratchet &amp; Clank: Before the Nexus" loading="lazy"></div>
+ <div>
+  <div class="badge"><span class="dot"></span><span data-l="en">DELISTED · PRESERVED</span><span data-l="fr">RETIRÉ DES STORES · PRÉSERVÉ</span></div>
+  <h3>Before the Nexus</h3>
+  <div class="meta">2013 · iOS / Android · Darkside Game Studios / Sony Computer Entertainment</div>
+  <p><span data-l="en">The endless runner released alongside Into the Nexus: Ratchet chases the Prog twins on the grindrails of Axiom City. The game has left the stores, no longer runs on iOS 11 and later (32-bit app), and its PlayStation Network features are gone. The last Android version (1.4) is preserved and still plays fully offline, on Android or on PC through an Android emulator.</span><span data-l="fr">Le jeu de course sur rails sorti avec Into the Nexus : Ratchet poursuit les jumeaux Prog sur les rails d'Axiom City. Le jeu a quitté les stores, ne fonctionne plus depuis iOS 11 (application 32 bits) et ses fonctions PlayStation Network ont disparu. La dernière version Android (1.4) est préservée et se joue toujours entièrement hors ligne, sur Android ou sur PC via un émulateur Android.</span></p>
+  <div class="facts"><div class="fact"><div class="k"><span data-l="en">Last version</span><span data-l="fr">Dernière version</span></div><div class="v">1.4 (Android)</div></div><div class="fact"><div class="k"><span data-l="en">Online</span><span data-l="fr">En ligne</span></div><div class="v"><span data-l="en">Closed</span><span data-l="fr">Fermé</span></div></div><div class="fact"><div class="k"><span data-l="en">Offline</span><span data-l="fr">Hors ligne</span></div><div class="v"><span data-l="en">Fully playable</span><span data-l="fr">Entièrement jouable</span></div></div></div>
+  <div class="mini"><img src="img/mobile/btn-shot-rails.webp" alt="Before the Nexus gameplay" loading="lazy"><img src="img/mobile/btn-shot-grind.webp" alt="Before the Nexus gameplay" loading="lazy"><img src="img/mobile/btn-shot-shop.webp" alt="Before the Nexus vendor" loading="lazy"></div>
+  <div class="links"><a class="btn grad" href="wiki/games/ratchet-clank-before-the-nexus.html">📖 <span data-l="en">Wiki page</span><span data-l="fr">Fiche wiki</span></a></div>
+ </div></article><article class="game c-urgent reveal" id="ranger-rumble">
+ <div class="cover"><img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/w_640,f_auto,q_auto/v1793807044/ranger-rumble-mobile.jpg" alt="Ratchet &amp; Clank: Ranger Rumble" loading="lazy"></div>
+ <div>
+  <div class="badge"><span class="dot"></span><span data-l="en">SAVE IN PROGRESS</span><span data-l="fr">SAUVEGARDE EN COURS</span></div>
+  <h3>Ranger Rumble</h3>
+  <div class="meta">2026 · iOS / Android · Oh BiBi / Insomniac Games</div>
+  <p><span data-l="en">The online hero shooter leaves the stores on 21 November 2026 and its servers shut down on 1 May 2027. Because it needs its servers to start, it will become unplayable. Ratchet Legacy's Save Project is archiving its gameplay, screenshots and history before it disappears.</span><span data-l="fr">Le hero shooter en ligne quitte les stores le 21 novembre 2026 et ses serveurs ferment le 1er mai 2027. Comme il a besoin de ses serveurs pour démarrer, il deviendra injouable. Le Projet Sauvegarde de Ratchet Legacy archive son gameplay, ses captures et son histoire avant qu'il ne disparaisse.</span></p>
+  <div class="facts"><div class="fact"><div class="k"><span data-l="en">Stores</span><span data-l="fr">Stores</span></div><div class="v">21/11/2026</div></div><div class="fact"><div class="k"><span data-l="en">Servers</span><span data-l="fr">Serveurs</span></div><div class="v">01/05/2027</div></div></div>
+  <div class="links"><a class="btn grad" href="ranger-rumble.html">💾 <span data-l="en">Save Project</span><span data-l="fr">Projet Sauvegarde</span></a><a class="btn" href="wiki/games/ratchet-clank-ranger-rumble.html">📖 <span data-l="en">Wiki page</span><span data-l="fr">Fiche wiki</span></a></div>
+ </div></article></div>
+</section>
+
+<section class="reveal">
+  <div class="kicker"><span data-l="en">OUR APPROACH</span><span data-l="fr">NOTRE DÉMARCHE</span></div>
+  <h2><span data-l="en">Preserving, not distributing</span><span data-l="fr">Préserver, pas distribuer</span></h2>
+  <p class="intro"><span data-l="en">Ratchet Legacy documents these games so that their history, their content and the way they played are never lost. The games remain the property of Sony Interactive Entertainment: this site does not host or distribute any game file.</span><span data-l="fr">Ratchet Legacy documente ces jeux pour que leur histoire, leur contenu et leur façon de se jouer ne soient jamais perdus. Les jeux restent la propriété de Sony Interactive Entertainment : ce site n'héberge ni ne distribue aucun fichier de jeu.</span></p>
+</section>
+
+<footer>
+  <div class="foot-logo">RATCHET LEGACY</div>
+  <div class="foot-small">Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games or Sony. · <a href="legal.html" style="color:var(--text-dim)">Terms &amp; Legal</a></div>
+</footer>
+<script>
+document.querySelector('.hero-bg').style.setProperty('--cover','url("img/mobile/btn-story-1.webp")');
+let LANG='en';
+try{ LANG=localStorage.getItem('rl-lang') || ((navigator.language||'').startsWith('fr')?'fr':'en'); }catch(e){ LANG=(navigator.language||'').startsWith('fr')?'fr':'en'; }
+function setLang(l){
+  LANG=l; document.documentElement.lang=l;
+  document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l));
+  try{localStorage.setItem('rl-lang',l);}catch(e){}
+  const g=document.querySelector('.glitch'); if(g) g.dataset.t=l==='fr'?'PRÉSERVATION':'PRESERVATION';
+}
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.set));
+setLang(LANG);
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
