@@ -679,7 +679,7 @@ function renderLore(kind){
   box.className='lore-timeline k-'+kind;
   const list=LORE.filter(l=>(l.kind||'history')===kind);
   if(!list.length){ box.innerHTML='<div style="color:var(--text-dim);padding:20px">No entries yet.</div>'; return; }
-  const cov=n=>{ const g=GF_GAMES.find(x=>x[0]===n); if(!g) return ''; return '<button class="lore-game" onclick="openGameSheet(\''+esc(n).replace(/'/g,"\\'")+'\')" title="'+esc(g[1])+'">'+(g[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+g[2]+'" alt="" loading="lazy" onerror="this.remove()"/>':'')+'<span>'+esc(g[1])+'</span></button>'; };
+  const cov=n=>{ const g=GF_GAMES.find(x=>x[0]===n); if(!g) return ''; return '<button class="lore-game" onclick="openGameSheet(\''+esc(n).replace(/'/g,"\\'")+'\')" title="'+esc(g[1])+'">'+(g[2]?'<img src="'+gfImg(g[2])+'" alt="" loading="lazy" onerror="this.remove()"/>':'')+'<span>'+esc(g[1])+'</span></button>'; };
   box.innerHTML=list.map((l,i)=>
     '<div class="lore-item" style="animation-delay:'+(i*70)+'ms">'
     +'<div class="lore-node">'+esc(l.icon||'✨')+'</div>'
@@ -706,7 +706,8 @@ loadLore();
 })();
 
 // ── Filtres par jeu (chaque carte porte data-games="|jeu1|jeu2|") ──
-const GF_GAMES=[['Ratchet & Clank (2002)','R&C 2002','v1781874919/images_ncvprf.jpg'],['Going Commando','Going Commando','v1781875151/images_muw3yf.jpg'],['Up Your Arsenal','Up Your Arsenal','v1781875160/images_xj3ydp.jpg'],['Deadlocked','Deadlocked','v1781875111/images_aeucu5.jpg'],['Going Mobile','Going Mobile','v1788965628/Ratchet__26_Clank_Going_Mobile_ic3uqq.webp'],['Clone Home','Clone Home',''],['Size Matters','Size Matters','v1781875165/images_t5trs9.jpg'],['Tools of Destruction','Tools of Destruction','v1788965701/Ratchet___Clank_Future_Tools_of_Destruction_North_American_cover_qpcdun.png'],['Secret Agent Clank','Secret Agent Clank','v1781792947/sackpp0f_ziehxu.webp'],['Quest for Booty','Quest for Booty','v1788965725/5076-jaquette-francaise-3342_y0yn5j.jpg'],['A Crack in Time','A Crack in Time','v1788965751/713akjTRMOS._AC_UF894_1000_QL80__nv3ngg.jpg'],['All 4 One','All 4 One','v1788965768/ratchet-et-clank-all-4-one-e47001_qabam8.jpg'],['Full Frontal Assault','Full Frontal Assault','v1788965795/91dpx_xFHDL_b95zqs.jpg'],['Into the Nexus','Into the Nexus','v1788965810/71jakIrUdIL._AC_UF894_1000_QL80__oloa5b.jpg'],['Ratchet & Clank (2016)','R&C 2016','v1781792915/download_mde7j2.jpg'],['Rift Apart','Rift Apart','v1781792931/71UTxBiOajL._AC_UF1000_1000_QL80__eowxn2.jpg'],['Ranger Rumble','Ranger Rumble','v1788965831/ratchet-clank-ranger-rumble_t8wp.600_dk5bk6.webp']];
+const gfImg=p=>/^(https?:)?\/\//.test(p)||p.startsWith('/')?p:'https://res.cloudinary.com/dmfq8hkvu/image/upload/'+p;
+const GF_GAMES=[['Ratchet & Clank (2002)','R&C 2002','v1781874919/images_ncvprf.jpg'],['Going Commando','Going Commando','v1781875151/images_muw3yf.jpg'],['Up Your Arsenal','Up Your Arsenal','v1781875160/images_xj3ydp.jpg'],['Deadlocked','Deadlocked','v1781875111/images_aeucu5.jpg'],['Going Mobile','Going Mobile','v1788965628/Ratchet__26_Clank_Going_Mobile_ic3uqq.webp'],['Clone Home','Clone Home','v1788965620/MV5BMjdjNTY1MjQtYjcxMS00MjQzLWEyZDEtNzU3ZDViNjRiYjBhXkEyXkFqcGc._V1_FMjpg_UX1000__yg5fxy.jpg'],['Size Matters','Size Matters','v1781875165/images_t5trs9.jpg'],['Tools of Destruction','Tools of Destruction','v1788965701/Ratchet___Clank_Future_Tools_of_Destruction_North_American_cover_qpcdun.png'],['Secret Agent Clank','Secret Agent Clank','v1781792947/sackpp0f_ziehxu.webp'],['Quest for Booty','Quest for Booty','v1788965725/5076-jaquette-francaise-3342_y0yn5j.jpg'],['A Crack in Time','A Crack in Time','v1788965751/713akjTRMOS._AC_UF894_1000_QL80__nv3ngg.jpg'],['All 4 One','All 4 One','v1788965768/ratchet-et-clank-all-4-one-e47001_qabam8.jpg'],['Full Frontal Assault','Full Frontal Assault','v1788965795/91dpx_xFHDL_b95zqs.jpg'],['Before the Nexus','Before the Nexus','/img/mobile/btn-cover.webp'],['Into the Nexus','Into the Nexus','v1788965810/71jakIrUdIL._AC_UF894_1000_QL80__oloa5b.jpg'],['Ratchet & Clank (2016)','R&C 2016','v1781792915/download_mde7j2.jpg'],['Rift Apart','Rift Apart','v1781792931/71UTxBiOajL._AC_UF1000_1000_QL80__eowxn2.jpg'],['Ranger Rumble','Ranger Rumble','v1788965831/ratchet-clank-ranger-rumble_t8wp.600_dk5bk6.webp']];
 function buildGameFilter(sec){
   const bar=document.querySelector('.gf-bar[data-sec="'+sec+'"]'); if(!bar) return;
   const cards=[...document.querySelectorAll('#'+sec+' .char[data-games]')];
@@ -714,7 +715,7 @@ function buildGameFilter(sec){
   const used=GF_GAMES.filter(g=>count(g[0]));
   if(used.length<2){ bar.innerHTML=''; return; }
   bar.innerHTML='<button class="gf all active" data-g="">All <small>'+cards.length+'</small></button>'
-    +used.map(g=>'<button class="gf" data-g="'+esc(g[0])+'">'+(g[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+g[2]+'" alt="" loading="lazy" onerror="this.remove()"/>':'')+esc(g[1])+' <small>'+count(g[0])+'</small></button>').join('');
+    +used.map(g=>'<button class="gf" data-g="'+esc(g[0])+'">'+(g[2]?'<img src="'+gfImg(g[2])+'" alt="" loading="lazy" onerror="this.remove()"/>':'')+esc(g[1])+' <small>'+count(g[0])+'</small></button>').join('');
   bar.querySelectorAll('.gf').forEach(b=>b.onclick=()=>applyGameFilter(sec,b.dataset.g));
 }
 function applyGameFilter(sec,g){
@@ -791,7 +792,7 @@ function renderBosses(list){
   const order=GF_GAMES.map(g=>g[0]).filter(g=>G[g]).concat(Object.keys(G).filter(g=>!GF_GAMES.some(x=>x[0]===g)));
   const card=e=>bayCard({theme:'boss',name:e.name,tag:(e.games&&e.games.length>1)?'×'+e.games.length+' games':'',desc:e.description,img:e.image_url,pos:e.img_pos,games:e.games,click:'openEntry('+WIKI_ENTRIES.indexOf(e)+')'});
   grid.innerHTML=order.map(g=>{ const gi=GF_GAMES.find(x=>x[0]===g);
-    return '<div class="char-group vh-group"><div class="vh-head">'+(gi&&gi[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+gi[2]+'" alt="" style="width:30px;height:38px;object-fit:cover;border-radius:5px" onerror="this.remove()"/>':'<span class="ic">👹</span>')+esc(gi?gi[1]:g)+'<small>'+G[g].length+'</small></div><div class="chars hangar">'+G[g].map(card).join('')+'</div></div>'; }).join('');
+    return '<div class="char-group vh-group"><div class="vh-head">'+(gi&&gi[2]?'<img src="'+gfImg(gi[2])+'" alt="" style="width:30px;height:38px;object-fit:cover;border-radius:5px" onerror="this.remove()"/>':'<span class="ic">👹</span>')+esc(gi?gi[1]:g)+'<small>'+G[g].length+'</small></div><div class="chars hangar">'+G[g].map(card).join('')+'</div></div>'; }).join('');
 }
 
 function renderEntries(gridId, list){
@@ -810,7 +811,7 @@ function bayImg(url,theme,name,pos,ic){
   return (url&&url.trim())?'<img'+(shot?' class="shot"':'')+' src="'+esc(url)+'" alt="" loading="lazy"'+(shot&&pos?' style="object-position:'+esc(pos)+'"':'')+' onerror="this.outerHTML=\'<span class=ph>'+(ic||BAY_IC[theme]||'✨')+'</span>\'"/>':'<span class="ph">'+(ic||BAY_IC[theme]||'✨')+'</span>';
 }
 function vhBay(e){ const t=bayTheme(e); return '<div class="vh-bigbay t-'+t+'">'+(e.subtitle?'<span class="tag">'+esc(e.subtitle)+'</span>':'')+bayImg(e.image_url,t,e.name,e.img_pos)+'</div>'; }
-function gamesMini(gs){ return (gs&&gs.length)?'<div class="gms">'+gs.slice(0,7).map(n=>{ const g=GF_GAMES.find(x=>x[0]===n); return g&&g[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+g[2]+'" alt="" title="'+esc(g[1])+'" loading="lazy" onerror="this.remove()"/>':''; }).join('')+(gs.length>7?'<span>+'+(gs.length-7)+'</span>':'')+'</div>':''; }
+function gamesMini(gs){ return (gs&&gs.length)?'<div class="gms">'+gs.slice(0,7).map(n=>{ const g=GF_GAMES.find(x=>x[0]===n); return g&&g[2]?'<img src="'+gfImg(g[2])+'" alt="" title="'+esc(g[1])+'" loading="lazy" onerror="this.remove()"/>':''; }).join('')+(gs.length>7?'<span>+'+(gs.length-7)+'</span>':'')+'</div>':''; }
 function bayCard(o){ return '<div class="char vh t-'+o.theme+'" data-games="'+esc('|'+(o.games||[]).join('|')+'|')+'" style="cursor:pointer" onclick="'+o.click+'">'
   +'<div class="bay">'+(o.tag?'<span class="tag">'+esc(o.tag)+'</span>':'')+bayImg(o.img,o.theme,o.name,o.pos,o.ic)+'</div>'
   +(o.cmp!=null?'<button class="cmp-btn" data-cmp="'+o.cmp+'" title="Add to comparison" onclick="event.stopPropagation();cmpToggle('+o.cmp+')">⚖️</button>':'')
@@ -868,7 +869,7 @@ function renderEnemies(){
     const G={}; list.forEach((e,i)=>{ const g=e.g[0]||'Other'; (G[g]=G[g]||[]).push(i); });
     const order=GF_GAMES.map(g=>g[0]).filter(g=>G[g]);
     grid.innerHTML=order.map(g=>{ const gi=GF_GAMES.find(x=>x[0]===g);
-      return '<div class="char-group vh-group"><div class="vh-head">'+(gi&&gi[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+gi[2]+'" alt="" style="width:30px;height:38px;object-fit:cover;border-radius:5px" onerror="this.remove()"/>':'')+esc(gi?gi[1]:g)+'<small>'+G[g].length+'</small></div><div class="chars hangar small">'
+      return '<div class="char-group vh-group"><div class="vh-head">'+(gi&&gi[2]?'<img src="'+gfImg(gi[2])+'" alt="" style="width:30px;height:38px;object-fit:cover;border-radius:5px" onerror="this.remove()"/>':'')+esc(gi?gi[1]:g)+'<small>'+G[g].length+'</small></div><div class="chars hangar small">'
         +G[g].map(i=>{ const e=list[i]; return bayCard({theme:'enemy',name:e.n,tag:'',desc:e.d,img:e.i,games:e.g,click:'openEnemy('+i+')'}); }).join('')+'</div></div>'; }).join('');
     grid.querySelectorAll('img').forEach(im=>im.referrerPolicy='no-referrer');
     buildGameFilter('enemies');
@@ -900,7 +901,7 @@ async function loadTrivia(){
   const SP={'The series':'🌌','Cancelled projects':'🗄️','Characters':'🦊','Weapons & gadgets':'🔫'};
   const order=Object.keys(SP).filter(g=>G[g]).concat(GF_GAMES.map(g=>g[0]).filter(g=>G[g])).concat(Object.keys(G).filter(g=>!SP[g]&&!GF_GAMES.some(x=>x[0]===g)));
   box.innerHTML=order.map(g=>{ const gi=GF_GAMES.find(x=>x[0]===g);
-    return '<div class="tv-game">'+(gi&&gi[2]?'<img src="https://res.cloudinary.com/dmfq8hkvu/image/upload/'+gi[2]+'" alt="" loading="lazy"/>':'<div class="ph">'+(SP[g]||'🎮')+'</div>')
+    return '<div class="tv-game">'+(gi&&gi[2]?'<img src="'+gfImg(gi[2])+'" alt="" loading="lazy"/>':'<div class="ph">'+(SP[g]||'🎮')+'</div>')
       +'<div><h3'+(gi?' data-k="game" data-n="'+esc(g)+'" onclick="openGameSheet(this.dataset.n)"':' style="cursor:default"')+'>'+esc(g)+'</h3><div class="tv-facts">'+G[g].map(t=>'<div class="tv-f" id="tv-'+t.id+'">'+esc(t.fact)+'</div>').join('')+'</div></div></div>'; }).join('');
 }
 function triviaRandom(){
