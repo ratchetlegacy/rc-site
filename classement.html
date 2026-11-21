@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ranger Rumble — Global Ranking | Ratchet Legacy</title>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="theme-color" content="#0A0B14"/>
+<link rel="apple-touch-icon" href="/icon-192.png"/>
+<link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png"/>
+<meta name="description" content="Global medal ranking of Ratchet & Clank: Ranger Rumble players, archived by Ratchet Legacy."/>
+<link rel="canonical" href="https://ratchetlegacy.com/classement.html"/>
+<meta name="robots" content="noindex"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0A0B14;--bg2:#10121F;--bg3:#181B2E;
+  --purple:#7B4FD4;--purple-light:#9B6FF4;--orange:#FF6B1A;--orange-light:#FF8A3D;
+  --gold:#FFC85A;--silver:#CFE0FF;--bronze:#E59A5B;--green:#3DD68C;--red:#FF4D6A;
+  --text:#EEF0F8;--text-dim:#8B92AD;--text-mid:#B8BED4;--line:rgba(255,255,255,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(10,11,20,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav-logo{display:flex;align-items:center;gap:11px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.02rem;letter-spacing:.06em}
+.nav-logo .mark{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+.lang{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.lang button{background:none;border:none;color:var(--text-dim);font:600 .75rem 'Orbitron',sans-serif;padding:7px 10px;cursor:pointer;letter-spacing:.08em}
+.lang button.on{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff}
+[data-l]{display:none}
+html[lang="en"] [data-l="en"],html[lang="fr"] [data-l="fr"]{display:revert}
+.wrap{max-width:780px;margin:0 auto;padding:110px 20px 70px}
+.back{display:inline-flex;align-items:center;gap:7px;color:var(--text-dim);font-size:.9rem;margin-bottom:22px;padding:9px 14px;border-radius:10px;background:var(--bg2);border:1px solid var(--line);transition:.18s}
+.back:hover{color:var(--text);border-color:var(--purple-light)}
+.kicker{font:700 .7rem 'Orbitron',sans-serif;letter-spacing:.26em;color:var(--orange-light);margin-bottom:10px}
+h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.8rem,5vw,2.8rem);line-height:1.1;margin-bottom:8px}
+h1 .g{background:linear-gradient(120deg,var(--purple-light),var(--orange));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.meta{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:.8rem;color:var(--text-dim);margin:14px 0 26px}
+.pill{background:rgba(255,107,26,.1);color:var(--orange-light);border:1px solid rgba(255,107,26,.3);padding:4px 12px;border-radius:30px;font-weight:600}
+.row{display:grid;grid-template-columns:54px 1fr auto;align-items:center;gap:14px;padding:15px 18px;border-radius:16px;background:var(--bg2);border:1px solid var(--line);margin-bottom:10px;transition:.2s}
+.row:hover{transform:translateY(-2px);border-color:rgba(155,111,244,.4)}
+.rank{font:900 1.3rem 'Orbitron',sans-serif;text-align:center;color:var(--text-dim)}
+.r1 .rank{color:var(--gold)}.r2 .rank{color:var(--silver)}.r3 .rank{color:var(--bronze)}
+.r1{border-color:rgba(255,200,90,.45);background:linear-gradient(90deg,rgba(255,200,90,.1),var(--bg2))}
+.r2{border-color:rgba(207,224,255,.3)}.r3{border-color:rgba(229,154,91,.3)}
+.who{display:flex;align-items:center;gap:11px;min-width:0}
+.flag{font-size:1.3rem}
+.name{font-weight:700;font-size:1.02rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score{font:900 1.1rem 'Orbitron',sans-serif;color:var(--gold);white-space:nowrap}
+.score small{font-family:Inter,sans-serif;font-weight:500;font-size:.72rem;color:var(--text-dim);margin-left:5px}
+.loading,.foot{text-align:center;color:var(--text-dim)}
+.loading{padding:50px 0}
+.foot{margin-top:30px;font-size:.78rem;line-height:1.7}
+footer{border-top:1px solid var(--line);padding:34px 24px;text-align:center;color:var(--text-dim);margin-top:50px;font-size:.8rem}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="nav-logo"><span class="mark">🔧</span> <span>RATCHET LEGACY</span></a>
+  <div class="lang"><button data-set="en">EN</button><button data-set="fr">FR</button></div>
+</nav>
+
+<div class="wrap">
+  <a class="back" href="ranger-rumble.html#leaderboard">&#8592; <span data-l="en">Back to the Save Project</span><span data-l="fr">Retour au Projet Sauvegarde</span></a>
+  <div class="kicker"><span data-l="en">RANGER RUMBLE</span><span data-l="fr">RANGER RUMBLE</span></div>
+  <h1><span class="g"><span data-l="en">Global Ranking</span><span data-l="fr">Classement mondial</span></span></h1>
+  <div class="meta">
+    <span class="pill">&#9733; <span data-l="en">Medals leaderboard</span><span data-l="fr">Classement des médailles</span></span>
+    <span class="pill">&#8635; <span data-l="en">Updated every 24h</span><span data-l="fr">Mis à jour toutes les 24&nbsp;h</span></span>
+    <span id="maj"></span>
+  </div>
+  <div id="list"><div class="loading"><span data-l="en">Loading ranking…</span><span data-l="fr">Chargement du classement…</span></div></div>
+  <div class="foot">
+    <span data-l="en">Demo data while the community server is being built. Medal scores of Ranger Rumble players.</span>
+    <span data-l="fr">Données de démonstration en attendant le serveur communautaire. Scores de médailles des joueurs de Ranger Rumble.</span>
+  </div>
+</div>
+
+<footer>
+  <div style="font-family:'Orbitron',sans-serif;font-weight:900;color:var(--text);margin-bottom:10px">RATCHET LEGACY</div>
+  <span data-l="en">A fan project, not affiliated with Insomniac Games, Oh BiBi or Sony.</span>
+  <span data-l="fr">Un projet de fan, sans affiliation avec Insomniac Games, Oh BiBi ou Sony.</span>
+</footer>
+
+<script>
+const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
+const sb=window.supabase?window.supabase.createClient(SB_URL,SB_KEY):null;
+const MED={1:'🥇',2:'🥈',3:'🥉'};
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* language (same behaviour as the rest of the site) */
+let LANG='en';
+try{ LANG=localStorage.getItem('rl-lang') || ((navigator.language||'').startsWith('fr')?'fr':'en'); }catch(e){ LANG=(navigator.language||'').startsWith('fr')?'fr':'en'; }
+function setLang(l){ LANG=l; document.documentElement.lang=l;
+  document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l));
+  try{localStorage.setItem('rl-lang',l);}catch(e){} }
+document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.set)));
+setLang(LANG);
+
+async function load(){
+  const el=document.getElementById('list');
+  try{
+    let rows=[];
+    if(sb){ const {data,error}=await sb.from('sauvegarde_classement').select('pseudo,medailles,pays,updated_at').order('medailles',{ascending:false}); if(error)throw error; rows=data||[]; }
+    else { const r=await fetch(SB_URL+'/rest/v1/sauvegarde_classement?select=pseudo,medailles,pays,updated_at&order=medailles.desc',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}); rows=await r.json(); }
+    if(!rows.length){ el.innerHTML='<div class="loading"><span data-l="en">No scores yet.</span><span data-l="fr">Aucun score pour l\'instant.</span></div>'; return; }
+    let html='',latest=0;
+    rows.forEach((p,i)=>{ const rk=i+1; if(p.updated_at){const t=Date.parse(p.updated_at);if(t>latest)latest=t;}
+      html+='<div class="row r'+rk+'"><div class="rank">'+(MED[rk]||rk)+'</div>'+
+        '<div class="who"><span class="flag">'+esc(p.pays||'🏳️')+'</span><span class="name">'+esc(p.pseudo)+'</span></div>'+
+        '<div class="score">'+Number(p.medailles).toLocaleString(LANG==='fr'?'fr-FR':'en-US')+'<small><span data-l="en">medals</span><span data-l="fr">médailles</span></small></div></div>';
+    });
+    el.innerHTML=html;
+    if(latest){ const d=new Date(latest); const maj=document.getElementById('maj');
+      maj.textContent=(LANG==='fr'?'Dernière maj : ':'Last update: ')+d.toLocaleDateString(LANG==='fr'?'fr-FR':'en-US',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }
+  }catch(e){ el.innerHTML='<div class="loading"><span data-l="en">Ranking temporarily unavailable.</span><span data-l="fr">Classement momentanément indisponible.</span></div>'; }
+}
+load();
+</script>
+</body>
+</html>

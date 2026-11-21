@@ -239,6 +239,20 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   .slots{grid-template-columns:1fr 1fr}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+
+/* leaderboard */
+.lb-wrap{background:var(--bg2);border:1px solid var(--line);border-radius:22px;padding:24px 26px;max-width:560px}
+.lb-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+.lb-head .maj{font-size:.72rem;color:var(--text-dim)}
+.lb-row{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:12px;padding:11px 10px;border-radius:12px}
+.lb-row+.lb-row{border-top:1px solid var(--line)}
+.lb-row .rk{font:900 1rem 'Orbitron',sans-serif;text-align:center;color:var(--text-dim)}
+.lb-row.r1 .rk{color:var(--gold)}.lb-row.r2 .rk{color:#CFE0FF}.lb-row.r3 .rk{color:#E59A5B}
+.lb-row .nm{display:flex;align-items:center;gap:9px;font-weight:700;font-size:.96rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-row .sc{font:900 1rem 'Orbitron',sans-serif;color:var(--gold);white-space:nowrap}
+.lb-more{display:inline-flex;align-items:center;gap:8px;margin-top:16px;padding:11px 18px;border-radius:11px;font-weight:700;font-size:.9rem;background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff}
+.lb-more:hover{filter:brightness(1.08)}
+.lb-loading{color:var(--text-dim);padding:16px 4px;font-size:.9rem}
 </style>
 </head>
 <body>
@@ -328,6 +342,21 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <div class="pct" id="pct">0%<small id="pct-sub"></small></div>
     <div class="bar"><i id="bar"></i></div>
     <ul class="steps" id="steps"></ul>
+  </div>
+</section>
+
+<!-- LEADERBOARD -->
+<section class="reveal" id="leaderboard">
+  <div class="kicker"><span data-l="en">COMMUNITY</span><span data-l="fr">COMMUNAUTÉ</span></div>
+  <h2><span data-l="en">Medal leaderboard</span><span data-l="fr">Classement des médailles</span></h2>
+  <p class="intro"><span data-l="en">The top players by medals won in Ranger Rumble. Updated every 24 hours.</span><span data-l="fr">Les meilleurs joueurs aux médailles gagnées dans Ranger Rumble. Mis à jour toutes les 24 heures.</span></p>
+  <div class="lb-wrap">
+    <div class="lb-head">
+      <div class="sub-h" style="margin:0">★ <span data-l="en">Top 5</span><span data-l="fr">Top 5</span></div>
+      <div class="maj" id="lb-maj"></div>
+    </div>
+    <div id="lb-list"><div class="lb-loading"><span data-l="en">Loading…</span><span data-l="fr">Chargement…</span></div></div>
+    <a class="lb-more" href="classement.html"><span data-l="en">Full ranking</span><span data-l="fr">Classement complet</span> →</a>
   </div>
 </section>
 
@@ -590,8 +619,25 @@ async function load(){
   }catch(e){ console.warn(e); }
   renderSteps(); renderTabs(); renderMedia();
 }
+async function renderLeaderboard(){
+  const el=document.getElementById('lb-list'); if(!el) return;
+  try{
+    let rows=[];
+    if(sb){ const {data}=await sb.from('sauvegarde_classement').select('pseudo,medailles,pays,updated_at').order('medailles',{ascending:false}).limit(5); rows=data||[]; }
+    else { const r=await fetch(SB_URL+'/rest/v1/sauvegarde_classement?select=pseudo,medailles,pays,updated_at&order=medailles.desc&limit=5',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}); rows=await r.json(); }
+    if(!rows.length){ el.innerHTML='<div class="lb-loading">—</div>'; return; }
+    const MED={1:'🥇',2:'🥈',3:'🥉'}; let h='',latest=0;
+    rows.forEach((p,i)=>{ const rk=i+1; if(p.updated_at){const t=Date.parse(p.updated_at);if(t>latest)latest=t;}
+      h+=`<div class="lb-row r${rk}"><div class="rk">${MED[rk]||rk}</div><div class="nm">${esc(p.pays||'🏳️')} ${esc(p.pseudo)}</div><div class="sc">${Number(p.medailles).toLocaleString(LANG==='fr'?'fr-FR':'en-US')}</div></div>`;
+    });
+    el.innerHTML=h;
+    const mj=document.getElementById('lb-maj');
+    if(latest&&mj){ mj.textContent=(LANG==='fr'?'maj ':'upd. ')+new Date(latest).toLocaleDateString(LANG==='fr'?'fr-FR':'en-US',{day:'numeric',month:'short'}); }
+  }catch(e){ console.warn(e); el.innerHTML='<div class="lb-loading">—</div>'; }
+}
 setLang(LANG);
 load();
+renderLeaderboard();
 </script>
 </body>
 </html>
