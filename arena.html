@@ -25,7 +25,6 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
-/* NAV */
 .nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(10,11,20,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .nav-logo{display:flex;align-items:center;gap:11px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.02rem;letter-spacing:.06em}
 .nav-logo .mark{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:1.15rem}
@@ -34,8 +33,7 @@ a{color:inherit;text-decoration:none}
 .lang button.on{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff}
 [data-l]{display:none}
 html[lang="en"] [data-l="en"],html[lang="fr"] [data-l="fr"]{display:revert}
-/* HERO */
-.hero{position:relative;min-height:88vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:124px 24px 64px;overflow:hidden;isolation:isolate}
+.hero{position:relative;min-height:86vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:124px 24px 60px;overflow:hidden;isolation:isolate}
 .hero-bg{position:absolute;inset:-20px;background:var(--cover) center/cover no-repeat;filter:blur(7px) saturate(1.3) brightness(.3);transform:scale(1.06);z-index:-3}
 .hero-grid{position:absolute;inset:0;z-index:-2;background:linear-gradient(transparent 0,var(--bg) 92%),repeating-linear-gradient(0deg,rgba(123,79,212,.06) 0 1px,transparent 1px 42px),repeating-linear-gradient(90deg,rgba(255,107,26,.05) 0 1px,transparent 1px 42px)}
 .hero-glow{position:absolute;top:18%;left:50%;width:720px;height:420px;transform:translateX(-50%);z-index:-1;background:radial-gradient(ellipse at center,rgba(123,79,212,.28),transparent 68%)}
@@ -60,22 +58,25 @@ h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2.1rem,7vw,
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(255,107,26,.4)}
 .btn-ghost{background:rgba(16,18,31,.6);border-color:var(--line);color:var(--text)}
 .btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
-.scroll-hint{margin-top:38px;color:var(--text-dim);font-size:.78rem;letter-spacing:.2em;animation:bob 2s ease-in-out infinite}
+.scroll-hint{margin-top:36px;color:var(--text-dim);font-size:.78rem;letter-spacing:.2em;animation:bob 2s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(8px)}}
 @keyframes pulse{50%{opacity:.35}}
-/* SECTIONS */
 section{max-width:1080px;margin:0 auto;padding:60px 22px 0}
-.kicker{font:700 .7rem 'Orbitron',sans-serif;letter-spacing:.26em;color:var(--orange-light);margin-bottom:10px}
-h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.5rem,4vw,2.2rem);margin-bottom:6px;line-height:1.1;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.sub{color:var(--text-dim);font-size:.94rem;max-width:720px;margin-bottom:20px}
+.kicker{font:700 .7rem 'Orbitron',sans-serif;letter-spacing:.26em;color:var(--orange-light);margin-bottom:12px}
+h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.4rem,3.6vw,2rem);margin-bottom:6px;line-height:1.1;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sub{color:var(--text-dim);font-size:.94rem;max-width:720px;margin-bottom:18px}
 .live{display:inline-flex;align-items:center;gap:6px;font:700 .62rem 'Orbitron',sans-serif;letter-spacing:.14em;color:var(--green);border:1px solid rgba(61,214,140,.35);background:rgba(61,214,140,.08);border-radius:30px;padding:4px 10px}
 .live .d{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.6s infinite}
-/* FEATURED CLASSEMENT */
+/* SWITCH */
+.switch{display:inline-flex;gap:4px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:5px;margin-bottom:22px}
+.switch button{display:inline-flex;align-items:center;gap:7px;border:none;background:none;color:var(--text-dim);font:700 .86rem 'Orbitron',sans-serif;letter-spacing:.02em;padding:11px 20px;border-radius:10px;cursor:pointer;transition:.18s}
+.switch button.on{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;box-shadow:0 6px 20px rgba(123,79,212,.3)}
+/* RANK */
 .rankwrap{position:relative;border-radius:22px;padding:2px;background:linear-gradient(130deg,var(--online),var(--purple),var(--orange),var(--gold));background-size:300% 300%;animation:flow 9s ease infinite;box-shadow:0 20px 60px rgba(79,157,255,.14)}
 @keyframes flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-.rankcard{background:#0b0d17;border-radius:20px;padding:24px 22px 26px;overflow:hidden}
+.rankcard{background:#0b0d17;border-radius:20px;padding:24px 22px 26px}
 .podium{display:flex;gap:12px;justify-content:center;align-items:flex-end;margin:6px 0 20px;flex-wrap:wrap}
-.pod{flex:1;max-width:220px;min-width:150px;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px 12px;text-align:center;position:relative}
+.pod{flex:1;max-width:220px;min-width:150px;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px 12px;text-align:center}
 .pod.p1{border-color:rgba(255,200,90,.5);box-shadow:0 0 34px rgba(255,200,90,.16);transform:translateY(-8px)}
 .pod.p2{border-color:rgba(207,224,255,.35)}
 .pod.p3{border-color:rgba(229,154,91,.35)}
@@ -97,14 +98,22 @@ h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.5rem,4vw,
 .row .sc small{display:block;font:500 .64rem 'Inter';color:var(--text-dim)}
 .rankcta{display:flex;justify-content:center;margin-top:20px}
 .loading{text-align:center;color:var(--text-dim);padding:28px 0}
-/* TROPHIES teaser */
-.troph{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;background:linear-gradient(135deg,rgba(255,200,90,.1),var(--bg2));border:1px solid rgba(255,200,90,.28);border-radius:20px;padding:22px}
-.troph .big{font-size:2.6rem}
-.troph h3{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.2rem;margin-bottom:4px}
-.troph p{color:var(--text-mid);font-size:.88rem}
-.tierdots{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
-.tierdot{display:inline-flex;align-items:center;gap:5px;font:700 .64rem 'Inter';color:var(--text-dim)}
-.tierdot i{width:9px;height:9px;border-radius:50%;display:inline-block}
+/* TROPHIES */
+.tfilter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tfilter .f{font:600 .72rem 'Orbitron',sans-serif;letter-spacing:.04em;color:var(--text-dim);background:var(--bg2);border:1px solid var(--line);border-radius:30px;padding:8px 15px;cursor:pointer}
+.tfilter .f.on{color:#fff;background:linear-gradient(135deg,var(--purple),var(--orange));border-color:transparent}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:13px}
+.t{position:relative;display:flex;gap:13px;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:14px;overflow:hidden}
+.rail{position:absolute;left:0;top:0;bottom:0;width:5px}
+.cup{flex:0 0 auto;width:58px;height:58px}
+.ti{flex:1;min-width:0}
+.tn{font-family:'Orbitron',sans-serif;font-weight:700;font-size:.98rem;display:flex;align-items:center;gap:8px}
+.badge-ol{font:700 .52rem 'Inter';letter-spacing:.08em;color:#bcd8ff;background:#1b2b4a;border:1px solid #2d4a7a;border-radius:5px;padding:2px 6px}
+.td{color:var(--text-dim);font-size:.82rem;margin:4px 0 9px;line-height:1.4}
+.bar{height:7px;border-radius:30px;background:#0c0e18;border:1px solid var(--line);overflow:hidden}
+.barf{height:100%;border-radius:30px}
+.pc{display:flex;justify-content:space-between;align-items:center;margin-top:7px;font-size:.76rem;color:var(--text-dim)}
+.rare{color:var(--gold)!important;font-weight:700}
 /* MODES */
 .modes{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:13px}
 .mode{display:flex;gap:14px;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:16px;transition:.2s;position:relative;overflow:hidden}
@@ -118,7 +127,7 @@ h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.5rem,4vw,
 footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;color:var(--text-dim);margin-top:60px;font-size:.8rem}
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
 .reveal.in{opacity:1;transform:none}
-@media(max-width:620px){.troph{grid-template-columns:1fr;text-align:center}.troph .big{margin:0 auto}}
+@media(max-width:620px){.grid,.modes{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -144,49 +153,52 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
       <span class="chip">🌍 <b id="chip-players">—</b> <span data-l="en">ranked</span><span data-l="fr">classés</span></span>
     </div>
     <div class="hbtns">
-      <a class="btn btn-primary" href="#ranking">🌍 <span data-l="en">Global ranking</span><span data-l="fr">Classement mondial</span></a>
-      <a class="btn btn-ghost" href="trophees.html">🏆 <span data-l="en">Trophies</span><span data-l="fr">Trophées</span></a>
+      <button class="btn btn-primary" onclick="goView('rank')">🌍 <span data-l="en">Global ranking</span><span data-l="fr">Classement mondial</span></button>
+      <button class="btn btn-ghost" onclick="goView('troph')">🏆 <span data-l="en">Trophies</span><span data-l="fr">Trophées</span></button>
     </div>
-    <div class="scroll-hint">▼ <span data-l="en">THE LEADERBOARD</span><span data-l="fr">LE CLASSEMENT</span></div>
+    <div class="scroll-hint">▼ <span data-l="en">RANKING &amp; TROPHIES</span><span data-l="fr">CLASSEMENT &amp; TROPHÉES</span></div>
   </div>
 </header>
 
-<!-- FEATURED: CLASSEMENT -->
-<section id="ranking" class="reveal">
+<!-- HUB: switch between ranking and trophies -->
+<section id="hub" class="reveal">
   <div class="kicker">RANGER RUMBLE ARENA</div>
-  <h2>🌍 <span data-l="en">Global ranking</span><span data-l="fr">Classement mondial</span>
-    <span class="live"><span class="d"></span><span data-l="en">LIVE</span><span data-l="fr">EN DIRECT</span></span>
-  </h2>
-  <div class="sub">
-    <span data-l="en">The best Rangers in the world, by medals. Updated live as players send their score from the launcher.</span>
-    <span data-l="fr">Les meilleurs Rangers du monde, au nombre de médailles. Mis à jour en direct quand les joueurs envoient leur score depuis le lanceur.</span>
+  <div class="switch">
+    <button data-v="rank" class="on" onclick="setView('rank')">🌍 <span data-l="en">Ranking</span><span data-l="fr">Classement</span></button>
+    <button data-v="troph" onclick="setView('troph')">🏆 <span data-l="en">Trophies</span><span data-l="fr">Trophées</span></button>
   </div>
-  <div class="rankwrap">
-    <div class="rankcard">
-      <div class="podium" id="podium"></div>
-      <div class="rows" id="rows"><div class="loading"><span data-l="en">Loading ranking…</span><span data-l="fr">Chargement du classement…</span></div></div>
-      <div class="rankcta">
-        <a class="btn btn-primary" href="classement.html">🏅 <span data-l="en">See the full ranking &amp; player stats</span><span data-l="fr">Voir le classement complet &amp; les stats</span> →</a>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- TROPHIES -->
-<section class="reveal">
-  <div class="troph">
-    <div class="big">🏆</div>
-    <div>
-      <h3><span data-l="en">44 trophies + the platinum</span><span data-l="fr">44 trophées + le platine</span></h3>
-      <p><span data-l="en">Earn them by playing, even offline. Each one shows its worldwide unlock rate — some are seriously rare.</span><span data-l="fr">Décroche-les en jouant, même hors-ligne. Chacun affiche son pourcentage mondial de déblocage — certains sont vraiment rares.</span></p>
-      <div class="tierdots">
-        <span class="tierdot"><i style="background:var(--bronze)"></i>Bronze</span>
-        <span class="tierdot"><i style="background:var(--silver)"></i><span data-l="en">Silver</span><span data-l="fr">Argent</span></span>
-        <span class="tierdot"><i style="background:var(--gold)"></i><span data-l="en">Gold</span><span data-l="fr">Or</span></span>
-        <span class="tierdot"><i style="background:var(--online)"></i><span data-l="en">Online</span><span data-l="fr">En ligne</span></span>
+  <!-- RANK VIEW -->
+  <div id="view-rank">
+    <h2>🌍 <span data-l="en">Global ranking</span><span data-l="fr">Classement mondial</span>
+      <span class="live"><span class="d"></span><span data-l="en">LIVE</span><span data-l="fr">EN DIRECT</span></span>
+    </h2>
+    <div class="sub">
+      <span data-l="en">The best Rangers in the world, by medals. Updated live as players send their score from the launcher.</span>
+      <span data-l="fr">Les meilleurs Rangers du monde, au nombre de médailles. Mis à jour en direct quand les joueurs envoient leur score depuis le lanceur.</span>
+    </div>
+    <div class="rankwrap">
+      <div class="rankcard">
+        <div class="podium" id="podium"></div>
+        <div class="rows" id="rows"><div class="loading"><span data-l="en">Loading ranking…</span><span data-l="fr">Chargement du classement…</span></div></div>
+        <div class="rankcta">
+          <a class="btn btn-ghost" href="classement.html">🏅 <span data-l="en">Full ranking &amp; player stats by country</span><span data-l="fr">Classement complet &amp; stats par pays</span> →</a>
+        </div>
       </div>
     </div>
-    <a class="btn btn-ghost" href="trophees.html"><span data-l="en">Open</span><span data-l="fr">Ouvrir</span> →</a>
+  </div>
+
+  <!-- TROPHIES VIEW -->
+  <div id="view-troph" style="display:none">
+    <h2>🏆 <span data-l="en">Trophies</span><span data-l="fr">Trophées</span>
+      <span class="live"><span class="d"></span><span data-l="en">LIVE</span><span data-l="fr">EN DIRECT</span></span>
+    </h2>
+    <div class="sub">
+      <span data-l="en">The 44 trophies plus the platinum — earned by playing, even offline. Each shows its worldwide unlock rate; ≤10% is marked RARE.</span>
+      <span data-l="fr">Les 44 trophées plus le platine — à décrocher en jouant, même hors-ligne. Chacun affiche son pourcentage mondial ; ≤10 % est marqué RARE.</span>
+    </div>
+    <div class="tfilter" id="tfilter"></div>
+    <div class="grid" id="grid"></div>
   </div>
 </section>
 
@@ -201,14 +213,10 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <div class="modes" id="modes"></div>
 </section>
 
-<!-- ABOUT / NOTE -->
 <section class="reveal">
   <div class="note">
     <span data-l="en"><b>How it works:</b> Ranger Rumble is a hero shooter set in Captain Qwark's combat simulation. The Arena edition rebuilds it to run without its servers — an emulator, a small local server and the final build — so it starts and plays offline. Your personal progress lives in the launcher on your PC; the ranking and trophy rates are fed anonymously when players choose to send their score.</span>
     <span data-l="fr"><b>Comment ça marche :</b> Ranger Rumble est un hero shooter qui se déroule dans la simulation de combat du Capitaine Qwark. L'édition Arena le reconstruit pour qu'il tourne sans ses serveurs — un émulateur, un petit serveur local et la version finale — pour qu'il démarre et se joue hors-ligne. Ta progression personnelle vit dans le lanceur sur ton PC ; le classement et les pourcentages de trophées sont alimentés anonymement quand les joueurs choisissent d'envoyer leur score.</span>
-  </div>
-  <div style="margin-top:22px">
-    <a class="btn btn-ghost" href="preservation.html">🗄️ <span data-l="en">How the game is being preserved</span><span data-l="fr">Comment le jeu est préservé</span></a>
   </div>
 </section>
 
@@ -238,8 +246,67 @@ const MODES=[
  {icon:"https://res.cloudinary.com/dmfq8hkvu/image/upload/Wiki/RangerRumble/rr-mode-mob-rush.webp",name:"Mob Rush",info:"Solo · PvE",info_fr:"Solo · PvE",text:"Defend Captain Qwark's vault against waves of enemies (3 to 9 waves per stage) across 17 stages on Corson V, Torren IV and Sargasso.",text_fr:"Défends le coffre du Capitaine Qwark contre des vagues d'ennemis (3 à 9 vagues par étape) sur 17 étapes, sur Corson V, Torren IV et Sargasso."}
 ];
 
+const T=[
+ ["win1","Première victoire","First victory","Remporter ta première partie.","Win your first match.","b"],
+ ["win10","Habitué du podium","Podium regular","Remporter 10 parties.","Win 10 matches.","b"],
+ ["win50","Vétéran de l'arène","Arena veteran","Remporter 50 parties.","Win 50 matches.","s"],
+ ["win100","Centurion","Centurion","Remporter 100 parties.","Win 100 matches.","s"],
+ ["win250","Champion","Champion","Remporter 250 parties.","Win 250 matches.","g"],
+ ["win500","Invincible","Invincible","Remporter 500 parties.","Win 500 matches.","g"],
+ ["modeall","Touche-à-tout","Jack of all modes","Jouer à tous les modes disponibles.","Play every available mode.","b"],
+ ["modewin","Maître polyvalent","Versatile master","Gagner dans chaque mode de jeu.","Win in each game mode.","s"],
+ ["modeunlock","Explorateur","Explorer","Débloquer tous les modes de jeu.","Unlock all game modes.","s"],
+ ["med1","Première médaille","First medal","Décrocher ta première médaille.","Earn your first medal.","b"],
+ ["med250","Médaillé de bronze","Bronze medalist","Atteindre 250 médailles.","Reach 250 medals.","b"],
+ ["med1000","Médaillé d'argent","Silver medalist","Atteindre 1 000 médailles.","Reach 1,000 medals.","s"],
+ ["med2000","Médaillé d'or","Gold medalist","Atteindre 2 000 médailles.","Reach 2,000 medals.","g"],
+ ["med3000","Collectionneur de médailles","Medal collector","Atteindre 3 000 médailles.","Reach 3,000 medals.","g"],
+ ["med5000","Légende des médailles","Medal legend","Atteindre 5 000 médailles.","Reach 5,000 medals.","g"],
+ ["hero1","Premier Ranger","First Ranger","Débloquer un héros.","Unlock a hero.","b"],
+ ["hero4","Petite équipe","Small squad","Débloquer 4 héros.","Unlock 4 heroes.","b"],
+ ["hero8","Grande équipe","Big squad","Débloquer 8 héros.","Unlock 8 heroes.","s"],
+ ["heroall","Roster complet","Full roster","Débloquer tous les héros.","Unlock all heroes.","g"],
+ ["herolvl5","Héros aguerri","Seasoned hero","Monter un héros au niveau 5.","Level a hero to 5.","b"],
+ ["herolvl10","Héros légendaire","Legendary hero","Monter un héros au niveau 10.","Level a hero to 10.","s"],
+ ["wpn1","Première arme","First weapon","Débloquer une arme.","Unlock a weapon.","b"],
+ ["wpn5","Arsenal de base","Starter arsenal","Débloquer 5 armes.","Unlock 5 weapons.","b"],
+ ["wpn15","Armurier","Gunsmith","Débloquer 15 armes.","Unlock 15 weapons.","s"],
+ ["wpnall","Collection d'armes","Weapon collection","Débloquer toutes les armes.","Unlock all weapons.","g"],
+ ["wpnlvl5","Arme maîtrisée","Mastered weapon","Monter une arme au niveau 5.","Level a weapon to 5.","s"],
+ ["skin1","Première tenue","First outfit","Débloquer un skin.","Unlock a skin.","b"],
+ ["skin10","Garde-robe","Wardrobe","Débloquer 10 skins.","Unlock 10 skins.","b"],
+ ["skin20","Fashion victim","Fashion victim","Débloquer 20 skins.","Unlock 20 skins.","s"],
+ ["skin40","Styliste ultime","Ultimate stylist","Débloquer 40 skins.","Unlock 40 skins.","g"],
+ ["lvl5","Nouvelle recrue","New recruit","Atteindre le niveau 5.","Reach level 5.","b"],
+ ["lvl10","Gradé","Ranked up","Atteindre le niveau 10.","Reach level 10.","b"],
+ ["lvl20","Officier","Officer","Atteindre le niveau 20.","Reach level 20.","s"],
+ ["lvl30","Élite","Elite","Atteindre le niveau 30.","Reach level 30.","g"],
+ ["play10","Débutant appliqué","Keen beginner","Jouer 10 parties.","Play 10 matches.","b"],
+ ["play50","Joueur assidu","Regular player","Jouer 50 parties.","Play 50 matches.","b"],
+ ["play100","Marathonien","Marathoner","Jouer 100 parties.","Play 100 matches.","s"],
+ ["play500","Vie dans l'arène","Arena life","Jouer 500 parties.","Play 500 matches.","g"],
+ ["bolts","Fortune","Fortune","Accumuler 100 000 boulons.","Hoard 100,000 bolts.","s"],
+ ["ol_submit","Connecté","Online","Envoyer ton score au classement mondial.","Send your score to the global ranking.","o"],
+ ["ol_rank","Classé","Ranked","Apparaître dans le classement mondial.","Appear in the global ranking.","o"],
+ ["ol_top10","Top 10 mondial","World top 10","Entrer dans le top 10 du classement.","Reach the global top 10.","o"],
+ ["ol_tourn","Compétiteur","Competitor","Participer à un tournoi en ligne.","Join an online tournament.","o"],
+ ["ol_reward","Récompense réclamée","Reward claimed","Récupérer une récompense en ligne.","Claim an online reward.","o"]
+];
+const TIER={b:{c:'var(--bronze)'},s:{c:'var(--silver)'},g:{c:'var(--gold)'},o:{c:'var(--online)'}};
+const TLABEL={all:{fr:'Tous',en:'All'},b:{fr:'Bronze',en:'Bronze'},s:{fr:'Argent',en:'Silver'},g:{fr:'Or',en:'Gold'},o:{fr:'En ligne',en:'Online'}};
+function cup(color,size){return `<svg viewBox="0 0 64 64" width="${size}" height="${size}"><path d="M20 10h24v6c0 9-5 15-12 16-7-1-12-7-12-16z" fill="${color}"/><path d="M18 12h-6c0 8 4 12 10 13" fill="none" stroke="${color}" stroke-width="3"/><path d="M46 12h6c0 8-4 12-10 13" fill="none" stroke="${color}" stroke-width="3"/><rect x="29" y="31" width="6" height="8" fill="${color}"/><rect x="22" y="39" width="20" height="5" rx="2" fill="${color}"/><rect x="19" y="44" width="26" height="6" rx="2" fill="${color}"/></svg>`;}
+
 let LANG='en';
 try{ LANG=localStorage.getItem('rl-lang')||((navigator.language||'').startsWith('fr')?'fr':'en'); }catch(e){ LANG=(navigator.language||'').startsWith('fr')?'fr':'en'; }
+let VIEW='rank', ROWS=[], PCT={}, NB={}, TOTAL=0, TFILTER='all';
+
+function setView(v){
+  VIEW=v;
+  document.querySelectorAll('.switch button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  document.getElementById('view-rank').style.display=(v==='rank')?'':'none';
+  document.getElementById('view-troph').style.display=(v==='troph')?'':'none';
+}
+function goView(v){ setView(v); document.getElementById('hub').scrollIntoView({behavior:'smooth',block:'start'}); }
 
 function renderModes(){
   document.getElementById('modes').innerHTML=MODES.map(m=>{
@@ -248,7 +315,6 @@ function renderModes(){
   }).join('');
 }
 
-let ROWS=[];
 function renderRank(){
   const pod=document.getElementById('podium'); const rows=document.getElementById('rows');
   if(!ROWS.length){ rows.innerHTML='<div class="loading"><span data-l="en">No scores yet — be the first.</span><span data-l="fr">Aucun score pour l\'instant — sois le premier.</span></div>'; pod.innerHTML=''; return; }
@@ -260,27 +326,52 @@ function renderRank(){
   }).join('');
 }
 
+function renderTFilter(){
+  document.getElementById('tfilter').innerHTML=['all','b','s','g','o'].map(k=>'<div class="f'+(k===TFILTER?' on':'')+'" data-k="'+k+'">'+TLABEL[k][LANG]+'</div>').join('');
+  document.querySelectorAll('#tfilter .f').forEach(f=>f.onclick=()=>{TFILTER=f.dataset.k;renderTroph();});
+}
+function renderTroph(){
+  renderTFilter();
+  const grid=document.getElementById('grid'); grid.innerHTML='';
+  const list=T.filter(t=>TFILTER==='all'?true:t[5]===TFILTER);
+  for(const t of list){
+    const [code,fr,en,dfr,den,tier]=t; const online=tier==='o';
+    const col=TIER[tier].c; const pct=PCT[code]; const nb=NB[code]||0;
+    const el=document.createElement('div'); el.className='t';
+    el.innerHTML='<div class="rail" style="background:'+col+'"></div><div class="cup">'+cup(col,58)+'</div><div class="ti"><div class="tn">'+(LANG==='fr'?fr:en)+(online?'<span class="badge-ol">'+(LANG==='fr'?'EN LIGNE':'ONLINE')+'</span>':'')+'</div><div class="td">'+(LANG==='fr'?dfr:den)+'</div><div class="bar"><div class="barf" style="width:'+(pct!=null?Math.min(100,pct):0)+'%;background:'+col+'"></div></div><div class="pc"><span>'+(pct!=null?('<b>'+pct+'%</b> '+(LANG==='fr'?'des joueurs':'of players')):(LANG==='fr'?'Pas encore de données':'No data yet'))+(pct!=null&&pct<=10?' · <span class="rare">RARE</span>':'')+'</span><span>'+(nb?nb+(LANG==='fr'?' joueur'+(nb>1?'s':''):' player'+(nb>1?'s':'')):'')+'</span></div></div>';
+    grid.appendChild(el);
+  }
+}
+
 async function loadRank(){
   try{
     let rows=[];
     if(sb){ const {data}=await sb.from('joueurs_stats').select('pseudo,medailles,victoires,trophees,platine,pays').order('medailles',{ascending:false}).limit(10); rows=data||[]; }
     else { const r=await fetch(SB_URL+'/rest/v1/joueurs_stats?select=pseudo,medailles,victoires,trophees,platine,pays&order=medailles.desc&limit=10',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}); rows=await r.json(); }
     ROWS=Array.isArray(rows)?rows:[];
-    let tot=0;
-    if(sb){ const c=await sb.from('joueurs_stats').select('pseudo',{count:'exact',head:true}); tot=c.count||ROWS.length; }
-    document.getElementById('chip-players').textContent=tot||ROWS.length;
   }catch(e){ ROWS=[]; }
   renderRank();
 }
+async function loadTroph(){
+  try{
+    let pct=[];
+    if(sb){ const a=await sb.from('trophee_pourcentage').select('trophee_code,nb_joueurs,pct'); pct=a.data||[];
+      const c=await sb.from('joueurs_stats').select('pseudo',{count:'exact',head:true}); TOTAL=c.count||0; }
+    else { const r=await fetch(SB_URL+'/rest/v1/trophee_pourcentage?select=trophee_code,nb_joueurs,pct',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}); pct=await r.json(); }
+    (pct||[]).forEach(x=>{PCT[x.trophee_code]=x.pct; NB[x.trophee_code]=x.nb_joueurs;});
+  }catch(e){}
+  document.getElementById('chip-players').textContent=TOTAL||'—';
+  renderTroph();
+}
 
-function setLang(l){ LANG=l; document.documentElement.lang=l; document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l)); try{localStorage.setItem('rl-lang',l);}catch(e){} renderModes(); renderRank(); }
+function setLang(l){ LANG=l; document.documentElement.lang=l; document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l)); try{localStorage.setItem('rl-lang',l);}catch(e){} renderModes(); renderRank(); renderTroph(); }
 document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.set)));
 
-// reveal on scroll
-const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}),{threshold:.12});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}),{threshold:.1});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-setLang(LANG); loadRank(); setInterval(loadRank,30000);
+if(location.hash==='#troph'||location.hash==='#trophees'){ setView('troph'); } else { setView('rank'); }
+setLang(LANG); loadRank(); loadTroph(); setInterval(loadRank,30000);
 </script>
 </body>
 </html>
