@@ -181,6 +181,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
       <div class="rankcard">
         <div class="podium" id="podium"></div>
         <div class="rows" id="rows"><div class="loading"><span data-l="en">Loading ranking…</span><span data-l="fr">Chargement du classement…</span></div></div>
+        <div id="mystats" style="margin-top:16px"></div>
         <div class="rankcta">
           <a class="btn btn-ghost" href="classement.html">🏅 <span data-l="en">Full ranking &amp; player stats by country</span><span data-l="fr">Classement complet &amp; stats par pays</span> →</a>
         </div>
@@ -343,6 +344,20 @@ function renderTroph(){
   }
 }
 
+function renderMyStats(){
+  const r=window.MYROW; if(!r) return; const fr=LANG==='fr';
+  const items=[[fr?'Médailles':'Medals',nf(r.medailles)],[fr?'Victoires':'Wins',nf(r.victoires)],[fr?'Parties':'Matches',nf(r.parties)],[fr?'Niveau':'Level',r.niveau],[fr?'Héros':'Heroes',r.heros],[fr?'Armes':'Weapons',r.armes],['Skins',r.skins],[fr?'Trophées':'Trophies',(r.trophees||0)+'/44'],[fr?'Boulons':'Bolts',nf(r.boulons)]];
+  const tiles=items.map(x=>'<div style="background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-family:Orbitron;font-weight:900;font-size:1.25rem;color:var(--gold);line-height:1.1">'+x[1]+'</div><div style="font-size:.64rem;color:var(--text-dim);letter-spacing:.04em;text-transform:uppercase;margin-top:3px">'+x[0]+'</div></div>').join('');
+  document.getElementById('mystats').innerHTML='<div style="background:linear-gradient(135deg,rgba(123,79,212,.12),var(--bg2));border:1px solid rgba(155,111,244,.4);border-radius:16px;padding:18px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap"><span style="font-family:Orbitron;font-weight:900;font-size:1.05rem">'+esc(r.pseudo)+'</span><span class="bdg b-creator">'+(fr?'CRÉATEUR':'CREATOR')+'</span>'+(r.platine?'<span class="bdg b-plat">PLATINE</span>':'')+(r.pays?'<span style="font-size:1.1rem">'+(FLAG[r.pays]||'')+'</span>':'')+'<span style="margin-left:auto;font:700 .7rem Orbitron;color:var(--text-dim);letter-spacing:.14em">'+(fr?'MES STATS':'MY STATS')+'</span></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:9px">'+tiles+'</div></div>';
+}
+async function loadMyStats(){
+  try{
+    let row=null;
+    if(sb){ const {data}=await sb.from('joueurs_stats').select('*').eq('pseudo',MOI).single(); row=data; }
+    else { const r=await fetch(SB_URL+'/rest/v1/joueurs_stats?select=*&pseudo=eq.'+MOI,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}); row=(await r.json())[0]; }
+    window.MYROW=row; renderMyStats();
+  }catch(e){}
+}
 async function loadRank(){
   try{
     let rows=[];
@@ -364,14 +379,14 @@ async function loadTroph(){
   renderTroph();
 }
 
-function setLang(l){ LANG=l; document.documentElement.lang=l; document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l)); try{localStorage.setItem('rl-lang',l);}catch(e){} renderModes(); renderRank(); renderTroph(); }
+function setLang(l){ LANG=l; document.documentElement.lang=l; document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l)); try{localStorage.setItem('rl-lang',l);}catch(e){} renderModes(); renderRank(); renderTroph(); renderMyStats(); }
 document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.set)));
 
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}),{threshold:.1});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
 if(location.hash==='#troph'||location.hash==='#trophees'){ setView('troph'); } else { setView('rank'); }
-setLang(LANG); loadRank(); loadTroph(); setInterval(loadRank,30000);
+setLang(LANG); loadRank(); loadTroph(); loadMyStats(); setInterval(loadRank,30000);
 </script>
 </body>
 </html>
