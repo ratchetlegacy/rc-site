@@ -146,7 +146,7 @@ function render(){
     pod.appendChild(el);
   });
   const el=document.getElementById('list');
-  if(!L.length){ el.innerHTML='<div class="loading"><span data-l="en">No scores yet.</span><span data-l="fr">Aucun score.</span></div>; return; }
+  if(!L.length){ el.innerHTML='<div class="loading"><span data-l="en">No scores yet.</span><span data-l="fr">Aucun score.</span></div>'; return; }
   let html='';
   L.forEach((p,i)=>{ const rk=i+1;
     html+='<div class="row'+(p.pseudo===MOI?' me':'')+'"><div class="rank">'+(MED[rk]||rk)+delta(p)+'</div>'+
