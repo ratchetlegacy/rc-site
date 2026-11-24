@@ -8,10 +8,11 @@
 <meta name="theme-color" content="#0A0B14"/>
 <link rel="apple-touch-icon" href="/icon-192.png"/>
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png"/>
-<meta name="description" content="Ranger Rumble Arena: the fan-preserved, offline-playable edition of Ratchet & Clank: Ranger Rumble — game modes, rules, trophies and the global ranking."/>
+<meta name="description" content="Ranger Rumble Arena: the fan-preserved, offline-playable edition of Ratchet & Clank: Ranger Rumble — live global ranking, trophies, game modes and rules."/>
 <link rel="canonical" href="https://ratchetlegacy.com/arena.html"/>
 <meta name="robots" content="noindex"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --bg:#0A0B14;--bg2:#10121F;--bg3:#181B2E;
@@ -19,10 +20,12 @@
   --gold:#FFC85A;--silver:#CFE0FF;--bronze:#E59A5B;--plat:#7FE6E0;--online:#4F9DFF;
   --green:#3DD68C;--red:#FF4D6A;
   --text:#EEF0F8;--text-dim:#8B92AD;--text-mid:#B8BED4;--line:rgba(255,255,255,.08);
+  --cover:url("https://res.cloudinary.com/dmfq8hkvu/image/upload/w_1600,f_auto,q_auto/v1793807044/ranger-rumble-mobile.jpg");
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
+/* NAV */
 .nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(10,11,20,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .nav-logo{display:flex;align-items:center;gap:11px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.02rem;letter-spacing:.06em}
 .nav-logo .mark{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:1.15rem}
@@ -31,45 +34,91 @@ a{color:inherit;text-decoration:none}
 .lang button.on{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff}
 [data-l]{display:none}
 html[lang="en"] [data-l="en"],html[lang="fr"] [data-l="fr"]{display:revert}
-.wrap{max-width:1040px;margin:0 auto;padding:116px 20px 70px}
-.back{display:inline-flex;align-items:center;gap:7px;color:var(--text-dim);font-size:.9rem;margin-bottom:22px;padding:9px 14px;border-radius:10px;background:var(--bg2);border:1px solid var(--line);transition:.18s}
-.back:hover{color:var(--text);border-color:var(--purple-light)}
+/* HERO */
+.hero{position:relative;min-height:88vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:124px 24px 64px;overflow:hidden;isolation:isolate}
+.hero-bg{position:absolute;inset:-20px;background:var(--cover) center/cover no-repeat;filter:blur(7px) saturate(1.3) brightness(.3);transform:scale(1.06);z-index:-3}
+.hero-grid{position:absolute;inset:0;z-index:-2;background:linear-gradient(transparent 0,var(--bg) 92%),repeating-linear-gradient(0deg,rgba(123,79,212,.06) 0 1px,transparent 1px 42px),repeating-linear-gradient(90deg,rgba(255,107,26,.05) 0 1px,transparent 1px 42px)}
+.hero-glow{position:absolute;top:18%;left:50%;width:720px;height:420px;transform:translateX(-50%);z-index:-1;background:radial-gradient(ellipse at center,rgba(123,79,212,.28),transparent 68%)}
+.hero-inner{max-width:900px}
+.eos{display:inline-flex;align-items:center;gap:9px;font:700 .7rem 'Orbitron',sans-serif;letter-spacing:.26em;color:var(--online);border:1px solid rgba(79,157,255,.45);background:rgba(79,157,255,.09);padding:8px 16px;border-radius:30px;margin-bottom:22px}
+.eos .dot{width:8px;height:8px;border-radius:50%;background:var(--online);box-shadow:0 0 10px var(--online);animation:pulse 1.6s infinite}
+h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2.1rem,7vw,3.8rem);line-height:1;margin-bottom:8px;text-shadow:0 2px 40px rgba(0,0,0,.6)}
+.glitch{position:relative;display:inline-block;background:linear-gradient(120deg,var(--purple-light),var(--orange));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.glitch::before,.glitch::after{content:attr(data-t);position:absolute;inset:0;-webkit-text-fill-color:currentColor;opacity:.5;pointer-events:none}
+.glitch::before{color:#3cf;animation:gl1 3.2s infinite steps(1)}
+.glitch::after{color:var(--orange);animation:gl2 2.7s infinite steps(1)}
+@keyframes gl1{0%,92%,100%{clip-path:inset(0 0 100% 0);transform:translate(0)}93%{clip-path:inset(12% 0 68% 0);transform:translate(-3px,0)}96%{clip-path:inset(60% 0 12% 0);transform:translate(3px,0)}}
+@keyframes gl2{0%,90%,100%{clip-path:inset(100% 0 0 0);transform:translate(0)}91%{clip-path:inset(22% 0 52% 0);transform:translate(3px,0)}97%{clip-path:inset(50% 0 22% 0);transform:translate(-3px,0)}}
+.hsub{font:700 .76rem 'Orbitron',sans-serif;letter-spacing:.24em;color:var(--text-dim);margin-bottom:16px}
+.lead{color:var(--text-mid);max-width:640px;margin:0 auto 18px;font-size:1.02rem}
+.chips{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-bottom:24px}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 .74rem 'Orbitron',sans-serif;color:var(--text);background:rgba(16,18,31,.7);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:30px;padding:8px 15px}
+.chip b{color:var(--gold)}
+.hbtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;font:700 .92rem 'Orbitron',sans-serif;letter-spacing:.02em;padding:14px 24px;border-radius:12px;cursor:pointer;transition:.18s;border:1px solid transparent}
+.btn-primary{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff;box-shadow:0 8px 30px rgba(123,79,212,.35)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(255,107,26,.4)}
+.btn-ghost{background:rgba(16,18,31,.6);border-color:var(--line);color:var(--text)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.scroll-hint{margin-top:38px;color:var(--text-dim);font-size:.78rem;letter-spacing:.2em;animation:bob 2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(8px)}}
+@keyframes pulse{50%{opacity:.35}}
+/* SECTIONS */
+section{max-width:1080px;margin:0 auto;padding:60px 22px 0}
 .kicker{font:700 .7rem 'Orbitron',sans-serif;letter-spacing:.26em;color:var(--orange-light);margin-bottom:10px}
-h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2rem,6vw,3.1rem);line-height:1.05;margin-bottom:10px}
-h1 .g{background:linear-gradient(120deg,var(--purple-light),var(--orange));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.lead{color:var(--text-mid);max-width:680px;font-size:1.02rem;margin-bottom:10px}
-.tags{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 4px}
-.tag{font:600 .72rem 'Inter';color:var(--text-mid);background:var(--bg2);border:1px solid var(--line);border-radius:30px;padding:6px 13px}
-h2{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.4rem;margin:44px 0 6px;display:flex;align-items:center;gap:10px}
-.sub{color:var(--text-dim);font-size:.92rem;max-width:720px;margin-bottom:18px}
-/* intro card */
-.about{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:22px;margin-top:22px}
-.about p{color:var(--text-mid);font-size:.96rem}
-.about p+p{margin-top:10px}
-.facts{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
-.fact{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:10px 16px;text-align:center;min-width:96px}
-.fact .v{font-family:'Orbitron';font-weight:900;font-size:1.3rem;color:var(--gold)}
-.fact .k{font-size:.68rem;color:var(--text-dim);letter-spacing:.04em;text-transform:uppercase}
-/* modes */
-.modes{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:13px}
-.mode{display:flex;gap:14px;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:15px}
-.mode img{width:52px;height:52px;border-radius:12px;background:var(--bg3);object-fit:cover;flex:0 0 auto}
-.mode .mh{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1rem;margin-bottom:2px}
+h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.5rem,4vw,2.2rem);margin-bottom:6px;line-height:1.1;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sub{color:var(--text-dim);font-size:.94rem;max-width:720px;margin-bottom:20px}
+.live{display:inline-flex;align-items:center;gap:6px;font:700 .62rem 'Orbitron',sans-serif;letter-spacing:.14em;color:var(--green);border:1px solid rgba(61,214,140,.35);background:rgba(61,214,140,.08);border-radius:30px;padding:4px 10px}
+.live .d{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.6s infinite}
+/* FEATURED CLASSEMENT */
+.rankwrap{position:relative;border-radius:22px;padding:2px;background:linear-gradient(130deg,var(--online),var(--purple),var(--orange),var(--gold));background-size:300% 300%;animation:flow 9s ease infinite;box-shadow:0 20px 60px rgba(79,157,255,.14)}
+@keyframes flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.rankcard{background:#0b0d17;border-radius:20px;padding:24px 22px 26px;overflow:hidden}
+.podium{display:flex;gap:12px;justify-content:center;align-items:flex-end;margin:6px 0 20px;flex-wrap:wrap}
+.pod{flex:1;max-width:220px;min-width:150px;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px 12px;text-align:center;position:relative}
+.pod.p1{border-color:rgba(255,200,90,.5);box-shadow:0 0 34px rgba(255,200,90,.16);transform:translateY(-8px)}
+.pod.p2{border-color:rgba(207,224,255,.35)}
+.pod.p3{border-color:rgba(229,154,91,.35)}
+.pod .rk{font-family:'Orbitron';font-weight:900;font-size:1.6rem}
+.pod .nm{font-family:'Orbitron';font-weight:700;font-size:1.02rem;margin:6px 0 2px;word-break:break-word}
+.pod .sc{font-family:'Orbitron';font-weight:900;font-size:1.5rem;color:var(--gold);line-height:1.1}
+.pod .mm{font-size:.7rem;color:var(--text-dim)}
+.bdg{display:inline-block;font:700 .5rem 'Inter';letter-spacing:.06em;border-radius:5px;padding:2px 6px;margin-top:5px}
+.b-creator{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff}
+.b-plat{background:#143a3a;color:var(--plat);border:1px solid #1f5a57}
+.rows{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;background:var(--bg2);border:1px solid var(--line)}
+.row.me{border-color:rgba(255,107,26,.5);background:linear-gradient(90deg,rgba(255,107,26,.1),var(--bg2))}
+.row .r{font:900 1.05rem 'Orbitron';color:var(--text-dim);text-align:center}
+.row .who{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap;font-weight:700}
+.row .flag{font-size:1.1rem}
+.row .st{width:100%;font-size:.72rem;color:var(--text-dim);font-weight:400}
+.row .sc{font:900 1rem 'Orbitron';color:var(--gold);white-space:nowrap;text-align:right}
+.row .sc small{display:block;font:500 .64rem 'Inter';color:var(--text-dim)}
+.rankcta{display:flex;justify-content:center;margin-top:20px}
+.loading{text-align:center;color:var(--text-dim);padding:28px 0}
+/* TROPHIES teaser */
+.troph{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;background:linear-gradient(135deg,rgba(255,200,90,.1),var(--bg2));border:1px solid rgba(255,200,90,.28);border-radius:20px;padding:22px}
+.troph .big{font-size:2.6rem}
+.troph h3{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.2rem;margin-bottom:4px}
+.troph p{color:var(--text-mid);font-size:.88rem}
+.tierdots{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+.tierdot{display:inline-flex;align-items:center;gap:5px;font:700 .64rem 'Inter';color:var(--text-dim)}
+.tierdot i{width:9px;height:9px;border-radius:50%;display:inline-block}
+/* MODES */
+.modes{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:13px}
+.mode{display:flex;gap:14px;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:16px;transition:.2s;position:relative;overflow:hidden}
+.mode::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--purple),var(--orange))}
+.mode:hover{transform:translateY(-2px);border-color:rgba(155,111,244,.45)}
+.mode img{width:54px;height:54px;border-radius:12px;background:var(--bg3);object-fit:cover;flex:0 0 auto}
+.mode .mh{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.02rem;margin-bottom:3px}
 .mode .inf{display:inline-block;font:600 .64rem 'Inter';letter-spacing:.04em;color:var(--purple-light);background:rgba(123,79,212,.12);border:1px solid rgba(123,79,212,.3);border-radius:5px;padding:2px 7px;margin-bottom:7px}
 .mode p{color:var(--text-mid);font-size:.84rem;line-height:1.5}
-/* hub cards */
-.hub{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
-.hcard{position:relative;display:block;background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:22px;overflow:hidden;transition:.2s}
-.hcard:hover{transform:translateY(-3px);border-color:var(--purple-light)}
-.hcard .ic{font-size:2rem;margin-bottom:10px}
-.hcard h3{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:6px}
-.hcard p{color:var(--text-dim);font-size:.86rem}
-.hcard .go{display:inline-flex;align-items:center;gap:6px;margin-top:12px;color:var(--orange-light);font-weight:600;font-size:.86rem}
-.hcard.troph{background:linear-gradient(135deg,rgba(255,200,90,.08),var(--bg2))}
-.hcard.rank{background:linear-gradient(135deg,rgba(79,157,255,.08),var(--bg2))}
-.note{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--purple-light);border-radius:12px;padding:14px 16px;margin-top:24px;font-size:.88rem;color:var(--text-mid)}
-footer{border-top:1px solid var(--line);padding:34px 24px;text-align:center;color:var(--text-dim);margin-top:52px;font-size:.8rem}
-@media(max-width:620px){.hub{grid-template-columns:1fr}}
+.note{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--online);border-radius:12px;padding:14px 16px;margin-top:24px;font-size:.88rem;color:var(--text-mid)}
+footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;color:var(--text-dim);margin-top:60px;font-size:.8rem}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+@media(max-width:620px){.troph{grid-template-columns:1fr;text-align:center}.troph .big{margin:0 auto}}
 </style>
 </head>
 <body>
@@ -78,70 +127,90 @@ footer{border-top:1px solid var(--line);padding:34px 24px;text-align:center;colo
   <div class="lang"><button data-set="en">EN</button><button data-set="fr">FR</button></div>
 </nav>
 
-<div class="wrap">
-  <a class="back" href="index.html"><span>&#8592;</span> <span data-l="en">Home</span><span data-l="fr">Accueil</span></a>
-  <div class="kicker">RATCHET &amp; CLANK · RANGER RUMBLE</div>
-  <h1><span class="g">Ranger Rumble Arena</span></h1>
-  <p class="lead">
-    <span data-l="en">The fan-preserved, offline-playable edition of Ranger Rumble — kept alive by Ratchet Legacy after the official servers close. Same heroes, same seven modes, your progress saved locally, forever.</span>
-    <span data-l="fr">L'édition de Ranger Rumble préservée par les fans et jouable hors-ligne — maintenue en vie par Ratchet Legacy après la fermeture des serveurs officiels. Les mêmes héros, les mêmes sept modes, ta progression sauvegardée en local, pour toujours.</span>
-  </p>
-  <div class="tags">
-    <span class="tag">🎮 <span data-l="en">12 heroes</span><span data-l="fr">12 héros</span></span>
-    <span class="tag">🗺️ <span data-l="en">7 game modes</span><span data-l="fr">7 modes de jeu</span></span>
-    <span class="tag">🏆 <span data-l="en">44 trophies</span><span data-l="fr">44 trophées</span></span>
-    <span class="tag">🌍 <span data-l="en">Global ranking</span><span data-l="fr">Classement mondial</span></span>
+<header class="hero">
+  <div class="hero-bg"></div><div class="hero-grid"></div><div class="hero-glow"></div>
+  <div class="hero-inner">
+    <div class="eos"><span class="dot"></span><span data-l="en">PLAYABLE FOREVER · OFFLINE</span><span data-l="fr">JOUABLE À VIE · HORS-LIGNE</span></div>
+    <h1>Ranger Rumble<br/><span class="glitch" data-t="ARENA">ARENA</span></h1>
+    <div class="hsub">RATCHET &amp; CLANK · PRESERVED EDITION</div>
+    <p class="lead">
+      <span data-l="en">The fan-preserved, offline edition — kept alive by Ratchet Legacy after the servers close. Same heroes, same seven modes, your progress and your rank saved forever.</span>
+      <span data-l="fr">L'édition préservée par les fans, hors-ligne — maintenue en vie par Ratchet Legacy après la fermeture des serveurs. Les mêmes héros, les mêmes sept modes, ta progression et ton rang gardés pour toujours.</span>
+    </p>
+    <div class="chips">
+      <span class="chip">🎮 <b>12</b> <span data-l="en">heroes</span><span data-l="fr">héros</span></span>
+      <span class="chip">🗺️ <b>7</b> <span data-l="en">modes</span><span data-l="fr">modes</span></span>
+      <span class="chip">🏆 <b>44</b> <span data-l="en">trophies</span><span data-l="fr">trophées</span></span>
+      <span class="chip">🌍 <b id="chip-players">—</b> <span data-l="en">ranked</span><span data-l="fr">classés</span></span>
+    </div>
+    <div class="hbtns">
+      <a class="btn btn-primary" href="#ranking">🌍 <span data-l="en">Global ranking</span><span data-l="fr">Classement mondial</span></a>
+      <a class="btn btn-ghost" href="trophees.html">🏆 <span data-l="en">Trophies</span><span data-l="fr">Trophées</span></a>
+    </div>
+    <div class="scroll-hint">▼ <span data-l="en">THE LEADERBOARD</span><span data-l="fr">LE CLASSEMENT</span></div>
   </div>
+</header>
 
-  <div class="about">
-    <p>
-      <span data-l="en">Ranger Rumble is a multiplayer hero shooter set inside Captain Qwark's combat simulation, where heroes from the series clash in fast real-time arenas. This Arena edition rebuilds the game to run without its servers: an emulator, a small local server and the final build, so it starts and plays offline.</span>
-      <span data-l="fr">Ranger Rumble est un hero shooter multijoueur qui se déroule dans la simulation de combat du Capitaine Qwark, où les héros de la série s'affrontent dans des arènes rapides en temps réel. Cette édition Arena reconstruit le jeu pour qu'il tourne sans ses serveurs : un émulateur, un petit serveur local et la version finale, pour qu'il démarre et se joue hors-ligne.</span>
-    </p>
-    <p>
-      <span data-l="en">You keep your heroes, weapons and level between sessions, you can earn the 44 trophies, and when you're online you can send your score to the global ranking shared with other players.</span>
-      <span data-l="fr">Tu gardes tes héros, tes armes et ton niveau d'une partie à l'autre, tu peux décrocher les 44 trophées, et quand tu es en ligne tu peux envoyer ton score au classement mondial partagé avec les autres joueurs.</span>
-    </p>
-    <div class="facts">
-      <div class="fact"><div class="v">12</div><div class="k"><span data-l="en">Heroes</span><span data-l="fr">Héros</span></div></div>
-      <div class="fact"><div class="v">7</div><div class="k"><span data-l="en">Modes</span><span data-l="fr">Modes</span></div></div>
-      <div class="fact"><div class="v">44</div><div class="k"><span data-l="en">Trophies</span><span data-l="fr">Trophées</span></div></div>
-      <div class="fact"><div class="v">∞</div><div class="k"><span data-l="en">Offline</span><span data-l="fr">Hors-ligne</span></div></div>
+<!-- FEATURED: CLASSEMENT -->
+<section id="ranking" class="reveal">
+  <div class="kicker">RANGER RUMBLE ARENA</div>
+  <h2>🌍 <span data-l="en">Global ranking</span><span data-l="fr">Classement mondial</span>
+    <span class="live"><span class="d"></span><span data-l="en">LIVE</span><span data-l="fr">EN DIRECT</span></span>
+  </h2>
+  <div class="sub">
+    <span data-l="en">The best Rangers in the world, by medals. Updated live as players send their score from the launcher.</span>
+    <span data-l="fr">Les meilleurs Rangers du monde, au nombre de médailles. Mis à jour en direct quand les joueurs envoient leur score depuis le lanceur.</span>
+  </div>
+  <div class="rankwrap">
+    <div class="rankcard">
+      <div class="podium" id="podium"></div>
+      <div class="rows" id="rows"><div class="loading"><span data-l="en">Loading ranking…</span><span data-l="fr">Chargement du classement…</span></div></div>
+      <div class="rankcta">
+        <a class="btn btn-primary" href="classement.html">🏅 <span data-l="en">See the full ranking &amp; player stats</span><span data-l="fr">Voir le classement complet &amp; les stats</span> →</a>
+      </div>
     </div>
   </div>
+</section>
 
-  <h2>🗺️ <span data-l="en">The rules</span><span data-l="fr">Les règles</span></h2>
+<!-- TROPHIES -->
+<section class="reveal">
+  <div class="troph">
+    <div class="big">🏆</div>
+    <div>
+      <h3><span data-l="en">44 trophies + the platinum</span><span data-l="fr">44 trophées + le platine</span></h3>
+      <p><span data-l="en">Earn them by playing, even offline. Each one shows its worldwide unlock rate — some are seriously rare.</span><span data-l="fr">Décroche-les en jouant, même hors-ligne. Chacun affiche son pourcentage mondial de déblocage — certains sont vraiment rares.</span></p>
+      <div class="tierdots">
+        <span class="tierdot"><i style="background:var(--bronze)"></i>Bronze</span>
+        <span class="tierdot"><i style="background:var(--silver)"></i><span data-l="en">Silver</span><span data-l="fr">Argent</span></span>
+        <span class="tierdot"><i style="background:var(--gold)"></i><span data-l="en">Gold</span><span data-l="fr">Or</span></span>
+        <span class="tierdot"><i style="background:var(--online)"></i><span data-l="en">Online</span><span data-l="fr">En ligne</span></span>
+      </div>
+    </div>
+    <a class="btn btn-ghost" href="trophees.html"><span data-l="en">Open</span><span data-l="fr">Ouvrir</span> →</a>
+  </div>
+</section>
+
+<!-- RULES -->
+<section class="reveal">
+  <div class="kicker">HOW IT PLAYS</div>
+  <h2>🗺️ <span data-l="en">The 7 modes &amp; their rules</span><span data-l="fr">Les 7 modes &amp; leurs règles</span></h2>
   <div class="sub">
-    <span data-l="en">The seven game modes and how each one is won.</span>
-    <span data-l="fr">Les sept modes de jeu et comment on gagne dans chacun.</span>
+    <span data-l="en">Every mode and how each one is won.</span>
+    <span data-l="fr">Chaque mode et comment on y gagne.</span>
   </div>
   <div class="modes" id="modes"></div>
+</section>
 
-  <h2>🎖️ <span data-l="en">Progress &amp; competition</span><span data-l="fr">Progression &amp; compétition</span></h2>
-  <div class="hub">
-    <a class="hcard troph" href="trophees.html">
-      <div class="ic">🏆</div>
-      <h3><span data-l="en">Trophies</span><span data-l="fr">Trophées</span></h3>
-      <p><span data-l="en">The 44 trophies plus the platinum, with the worldwide unlock rate for each one.</span><span data-l="fr">Les 44 trophées plus le platine, avec le pourcentage mondial de déblocage de chacun.</span></p>
-      <span class="go"><span data-l="en">See all trophies</span><span data-l="fr">Voir tous les trophées</span> →</span>
-    </a>
-    <a class="hcard rank" href="classement.html">
-      <div class="ic">🌍</div>
-      <h3><span data-l="en">Global ranking</span><span data-l="fr">Classement mondial</span></h3>
-      <p><span data-l="en">The medal leaderboard and player stats, by world and by country, refreshed live.</span><span data-l="fr">Le classement des médailles et les stats des joueurs, par monde et par pays, rafraîchi en direct.</span></p>
-      <span class="go"><span data-l="en">Open the ranking</span><span data-l="fr">Ouvrir le classement</span> →</span>
-    </a>
-  </div>
-
+<!-- ABOUT / NOTE -->
+<section class="reveal">
   <div class="note">
-    <span data-l="en">Your personal progress lives in the launcher on your PC. The trophy percentages and the ranking are fed anonymously when players choose to send their score — nothing is collected automatically.</span>
-    <span data-l="fr">Ta progression personnelle vit dans le lanceur sur ton PC. Les pourcentages de trophées et le classement sont alimentés anonymement quand les joueurs choisissent d'envoyer leur score — rien n'est collecté automatiquement.</span>
+    <span data-l="en"><b>How it works:</b> Ranger Rumble is a hero shooter set in Captain Qwark's combat simulation. The Arena edition rebuilds it to run without its servers — an emulator, a small local server and the final build — so it starts and plays offline. Your personal progress lives in the launcher on your PC; the ranking and trophy rates are fed anonymously when players choose to send their score.</span>
+    <span data-l="fr"><b>Comment ça marche :</b> Ranger Rumble est un hero shooter qui se déroule dans la simulation de combat du Capitaine Qwark. L'édition Arena le reconstruit pour qu'il tourne sans ses serveurs — un émulateur, un petit serveur local et la version finale — pour qu'il démarre et se joue hors-ligne. Ta progression personnelle vit dans le lanceur sur ton PC ; le classement et les pourcentages de trophées sont alimentés anonymement quand les joueurs choisissent d'envoyer leur score.</span>
   </div>
-
-  <div style="margin-top:26px">
-    <a class="back" href="preservation.html">🗄️ <span data-l="en">How the game is being preserved</span><span data-l="fr">Comment le jeu est préservé</span></a>
+  <div style="margin-top:22px">
+    <a class="btn btn-ghost" href="preservation.html">🗄️ <span data-l="en">How the game is being preserved</span><span data-l="fr">Comment le jeu est préservé</span></a>
   </div>
-</div>
+</section>
 
 <footer>
   <div style="font-family:'Orbitron',sans-serif;font-weight:900;color:var(--text);margin-bottom:10px">RATCHET LEGACY</div>
@@ -150,6 +219,15 @@ footer{border-top:1px solid var(--line);padding:34px 24px;text-align:center;colo
 </footer>
 
 <script>
+const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
+const sb=window.supabase?window.supabase.createClient(SB_URL,SB_KEY):null;
+const MOI='RatchetLegacy';
+const MED={1:'🥇',2:'🥈',3:'🥉'};
+const FLAG={FR:'🇫🇷',US:'🇺🇸',CA:'🇨🇦',GB:'🇬🇧',DE:'🇩🇪',JP:'🇯🇵',ES:'🇪🇸',IT:'🇮🇹',BR:'🇧🇷',AU:'🇦🇺',MX:'🇲🇽',ID:'🇮🇩',KR:'🇰🇷'};
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function nf(n){return Number(n||0).toLocaleString(LANG==='fr'?'fr-FR':'en-US');}
+
 const MODES=[
  {icon:"https://res.cloudinary.com/dmfq8hkvu/image/upload/Wiki/RangerRumble/rr-mode-bolt-race.webp",name:"Bolt Race",info:"3 min · 6 players · free-for-all",info_fr:"3 min · 6 joueurs · chacun pour soi",text:"Collect bolts from crates and enemies. A boss appears in the middle of the map after 90 seconds and drops bolts with every hit. First player to 300 bolts wins.",text_fr:"Ramasse des boulons dans les caisses et sur les ennemis. Au bout de 90 secondes, un boss apparaît au centre de la carte et lâche des boulons à chaque coup. Le premier à 300 boulons gagne."},
  {icon:"https://res.cloudinary.com/dmfq8hkvu/image/upload/Wiki/RangerRumble/rr-mode-total-rumble.webp",name:"Total Rumble",info:"3 min · 6 players · free-for-all",info_fr:"3 min · 6 joueurs · chacun pour soi",text:"Deathmatch: the first player to 8 knockouts wins. Shield and damage power-ups (+50% damage) appear on the map.",text_fr:"Match à mort : le premier joueur à 8 éliminations gagne. Des bonus de bouclier et de dégâts (+50 % de dégâts) apparaissent sur la carte."},
@@ -159,18 +237,50 @@ const MODES=[
  {icon:"https://res.cloudinary.com/dmfq8hkvu/image/upload/Wiki/RangerRumble/rr-mode-zone-control.webp",name:"Zone Control",info:"4 min · 2 teams",info_fr:"4 min · 2 équipes",text:"Capture zones by standing in them, one active zone at a time. Contested zones stop progressing. Two captured zones guarantee the win.",text_fr:"Capture les zones en restant dedans, une zone active à la fois. Une zone disputée cesse de progresser. Deux zones capturées assurent la victoire."},
  {icon:"https://res.cloudinary.com/dmfq8hkvu/image/upload/Wiki/RangerRumble/rr-mode-mob-rush.webp",name:"Mob Rush",info:"Solo · PvE",info_fr:"Solo · PvE",text:"Defend Captain Qwark's vault against waves of enemies (3 to 9 waves per stage) across 17 stages on Corson V, Torren IV and Sargasso.",text_fr:"Défends le coffre du Capitaine Qwark contre des vagues d'ennemis (3 à 9 vagues par étape) sur 17 étapes, sur Corson V, Torren IV et Sargasso."}
 ];
-function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
 let LANG='en';
 try{ LANG=localStorage.getItem('rl-lang')||((navigator.language||'').startsWith('fr')?'fr':'en'); }catch(e){ LANG=(navigator.language||'').startsWith('fr')?'fr':'en'; }
+
 function renderModes(){
   document.getElementById('modes').innerHTML=MODES.map(m=>{
     const info=LANG==='fr'?m.info_fr:m.info, text=LANG==='fr'?m.text_fr:m.text;
     return '<div class="mode"><img loading="lazy" src="'+m.icon+'" alt="" onerror="this.style.visibility=\'hidden\'"/><div><div class="mh">'+esc(m.name)+'</div><span class="inf">'+esc(info)+'</span><p>'+esc(text)+'</p></div></div>';
   }).join('');
 }
-function setLang(l){ LANG=l; document.documentElement.lang=l; document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l)); try{localStorage.setItem('rl-lang',l);}catch(e){} renderModes(); }
+
+let ROWS=[];
+function renderRank(){
+  const pod=document.getElementById('podium'); const rows=document.getElementById('rows');
+  if(!ROWS.length){ rows.innerHTML='<div class="loading"><span data-l="en">No scores yet — be the first.</span><span data-l="fr">Aucun score pour l\'instant — sois le premier.</span></div>'; pod.innerHTML=''; return; }
+  pod.innerHTML=[1,0,2].map(idx=>{ const p=ROWS[idx]; if(!p)return''; const rk=idx+1;
+    return '<div class="pod p'+rk+'"><div class="rk">'+MED[rk]+'</div><div class="nm">'+esc(p.pseudo)+'</div><div class="sc">'+nf(p.medailles)+'</div><div class="mm">'+(LANG==='fr'?'médailles':'medals')+' '+(FLAG[p.pays]||'')+'</div>'+(p.pseudo===MOI?'<div><span class="bdg b-creator">'+(LANG==='fr'?'CRÉATEUR':'CREATOR')+'</span></div>':'')+(p.platine?'<div><span class="bdg b-plat">PLATINE</span></div>':'')+'</div>';
+  }).join('');
+  rows.innerHTML=ROWS.slice(3,10).map((p,i)=>{ const rk=i+4;
+    return '<div class="row'+(p.pseudo===MOI?' me':'')+'"><div class="r">'+rk+'</div><div class="who"><span class="flag">'+(FLAG[p.pays]||'🏳️')+'</span>'+esc(p.pseudo)+(p.pseudo===MOI?' <span class="bdg b-creator">'+(LANG==='fr'?'CRÉATEUR':'CREATOR')+'</span>':'')+(p.platine?' <span class="bdg b-plat">PLATINE</span>':'')+'<span class="st">'+(LANG==='fr'?'Victoires ':'Wins ')+nf(p.victoires)+' · '+(p.trophees||0)+'/44 🏆</span></div><div class="sc">'+nf(p.medailles)+'<small>'+(LANG==='fr'?'médailles':'medals')+'</small></div></div>';
+  }).join('');
+}
+
+async function loadRank(){
+  try{
+    let rows=[];
+    if(sb){ const {data}=await sb.from('joueurs_stats').select('pseudo,medailles,victoires,trophees,platine,pays').order('medailles',{ascending:false}).limit(10); rows=data||[]; }
+    else { const r=await fetch(SB_URL+'/rest/v1/joueurs_stats?select=pseudo,medailles,victoires,trophees,platine,pays&order=medailles.desc&limit=10',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}); rows=await r.json(); }
+    ROWS=Array.isArray(rows)?rows:[];
+    let tot=0;
+    if(sb){ const c=await sb.from('joueurs_stats').select('pseudo',{count:'exact',head:true}); tot=c.count||ROWS.length; }
+    document.getElementById('chip-players').textContent=tot||ROWS.length;
+  }catch(e){ ROWS=[]; }
+  renderRank();
+}
+
+function setLang(l){ LANG=l; document.documentElement.lang=l; document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l)); try{localStorage.setItem('rl-lang',l);}catch(e){} renderModes(); renderRank(); }
 document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.set)));
-setLang(LANG);
+
+// reveal on scroll
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+setLang(LANG); loadRank(); setInterval(loadRank,30000);
 </script>
 </body>
 </html>
