@@ -230,7 +230,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 <script>
 const SB_URL='https://ihucxnmqnhevfvlamgwc.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlodWN4bm1xbmhldmZ2bGFtZ3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDQ5ODcsImV4cCI6MjA5NzI4MDk4N30.RhH778it6rcz44fdqdMLz7v-j8BWyKGGIJN4vHauhgU';
-const sb=window.supabase?window.supabase.createClient(SB_URL,SB_KEY):null;
+const sb=null;/* force le fetch REST direct, fiable (meme methode que le lanceur) */
 const MOI='RatchetLegacy';
 const MED={1:'🥇',2:'🥈',3:'🥉'};
 const FLAG={FR:'🇫🇷',US:'🇺🇸',CA:'🇨🇦',GB:'🇬🇧',DE:'🇩🇪',JP:'🇯🇵',ES:'🇪🇸',IT:'🇮🇹',BR:'🇧🇷',AU:'🇦🇺',MX:'🇲🇽',ID:'🇮🇩',KR:'🇰🇷'};
@@ -356,7 +356,8 @@ async function loadMyStats(){
     if(sb){ const {data}=await sb.from('joueurs_stats').select('*').eq('pseudo',MOI).single(); row=data; }
     else { const r=await fetch(SB_URL+'/rest/v1/joueurs_stats?select=*&pseudo=eq.'+MOI,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}); row=(await r.json())[0]; }
     window.MYROW=row; renderMyStats();
-  }catch(e){}
+    if(!row){ document.getElementById('mystats').innerHTML='<div class="loading"><span data-l="en">Stats unavailable</span><span data-l="fr">Stats indisponibles</span></div>'; }
+  }catch(e){ document.getElementById('mystats').innerHTML='<div class="loading"><span data-l="en">Stats unavailable (offline)</span><span data-l="fr">Stats indisponibles (hors-ligne)</span></div>'; }
 }
 async function loadRank(){
   try{
@@ -372,7 +373,7 @@ async function loadTroph(){
     let pct=[];
     if(sb){ const a=await sb.from('trophee_pourcentage').select('trophee_code,nb_joueurs,pct'); pct=a.data||[];
       const c=await sb.from('joueurs_stats').select('pseudo',{count:'exact',head:true}); TOTAL=c.count||0; }
-    else { const r=await fetch(SB_URL+'/rest/v1/trophee_pourcentage?select=trophee_code,nb_joueurs,pct',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}); pct=await r.json(); }
+    else { const r=await fetch(SB_URL+'/rest/v1/trophee_pourcentage?select=trophee_code,nb_joueurs,pct',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}); pct=await r.json(); try{const rc=await fetch(SB_URL+'/rest/v1/joueurs_stats?select=pseudo',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}}); TOTAL=((await rc.json())||[]).length;}catch(e){} }
     (pct||[]).forEach(x=>{PCT[x.trophee_code]=x.pct; NB[x.trophee_code]=x.nb_joueurs;});
   }catch(e){}
   document.getElementById('chip-players').textContent=TOTAL||'—';
