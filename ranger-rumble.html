@@ -143,7 +143,7 @@ h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.5rem,3.6v
 .posts li{break-inside:avoid;margin-bottom:8px}
 .posts a{display:flex;gap:10px;align-items:baseline;padding:9px 12px;border-radius:10px;background:var(--bg2);border:1px solid var(--line);font-size:.88rem;transition:.2s}
 .posts a:hover{border-color:rgba(155,111,244,.5)}
-.posts a span{font:700 .64rem 'Orbitron',sans-serif;color:var(--text-dim);white-space:nowrap;min-width:66px}
+.posts a>span:first-child{font:700 .64rem 'Orbitron',sans-serif;color:var(--text-dim);white-space:nowrap;min-width:66px}
 
 /* progress */
 .progress-wrap{background:var(--bg2);border:1px solid var(--line);border-radius:22px;padding:26px 28px}
@@ -253,6 +253,9 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 .lb-more{display:inline-flex;align-items:center;gap:8px;margin-top:16px;padding:11px 18px;border-radius:11px;font-weight:700;font-size:.9rem;background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff}
 .lb-more:hover{filter:brightness(1.08)}
 .lb-loading{color:var(--text-dim);padding:16px 4px;font-size:.9rem}
+.nav-links a{white-space:nowrap}@media(max-width:1480px) and (min-width:901px){.nav-links{gap:2px}.nav-links a{padding:7px 9px;font-size:.8rem}}
+.nav-links a.active{color:#fff;background:rgba(255,138,42,.16);box-shadow:inset 0 -2px 0 #FF8A2A}
+@media(max-width:1340px) and (min-width:561px){.nav{gap:10px;padding:12px 16px}.nav .nl-txt{display:none}.nav-links{flex:1;min-width:0;max-width:none;overflow-x:auto}.nav-links>a:first-child{margin-left:auto}.nav-links a{padding:6px 7px;font-size:.76rem}}
 </style>
 </head>
 <body>
@@ -262,14 +265,22 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <div class="nav-links">
     <a href="index.html">Home</a>
     <a href="wiki.html">Wiki</a>
+    <a href="map.html">Map</a>
+    <a href="arcade.html">Arcade</a>
     <a href="story.html">Story</a>
     <a href="news.html">News</a>
+    <a href="arena.html" style="color:#FF4D6A">🎮 Rumble Arena</a>
+    <a href="preservation.html" class="active" aria-current="page">Preservation</a>
     <a href="database.html">Megacorp Vault</a>
     <a href="guides.html">Guides</a>
+    <a href="trades.html">Trades</a>
+    <a href="index.html#about">About</a>
+    <a href="https://instagram.com/ratchetlegacy" target="_blank" class="nav-insta-btn" title="Instagram">📸</a>
     <a href="https://tracker.ratchetlegacy.com" target="_blank" class="nav-cta">Open the tracker</a>
   </div>
   <div class="lang"><button data-set="en">EN</button><button data-set="fr">FR</button></div>
 </nav>
+<script id="rc-nav-active">(function(){var a=document.querySelector(".nav-links a.active"),n=a&&a.parentNode;if(n&&n.scrollWidth>n.clientWidth)n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.offsetWidth/2;})();</script>
 
 <!-- HERO -->
 <header class="hero" id="top">
@@ -417,19 +428,19 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   </div>
   <div class="sub-h" style="margin-top:28px"><span data-l="en">THE OFFICIAL BLOG, ARCHIVED</span><span data-l="fr">LE BLOG OFFICIEL, ARCHIVÉ</span></div>
   <ul class="posts">
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/ranger-rumble-official-discord-is-open&amp;t=Ranger%20Rumble%20Official%20Discord%20is%20open!" target="_blank" rel="noopener"><span>Mar 2026</span>Ranger Rumble Official Discord is open!</a></li>
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/ratchetandclank-ranger-rumble-launches-in-france&amp;t=Ranger%20Rumble%20opens%20in%20France!" target="_blank" rel="noopener"><span>Mar 2026</span>Ranger Rumble opens in France!</a></li>
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-6-1&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.6.1" target="_blank" rel="noopener"><span>May 2026</span>Patch Notes – Update 1.6.1</a></li>
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/ratchet-clank-ranger-rumble-opens-in-canada&amp;t=Ranger%20Rumble%20opens%20in%20Canada!" target="_blank" rel="noopener"><span>May 2026</span>Ranger Rumble opens in Canada!</a></li>
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-7&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.7" target="_blank" rel="noopener"><span>Jun 2026</span>Patch Notes – Update 1.7</a></li>
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-7-3&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.7.3" target="_blank" rel="noopener"><span>Jun 2026</span>Patch Notes – Update 1.7.3</a></li>
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-7-4&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.7.4" target="_blank" rel="noopener"><span>Jul 2026</span>Patch Notes – Update 1.7.4</a></li>
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-8&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.8" target="_blank" rel="noopener"><span>Jul 2026</span>Patch Notes – Update 1.8</a></li>
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-9&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.9" target="_blank" rel="noopener"><span>Aug 2026</span>Patch Notes – Update 1.9</a></li>
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-9-1&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.9.1" target="_blank" rel="noopener"><span>Aug 2026</span>Patch Notes – Update 1.9.1</a></li>
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/ratchet-clank-ranger-rumble-opens-in-the-united-kingdom&amp;t=Ranger%20Rumble%20opens%20in%20the%20United%20Kingdom!" target="_blank" rel="noopener"><span>Aug 2026</span>Ranger Rumble opens in the United Kingdom!</a></li>
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-10&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.10" target="_blank" rel="noopener"><span>Sep 2026</span>Patch Notes – Update 1.10</a></li>
-      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-10-3&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.10.3" target="_blank" rel="noopener"><span>Sep 2026</span>Patch Notes – Update 1.10.3</a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/ranger-rumble-official-discord-is-open&amp;t=Ranger%20Rumble%20Official%20Discord%20is%20open!" target="_blank" rel="noopener"><span><span data-l="en">Mar 2026</span><span data-l="fr">mars 2026</span></span><span data-l="en">Ranger Rumble Official Discord is open!</span><span data-l="fr">Le Discord officiel de Ranger Rumble est ouvert !</span></a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/ratchetandclank-ranger-rumble-launches-in-france&amp;t=Ranger%20Rumble%20opens%20in%20France!" target="_blank" rel="noopener"><span><span data-l="en">Mar 2026</span><span data-l="fr">mars 2026</span></span><span data-l="en">Ranger Rumble opens in France!</span><span data-l="fr">Ranger Rumble ouvre en France !</span></a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-6-1&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.6.1" target="_blank" rel="noopener"><span><span data-l="en">May 2026</span><span data-l="fr">mai 2026</span></span><span data-l="en">Patch Notes – Update 1.6.1</span><span data-l="fr">Notes de mise à jour – Version 1.6.1</span></a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/ratchet-clank-ranger-rumble-opens-in-canada&amp;t=Ranger%20Rumble%20opens%20in%20Canada!" target="_blank" rel="noopener"><span><span data-l="en">May 2026</span><span data-l="fr">mai 2026</span></span><span data-l="en">Ranger Rumble opens in Canada!</span><span data-l="fr">Ranger Rumble ouvre au Canada !</span></a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-7&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.7" target="_blank" rel="noopener"><span><span data-l="en">Jun 2026</span><span data-l="fr">juin 2026</span></span><span data-l="en">Patch Notes – Update 1.7</span><span data-l="fr">Notes de mise à jour – Version 1.7</span></a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-7-3&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.7.3" target="_blank" rel="noopener"><span><span data-l="en">Jun 2026</span><span data-l="fr">juin 2026</span></span><span data-l="en">Patch Notes – Update 1.7.3</span><span data-l="fr">Notes de mise à jour – Version 1.7.3</span></a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-7-4&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.7.4" target="_blank" rel="noopener"><span><span data-l="en">Jul 2026</span><span data-l="fr">juil. 2026</span></span><span data-l="en">Patch Notes – Update 1.7.4</span><span data-l="fr">Notes de mise à jour – Version 1.7.4</span></a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-8&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.8" target="_blank" rel="noopener"><span><span data-l="en">Jul 2026</span><span data-l="fr">juil. 2026</span></span><span data-l="en">Patch Notes – Update 1.8</span><span data-l="fr">Notes de mise à jour – Version 1.8</span></a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-9&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.9" target="_blank" rel="noopener"><span><span data-l="en">Aug 2026</span><span data-l="fr">août 2026</span></span><span data-l="en">Patch Notes – Update 1.9</span><span data-l="fr">Notes de mise à jour – Version 1.9</span></a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-9-1&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.9.1" target="_blank" rel="noopener"><span><span data-l="en">Aug 2026</span><span data-l="fr">août 2026</span></span><span data-l="en">Patch Notes – Update 1.9.1</span><span data-l="fr">Notes de mise à jour – Version 1.9.1</span></a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/ratchet-clank-ranger-rumble-opens-in-the-united-kingdom&amp;t=Ranger%20Rumble%20opens%20in%20the%20United%20Kingdom!" target="_blank" rel="noopener"><span><span data-l="en">Aug 2026</span><span data-l="fr">août 2026</span></span><span data-l="en">Ranger Rumble opens in the United Kingdom!</span><span data-l="fr">Ranger Rumble ouvre au Royaume-Uni !</span></a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-10&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.10" target="_blank" rel="noopener"><span><span data-l="en">Sep 2026</span><span data-l="fr">sept. 2026</span></span><span data-l="en">Patch Notes – Update 1.10</span><span data-l="fr">Notes de mise à jour – Version 1.10</span></a></li>
+      <li><a href="rr-archive.html?d=2026&amp;p=/post/patch-notes-update-1-10-3&amp;t=Patch%20Notes%20%E2%80%93%20Update%201.10.3" target="_blank" rel="noopener"><span><span data-l="en">Sep 2026</span><span data-l="fr">sept. 2026</span></span><span data-l="en">Patch Notes – Update 1.10.3</span><span data-l="fr">Notes de mise à jour – Version 1.10.3</span></a></li>
   </ul>
 </section>
 
@@ -465,7 +476,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 
 <footer>
   <div class="foot-logo">RATCHET LEGACY</div>
-  <div class="foot-small">Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games, Oh BiBi or Sony. · <a href="legal.html" style="color:var(--text-dim)">Terms &amp; Legal</a></div>
+  <div class="foot-small"><span data-l="en">Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games, Oh BiBi or Sony. ·</span><span data-l="fr">Fait avec 💜 par Ratchet Legacy · Un projet de fan, sans lien avec Insomniac Games, Oh BiBi ou Sony. ·</span> <a href="legal.html" style="color:var(--text-dim)"><span data-l="en">Terms &amp; Legal</span><span data-l="fr">Mentions légales</span></a></div>
 </footer>
 
 <div class="lb" id="lb">
@@ -491,6 +502,9 @@ function setLang(l){
   document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l));
   try{localStorage.setItem('rl-lang',l);}catch(e){}
   const g=document.querySelector('.glitch'); if(g) g.dataset.t=T('SAVE PROJECT','PROJET SAUVEGARDE');
+  const NAV_FR={'Home':'Accueil','Map':'Carte','Story':'Histoire','News':'Actus','Preservation':'Préservation','Trades':'Échanges','About':'À propos','Open the tracker':'Ouvrir le tracker'};
+  document.querySelectorAll('.nav-links a').forEach(a=>{ if(!a.dataset.en) a.dataset.en=a.textContent.trim(); const fr=NAV_FR[a.dataset.en]; if(fr) a.textContent=l==='fr'?fr:a.dataset.en; });
+  if(!window._rrTitle) window._rrTitle=document.title; document.title=l==='fr'?'Projet Sauvegarde Ranger Rumble — Préserver le jeu mobile R&C | Ratchet Legacy':window._rrTitle;
   renderSteps(); renderTabs(); renderMedia(); renderInside(); tick();
 }
 document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.set));
@@ -560,7 +574,7 @@ function renderMedia(){
   const list=filtered();
   if(!MEDIA.length){
     box.innerHTML=`<div class="empty"><div class="big">⏺️</div><strong>${T('Recording in progress…','Enregistrement en cours…')}</strong><div>${T('The first videos and screenshots will appear here very soon.','Les premières vidéos et captures arrivent ici très bientôt.')}</div>
-      <div class="slots">${['GAMEPLAY','HEROES','MAPS','MENUS','EVENTS','FINAL DAY'].map(s=>`<div class="slot">${s}</div>`).join('')}</div></div>`;
+      <div class="slots">${(LANG==='fr'?['GAMEPLAY','HÉROS','CARTES','MENUS','ÉVÉNEMENTS','DERNIER JOUR']:['GAMEPLAY','HEROES','MAPS','MENUS','EVENTS','FINAL DAY']).map(s=>`<div class="slot">${s}</div>`).join('')}</div></div>`;
     return;
   }
   box.innerHTML='<div class="grid">'+list.map((m,i)=>{
@@ -604,7 +618,7 @@ function renderInside(){
     const role=/Ranger Rumble/.test(r)?roleTxt(r):T('Event hero','Héros d\'événement');
     return `<div class="hero-c ${rar}"><div class="im">${img?`<img loading="lazy" src="${esc(img)}" alt="${esc(nm)}"/>`:''}</div><b>${esc(nm)}</b><small>${esc(role)}</small></div>`;
   }).join('');
-  mb.innerHTML=(d.modes||[]).map(m=>`<div class="mode">${m.icon?`<img loading="lazy" src="${esc(m.icon)}" alt=""/>`:''}<div><h3>${esc(m.name)}</h3>${m.info?`<div class="inf">${esc(m.info)}</div>`:''}<p>${esc(m.text||'')}</p>${(m.maps||[]).length?`<div class="maps">${m.maps.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}</div></div>`).join('');
+  mb.innerHTML=(d.modes||[]).map(m=>`<div class="mode">${m.icon?`<img loading="lazy" src="${esc(m.icon)}" alt=""/>`:''}<div><h3>${esc(m.name)}</h3>${m.info?`<div class="inf">${esc(T(m.info,m.info_fr||m.info))}</div>`:''}<p>${esc(T(m.text||'',m.text_fr||m.text||''))}</p>${(m.maps||[]).length?`<div class="maps">${m.maps.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}</div></div>`).join('');
 }
 
 /* ---------- load ---------- */
@@ -646,5 +660,6 @@ setLang(LANG);
 load();
 renderLeaderboard();
 </script>
+<script src="back-nav.js?v=1"></script>
 </body>
 </html>
