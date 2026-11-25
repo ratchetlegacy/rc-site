@@ -27,6 +27,27 @@
   /* Keep ALL page names visible in the header — horizontal scroll on small screens, never hidden */
   .nav-burger{display:none!important}
   .nav-links{display:flex!important}
+  /* Menu identique sur toutes les pages : une seule ligne, sans retour à la ligne */
+  .nav-links a,.nav-logo{white-space:nowrap}
+  @media(max-width:1560px) and (min-width:821px){
+    .nav{gap:10px}
+    .nav-links{gap:2px}
+    .nav-links a{padding:7px 9px;font-size:.8rem}
+    .nav-links .nav-cta{padding:8px 12px}
+  }
+  /* écrans moyens : le logo seul, sans le nom, pour garder tout le menu visible */
+  @media(max-width:1300px) and (min-width:821px){
+    .nav-logo{font-size:0!important;gap:0!important}
+    .nav-insta-btn{display:none!important}
+  }
+  @media(max-width:1120px) and (min-width:981px){
+    .nav .nav-links a{padding:6px 7px;font-size:.76rem}
+    .nav .nav-links .nav-cta{padding:7px 10px}
+  }
+  @media(max-width:980px) and (min-width:821px){
+    .nav .nav-links a{padding:5px 4px;font-size:.68rem}
+    .nav .nav-links .nav-cta{padding:6px 8px}
+  }
   @media(max-width:900px){
     .nav{padding:12px 14px;gap:8px}
     .nav-logo{font-size:.82rem;gap:8px}
@@ -85,6 +106,7 @@
   .rl-mobile-menu.open{display:flex}
   .rl-mobile-menu a{padding:16px 8px;font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:600;color:var(--text,#EEF0F8);border-bottom:1px solid rgba(255,255,255,.08);text-decoration:none}
   .rl-mobile-menu a:active{color:var(--purple-light,#9B6FF4)}
+  .rl-mobile-menu a.rl-mm-active{color:#FF8A2A;border-left:3px solid #FF8A2A;padding-left:12px}
   .rl-mobile-close{position:absolute;top:20px;right:22px;background:rgba(255,255,255,.1);border:none;color:#fff;width:42px;height:42px;border-radius:12px;font-size:1.3rem;cursor:pointer}
   .rl-mobile-menu .rl-mm-cta{background:linear-gradient(135deg,var(--purple,#7B4FD4),var(--orange,#FF6B1A));color:#fff;border-radius:12px;text-align:center;margin-top:18px;border:none}
   .rl-mobile-menu .rl-mm-insta{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border-radius:12px;text-align:center;margin-top:10px;border:none}
@@ -216,7 +238,7 @@
     menu.className='rl-mobile-menu';
     let html='<button class="rl-mobile-close" aria-label="Close">✕</button>';
     links.querySelectorAll('a').forEach(a=>{
-      const cls = a.classList.contains('nav-cta') ? 'rl-mm-cta' : (a.classList.contains('nav-insta-btn') ? 'rl-mm-insta' : '');
+      const cls = a.classList.contains('nav-cta') ? 'rl-mm-cta' : (a.classList.contains('nav-insta-btn') ? 'rl-mm-insta' : (a.classList.contains('active') ? 'rl-mm-active' : ''));
       let label=a.textContent.trim();
       if(a.classList.contains('nav-insta-btn')) label='📸 Instagram';
       html+='<a href="'+a.getAttribute('href')+'"'+(a.target?' target="'+a.target+'"':'')+(cls?' class="'+cls+'"':'')+'>'+label+'</a>';
@@ -477,5 +499,12 @@ if ('serviceWorker' in navigator) {
 (function(){
   if(document.querySelector('script[data-rl-tour]')) return;
   var s=document.createElement('script'); s.src='rl-tour.js?v=1'; s.defer=true; s.setAttribute('data-rl-tour','1');
+  (document.head||document.documentElement).appendChild(s);
+})();
+
+/* Bouton Retour : ferme la fenêtre ouverte au lieu de quitter la page (back-nav.js) */
+(function(){
+  if(window.__rlBackNav || document.querySelector('script[data-rl-back]')) return;
+  var s=document.createElement('script'); s.src='/back-nav.js?v=1'; s.setAttribute('data-rl-back','1');
   (document.head||document.documentElement).appendChild(s);
 })();
