@@ -203,6 +203,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   .map-stage.dense.zoomed .planet-label{opacity:1}
 }
 .loc-fb{opacity:.45;filter:saturate(.6)}.loc-fb-pin{position:absolute;inset:0;display:grid;place-items:center;font-size:1.6rem;pointer-events:none}.ps-loc .li,#p-img{position:relative}
+.nav-links a.active{color:#fff;background:rgba(255,138,42,.16);box-shadow:inset 0 -2px 0 #FF8A2A}
 </style>
 </head>
 <body>
@@ -212,17 +213,22 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <div class="nav-links">
     <a href="index.html">Home</a>
     <a href="wiki.html">Wiki</a>
-    <a href="map.html" class="active">Map</a>
+    <a href="map.html" class="active" aria-current="page">Map</a>
     <a href="arcade.html">Arcade</a>
     <a href="story.html">Story</a>
+    <a href="news.html">News</a>
+    <a href="arena.html" style="color:#FF4D6A">🎮 Rumble Arena</a>
+    <a href="preservation.html">Preservation</a>
     <a href="database.html">Megacorp Vault</a>
     <a href="guides.html">Guides</a>
     <a href="trades.html">Trades</a>
+    <a href="index.html#about">About</a>
     <a href="https://instagram.com/ratchetlegacy" target="_blank" class="nav-insta-btn" title="Instagram">📸</a>
     <a href="https://tracker.ratchetlegacy.com" target="_blank" class="nav-cta">Open the tracker</a>
   </div>
   <button class="nav-burger" onclick="document.querySelector('.nav-links').style.display='flex';this.style.display='none'">☰</button>
 </nav>
+<script id="rc-nav-active">(function(){var a=document.querySelector(".nav-links a.active"),n=a&&a.parentNode;if(n&&n.scrollWidth>n.clientWidth)n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.offsetWidth/2;})();</script>
 
 <header class="page-hero">
   <div class="tag">GALACTIC ATLAS</div>
