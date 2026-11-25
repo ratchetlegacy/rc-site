@@ -61,13 +61,41 @@ h1 .g{background:linear-gradient(120deg,var(--purple-light),var(--orange));-webk
 footer{border-top:1px solid var(--line);padding:34px 24px;text-align:center;color:var(--text-dim);margin-top:50px;font-size:.8rem}
 .note{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--purple-light);border-radius:12px;padding:13px 16px;margin:4px 0 8px;font-size:.86rem;color:var(--text-mid)}
 @media(max-width:560px){.grid{grid-template-columns:1fr}}
+/* Menu du site (identique aux autres pages) */
+.nav{gap:12px}
+.nav-links{display:flex;gap:6px;align-items:center;scrollbar-width:none}.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{padding:8px 15px;border-radius:8px;font-size:.86rem;font-weight:500;color:var(--text-mid,#b8bdd6);transition:.18s;text-decoration:none;white-space:nowrap}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.nav-cta{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff!important;font-weight:700!important}
+.nav-links a.active{background:rgba(255,77,106,.14);box-shadow:inset 0 -2px 0 #FF4D6A}
+.nav .lang{flex:none;margin-left:8px}
+@media(max-width:1480px) and (min-width:901px){.nav-links{gap:2px}.nav-links a{padding:7px 9px;font-size:.8rem}}
+@media(max-width:1340px){.nav{gap:10px;padding:12px 16px}.nav .nl-txt{display:none}.nav-links{flex:1;min-width:0;overflow-x:auto;gap:2px}.nav-links>a:first-child{margin-left:auto}.nav-links a{padding:6px 7px;font-size:.76rem}}
+@media(max-width:560px){.nav-links>a:first-child{margin-left:0}.nav .lang{margin-left:0}}
 </style>
 </head>
 <body>
 <nav class="nav">
-  <a href="index.html" class="nav-logo"><span class="mark">🔧</span> <span>RATCHET LEGACY</span></a>
+  <a href="index.html" class="nav-logo"><span class="mark">🔧</span> <span class="nl-txt">RATCHET LEGACY</span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="wiki.html">Wiki</a>
+    <a href="map.html">Map</a>
+    <a href="arcade.html">Arcade</a>
+    <a href="story.html">Story</a>
+    <a href="news.html">News</a>
+    <a href="arena.html" style="color:#FF4D6A" class="active" aria-current="page">🎮 Rumble Arena</a>
+    <a href="preservation.html">Preservation</a>
+    <a href="database.html">Megacorp Vault</a>
+    <a href="guides.html">Guides</a>
+    <a href="trades.html">Trades</a>
+    <a href="index.html#about">About</a>
+    <a href="https://instagram.com/ratchetlegacy" target="_blank" class="nav-insta-btn" title="Instagram">📸</a>
+    <a href="https://tracker.ratchetlegacy.com" target="_blank" class="nav-cta">Open the tracker</a>
+  </div>
   <div class="lang"><button data-set="en">EN</button><button data-set="fr">FR</button></div>
 </nav>
+<script id="rc-nav-active">(function(){var a=document.querySelector(".nav-links a.active"),n=a&&a.parentNode;if(n&&n.scrollWidth>n.clientWidth)n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.offsetWidth/2;})();</script>
 
 <div class="wrap">
   <a class="back" href="arena.html"><span>&#8592;</span> <span data-l="en">Back</span><span data-l="fr">Retour</span></a>
@@ -108,7 +136,7 @@ const sb=window.supabase?window.supabase.createClient(SB_URL,SB_KEY):null;
 
 let LANG='en';
 try{ LANG=localStorage.getItem('rl-lang')||((navigator.language||'').startsWith('fr')?'fr':'en'); }catch(e){ LANG=(navigator.language||'').startsWith('fr')?'fr':'en'; }
-function setLang(l){ LANG=l; document.documentElement.lang=l; document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l)); try{localStorage.setItem('rl-lang',l);}catch(e){} render(); }
+function setLang(l){ LANG=l; document.documentElement.lang=l; const NAV_FR={'Home':'Accueil','Map':'Carte','Story':'Histoire','News':'Actus','Preservation':'Préservation','Trades':'Échanges','About':'À propos','Open the tracker':'Ouvrir le tracker'}; document.querySelectorAll('.nav-links a').forEach(a=>{ if(!a.dataset.en) a.dataset.en=a.textContent.trim(); const fr=NAV_FR[a.dataset.en]; if(fr) a.textContent=l==='fr'?fr:a.dataset.en; }); document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l)); try{localStorage.setItem('rl-lang',l);}catch(e){} render(); }
 document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.set)));
 
 // tier: b/s/g/o ; [code, FR, EN, descFR, descEN, tier, online]
@@ -213,5 +241,6 @@ async function load(){
 }
 setLang(LANG); load();
 </script>
+<script src="back-nav.js?v=1"></script>
 </body>
 </html>
