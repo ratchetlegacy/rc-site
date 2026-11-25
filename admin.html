@@ -264,6 +264,12 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
 .va-meta{display:block;color:var(--text-dim);font-weight:400;font-size:.73rem;margin-top:3px}
 .va-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .va-actions .btn{width:auto;flex:0 0 auto}
+.anim-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.anim-b{display:flex;flex-direction:column;align-items:center;gap:3px;padding:14px 8px;border-radius:14px;background:var(--bg);border:1px solid var(--line);text-decoration:none;color:var(--text);text-align:center;transition:.15s}
+.anim-b:hover{border-color:var(--orange);transform:translateY(-2px)}
+.anim-b .ic{font-size:1.7rem}
+.anim-b b{font-size:.84rem}
+.anim-b small{font-size:.72rem;color:var(--text-dim)}
 .va-bandeau{background:rgba(255,200,90,.1);border:1px solid rgba(255,200,90,.35);
   border-radius:9px;padding:10px 12px;margin-bottom:10px;color:var(--gold);
   font-size:.78rem;line-height:1.5}
@@ -913,6 +919,14 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
       </div>
       <div id="ost-msgbox" class="msg"></div>
       <div id="ost-pistes"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">🎬 Animations du site</h2>
+      </div>
+      <p class="vf-intro">Aperçu des écrans animés de la page d'accueil, avec leur son. Chaque bouton ouvre l'écran dans un nouvel onglet ; ça ne compte pas comme une visite. Si le navigateur bloque le son, touche l'écran ou le bouton « 🔊 Tap for sound » en haut à droite.</p>
+      <div class="anim-g"><a class="anim-b" href="index.html?creator=1" target="_blank" rel="noopener"><span class="ic">👑</span><b>Écran du créateur</b><small>ton accueil admin</small></a><a class="anim-b" href="index.html?milestone=100" target="_blank" rel="noopener"><span class="ic">🔩</span><b>100e visiteur</b><small>Golden Bolt</small></a><a class="anim-b" href="index.html?milestone=200" target="_blank" rel="noopener"><span class="ic">🤖</span><b>200e visiteur</b><small>Clank&#39;s Thumbs-Up</small></a><a class="anim-b" href="index.html?milestone=300" target="_blank" rel="noopener"><span class="ic">🦸</span><b>300e visiteur</b><small>Qwark&#39;s Autograph</small></a><a class="anim-b" href="index.html?milestone=400" target="_blank" rel="noopener"><span class="ic">🔧</span><b>400e visiteur</b><small>Golden OmniWrench</small></a><a class="anim-b" href="index.html?milestone=500" target="_blank" rel="noopener"><span class="ic">🗺️</span><b>500e visiteur</b><small>Holo-Plan</small></a><a class="anim-b" href="index.html?milestone=600" target="_blank" rel="noopener"><span class="ic">🧪</span><b>600e visiteur</b><small>Gelatonium Stash</small></a><a class="anim-b" href="index.html?milestone=700" target="_blank" rel="noopener"><span class="ic">🚀</span><b>700e visiteur</b><small>Ship Upgrade Voucher</small></a><a class="anim-b" href="index.html?milestone=800" target="_blank" rel="noopener"><span class="ic">💠</span><b>800e visiteur</b><small>Zoni Escort</small></a><a class="anim-b" href="index.html?milestone=900" target="_blank" rel="noopener"><span class="ic">🪠</span><b>900e visiteur</b><small>Plumber&#39;s Wrench</small></a><a class="anim-b" href="index.html?milestone=1000" target="_blank" rel="noopener"><span class="ic">🏆</span><b>1000e visiteur</b><small>Titanium Bolt</small></a><a class="anim-b" href="index.html?milestone=2000" target="_blank" rel="noopener"><span class="ic">🌟</span><b>Palier légendaire</b><small>2000e, 3000e…</small></a></div>
     </div>
 
     <div class="card">
@@ -1608,6 +1622,7 @@ const ADMIN_SECTIONS=[
   {key:'stats', ic:'📊', lbl:'Stats', match:['Statistiques']},
   {key:'kofi', ic:'☕', lbl:'Donateurs', match:['Donateurs Ko-fi']},
   {key:'sfx', ic:'🔊', lbl:'Sons', match:['Sons des thèmes']},
+  {key:'anim', ic:'🎬', lbl:'Animations', match:['Animations du site']},
   {key:'ost', ic:'🎵', lbl:'Musique', match:['Bandes originales']},
   {key:'sugg', ic:'🆕', lbl:'Suggestions', match:['Nouvelles fiches suggérées']},
   {key:'sauvegarde', ic:'💾', lbl:'Sauvegarde', match:['Projet Sauvegarde']}
