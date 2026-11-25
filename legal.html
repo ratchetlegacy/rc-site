@@ -12,13 +12,13 @@
 <meta name="apple-mobile-web-app-title" content="R&amp;C Legacy"/>
 <link rel="apple-touch-icon" href="/icon-192.png"/>
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png"/>
-<meta name="description" content="Terms, legal notice and credits for Ratchet Legacy."/>
+<meta name="description" content="Terms of use, privacy policy and legal notice for Ratchet Legacy and its collection tracker."/>
 <link rel="canonical" href="https://ratchetlegacy.com/legal.html"/>
 <!-- Apercu quand un lien est colle dans Discord, WhatsApp, Twitter... -->
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="Ratchet Legacy"/>
 <meta property="og:title" content="Terms &amp; Legal — Ratchet Legacy"/>
-<meta property="og:description" content="Terms, legal notice and credits for Ratchet Legacy."/>
+<meta property="og:description" content="Terms of use, privacy policy and legal notice for Ratchet Legacy and its collection tracker."/>
 <meta property="og:url" content="https://ratchetlegacy.com/legal.html"/>
 <meta property="og:image" content="https://res.cloudinary.com/dmfq8hkvu/image/upload/c_pad,w_1200,h_630,b_rgb:0A0B14/v1788954181/Ratchet_Legacy_ikwdp6.jpg"/>
 <meta property="og:image:width" content="1200"/>
@@ -36,10 +36,17 @@ html{scroll-behavior:smooth}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.7}
 a{color:var(--purple-light);text-decoration:none}
 a:hover{text-decoration:underline}
-.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(10,11,20,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.nav-logo{display:flex;align-items:center;gap:11px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.02rem;letter-spacing:.06em;color:var(--text)}
+[data-l]{display:none}
+html[lang="en"] [data-l="en"],html[lang="fr"] [data-l="fr"]{display:revert}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 28px;background:rgba(10,11,20,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav-logo{display:flex;align-items:center;gap:11px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.02rem;letter-spacing:.06em;color:var(--text);white-space:nowrap}
 .nav-logo .mark{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:1.15rem}
-.nav-back{color:var(--text-mid);font-weight:600;font-size:.88rem}
+.nav-right{display:flex;align-items:center;gap:14px}
+.nav-back{color:var(--text-mid);font-weight:600;font-size:.88rem;white-space:nowrap}
+.lang{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.lang button{background:none;border:none;color:var(--text-dim);font:600 .75rem 'Orbitron',sans-serif;padding:7px 10px;cursor:pointer;letter-spacing:.08em}
+.lang button.on{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff}
+@media(max-width:560px){.nav{padding:12px 14px}.nav-logo .nl-txt{display:none}}
 
 .page-hero{padding:120px 24px 20px;text-align:center;position:relative;overflow:hidden}
 .page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 0%,rgba(123,79,212,.18),transparent 70%)}
@@ -54,12 +61,14 @@ a:hover{text-decoration:underline}
 .legal-sec.active{display:block}
 .legal-sec h2{font-family:'Orbitron',sans-serif;font-size:1.3rem;margin:28px 0 12px}
 .legal-sec h2:first-child{margin-top:0}
-.legal-sec h3{font-size:1.02rem;margin:20px 0 8px;color:var(--text)}
+.legal-sec h3{font-size:1.02rem;margin:22px 0 8px;color:var(--text)}
 .legal-sec p{color:var(--text-mid);margin-bottom:14px}
 .legal-sec ul{color:var(--text-mid);margin:0 0 14px 22px}
 .legal-sec li{margin-bottom:6px}
 .legal-updated{color:var(--text-dim);font-size:.8rem;margin-bottom:20px}
 .legal-note{background:rgba(255,200,90,.06);border:1px solid rgba(255,200,90,.2);border-radius:12px;padding:14px 18px;color:var(--gold);font-size:.85rem;margin-bottom:24px}
+.legal-box{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:16px;color:var(--text-mid)}
+.legal-box b{color:var(--text)}
 
 footer{border-top:1px solid var(--line);padding:36px 24px;text-align:center;color:var(--text-dim);font-size:.8rem}
 </style>
@@ -67,109 +76,288 @@ footer{border-top:1px solid var(--line);padding:36px 24px;text-align:center;colo
 <body>
 
 <nav class="nav">
-  <a href="index.html" class="nav-logo"><span class="mark">🔧</span> RATCHET LEGACY</a>
-  <a href="index.html" class="nav-back">← Back to site</a>
+  <a href="index.html" class="nav-logo"><span class="mark">🔧</span> <span class="nl-txt">RATCHET LEGACY</span></a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-back"><span data-l="en">← Back to site</span><span data-l="fr">← Retour au site</span></a>
+    <div class="lang"><button data-set="en">EN</button><button data-set="fr">FR</button></div>
+  </div>
 </nav>
 
 <header class="page-hero">
-  <div class="tag">LEGAL</div>
-  <h1>Terms &amp; Legal</h1>
+  <div class="tag"><span data-l="en">LEGAL</span><span data-l="fr">INFORMATIONS LÉGALES</span></div>
+  <h1><span data-l="en">Terms &amp; Legal</span><span data-l="fr">Conditions &amp; mentions légales</span></h1>
 </header>
 
 <div class="wrap">
   <div class="legal-tabs">
-    <button class="legal-tab active" onclick="showLegal('terms',this)">Terms of Use</button>
-    <button class="legal-tab" onclick="showLegal('privacy',this)">Privacy</button>
-    <button class="legal-tab" onclick="showLegal('legal',this)">Legal Notice</button>
+    <button class="legal-tab active" data-sec="terms"><span data-l="en">Terms of Use</span><span data-l="fr">Conditions d'utilisation</span></button>
+    <button class="legal-tab" data-sec="privacy"><span data-l="en">Privacy</span><span data-l="fr">Confidentialité</span></button>
+    <button class="legal-tab" data-sec="legal"><span data-l="en">Legal Notice</span><span data-l="fr">Mentions légales</span></button>
   </div>
 
-  <div class="legal-note">⚠️ This is a fan-made, non-commercial project. Ratchet &amp; Clank and all related names, characters and images are trademarks of Sony Interactive Entertainment / Insomniac Games. This site is not affiliated with, endorsed by, or sponsored by them.</div>
+  <div class="legal-note">
+    <span data-l="en">⚠️ Ratchet Legacy is a free, non-commercial fan project. Ratchet &amp; Clank and all related names, characters and images are trademarks of Sony Interactive Entertainment and Insomniac Games; Ratchet &amp; Clank: Ranger Rumble was developed by Oh BiBi. This site is not affiliated with, endorsed by, or sponsored by any of them.</span>
+    <span data-l="fr">⚠️ Ratchet Legacy est un projet de fan gratuit et non commercial. Ratchet &amp; Clank ainsi que les noms, personnages et images associés sont des marques de Sony Interactive Entertainment et d'Insomniac Games ; Ratchet &amp; Clank : Ranger Rumble a été développé par Oh BiBi. Ce site n'est ni affilié, ni approuvé, ni sponsorisé par l'un d'eux.</span>
+  </div>
 
-  <!-- TERMS -->
+  <!-- ================= CONDITIONS D'UTILISATION ================= -->
   <section class="legal-sec active" id="terms">
-    <div class="legal-updated">Last updated: September 2026</div>
-    <h2>Terms of Use</h2>
-    <p>Welcome to Ratchet Legacy. By using this website, you agree to the following terms. If you don't agree, please don't use the site.</p>
+    <div class="legal-updated"><span data-l="en">Last updated: 25 November 2026</span><span data-l="fr">Dernière mise à jour : 25 novembre 2026</span></div>
 
-    <h3>1. About this site</h3>
-    <p>Ratchet Legacy is a free, non-commercial fan project dedicated to the Ratchet &amp; Clank series. It provides a reference database, a wiki, community trades and related content for collectors and fans.</p>
+    <div data-l="en">
+      <h2>Terms of Use</h2>
+      <p>These terms apply to ratchetlegacy.com and to the collection tracker at tracker.ratchetlegacy.com. By using them, you accept these terms. If you don't agree, please don't use them.</p>
 
-    <h3>2. User-submitted content (trades)</h3>
-    <p>Users may submit trade listings that link to external marketplaces (Vinted, Leboncoin, eBay). By submitting a listing, you confirm that:</p>
-    <ul>
-      <li>The information you provide is accurate and lawful;</li>
-      <li>You have the right to sell or trade the item;</li>
-      <li>Your listing link points to a legitimate marketplace page.</li>
-    </ul>
-    <p>All listings are reviewed before being published. We reserve the right to reject or remove any listing at our discretion. <b>Ratchet Legacy only connects collectors</b> — all transactions happen on the external marketplaces, and we are not a party to any deal, sale or dispute between users.</p>
+      <h3>1. About Ratchet Legacy</h3>
+      <p>Ratchet Legacy is a free fan project dedicated to the Ratchet &amp; Clank series. It offers a wiki, the Megacorp Vault reference database, guides, news, community trade listings, a galaxy map, mini-games, the Ranger Rumble preservation project and its Rumble Arena pages, a soundtrack player, and a free collection tracker. There is no advertising and nothing is sold on the site.</p>
 
-    <h3>3. Acceptable use</h3>
-    <p>You agree not to use the site to post illegal, offensive, misleading or infringing content, and not to attempt to disrupt the service.</p>
+      <h3>2. Tracker account</h3>
+      <ul>
+        <li>Creating an account is free and requires an email address and a password. Keep your password private: you are responsible for what is done with your account.</li>
+        <li>You can delete your data at any time from the tracker (“Delete my account”): your collection, profile and friends are erased straight away. To also erase your sign-in (email address), write to us and it will be done.</li>
+        <li>An account used to break these terms may be suspended or deleted.</li>
+      </ul>
 
-    <h3>4. No warranty</h3>
-    <p>The site is provided "as is", without warranty of any kind. Information (prices, references, availability) may be incomplete or inaccurate. Use it at your own discretion.</p>
+      <h3>3. Content you send us</h3>
+      <p>Trade listings, photos, catalogue suggestions, public profile information and any other content you submit must be accurate, lawful and yours to share. You keep your rights over it, and you allow Ratchet Legacy to display it on the site and in the tracker, free of charge, for as long as it stays online. Submissions are reviewed and can be refused or removed at any time.</p>
 
-    <h3>5. Changes</h3>
-    <p>These terms may be updated at any time. Continued use of the site means you accept the current version.</p>
+      <h3>4. Trades</h3>
+      <p>Trade listings link to external marketplaces (Vinted, Leboncoin, eBay…). By submitting one, you confirm that the information is accurate, that you have the right to sell or trade the item, and that the link points to a genuine marketplace page. <b>Ratchet Legacy only connects collectors</b>: every transaction happens on the external marketplace, and Ratchet Legacy is not a party to any deal, sale or dispute between users.</p>
+
+      <h3>5. Ko-fi support and supporter themes</h3>
+      <p>Supporting the project on Ko-fi is entirely voluntary. Payments are handled by Ko-fi and its payment providers; Ratchet Legacy never sees your card or bank details. As a thank-you, supporters get cosmetic themes in the tracker according to the total of their support. Themes are unlocked by hand once your tracker username is matched to your Ko-fi support, so it can take a little time. If a theme you are entitled to is not unlocked, write to us.</p>
+
+      <h3>6. Ranger Rumble preservation and Rumble Arena</h3>
+      <p>The Ranger Rumble preservation project is a non-commercial, fan-made effort to keep a record of a game whose official servers are closing. The game, its characters, artwork and music belong to their rights holders. Sending your score from the launcher is optional; when you do, your player name, country and statistics (medals, wins, trophies) appear in the public ranking. These pages are still evolving and may show demo data.</p>
+
+      <h3>7. Soundtracks</h3>
+      <p>Music in the soundtrack player belongs to its composers and rights holders. It is hosted only with their permission or linked to their official channels, for listening on the site. Downloading or reusing it is not allowed.</p>
+
+      <h3>8. Acceptable use</h3>
+      <p>Don't use the site or the tracker to post illegal, offensive, misleading or infringing content, to collect other users' data, or to try to disrupt or overload the service.</p>
+
+      <h3>9. No warranty</h3>
+      <p>Everything is provided “as is”. Information such as prices, market ratings, references and release details may be incomplete or wrong, and is given for reference only. Ratchet Legacy cannot be held responsible for decisions made on the basis of it, nor for an interruption of the service or a loss of data.</p>
+
+      <h3>10. Changes</h3>
+      <p>These terms may be updated as the site evolves. The date at the top shows the latest version.</p>
+    </div>
+
+    <div data-l="fr">
+      <h2>Conditions d'utilisation</h2>
+      <p>Ces conditions s'appliquent à ratchetlegacy.com et au tracker de collection tracker.ratchetlegacy.com. En les utilisant, tu acceptes ces conditions. Si tu n'es pas d'accord, merci de ne pas les utiliser.</p>
+
+      <h3>1. Ratchet Legacy</h3>
+      <p>Ratchet Legacy est un projet de fan gratuit consacré à la série Ratchet &amp; Clank. Il propose un wiki, la base de référence Megacorp Vault, des guides, des actus, des annonces d'échange entre collectionneurs, une carte de la galaxie, des mini-jeux, le projet de préservation de Ranger Rumble et ses pages Rumble Arena, un lecteur de bandes originales et un tracker de collection gratuit. Il n'y a aucune publicité et rien n'est vendu sur le site.</p>
+
+      <h3>2. Compte du tracker</h3>
+      <ul>
+        <li>La création d'un compte est gratuite et demande une adresse e-mail et un mot de passe. Garde ton mot de passe pour toi : tu es responsable de ce qui est fait avec ton compte.</li>
+        <li>Tu peux supprimer tes données à tout moment depuis le tracker (« Delete my account ») : ta collection, ton profil et tes amis sont effacés aussitôt. Pour effacer aussi ton identifiant de connexion (adresse e-mail), écris-nous et ce sera fait.</li>
+        <li>Un compte utilisé contre ces conditions peut être suspendu ou supprimé.</li>
+      </ul>
+
+      <h3>3. Contenus que tu nous envoies</h3>
+      <p>Les annonces d'échange, photos, suggestions de fiches, informations de profil public et autres contenus que tu envoies doivent être exacts, légaux et t'appartenir. Tu en gardes les droits, et tu autorises Ratchet Legacy à les afficher gratuitement sur le site et dans le tracker tant qu'ils restent en ligne. Les envois sont vérifiés et peuvent être refusés ou retirés à tout moment.</p>
+
+      <h3>4. Échanges</h3>
+      <p>Les annonces renvoient vers des sites de vente externes (Vinted, Leboncoin, eBay…). En publiant une annonce, tu confirmes que les informations sont exactes, que tu as le droit de vendre ou d'échanger l'objet et que le lien mène à une vraie page de vente. <b>Ratchet Legacy met seulement les collectionneurs en relation</b> : chaque transaction se fait sur le site externe, et Ratchet Legacy n'est partie à aucune vente, aucun échange ni aucun litige entre utilisateurs.</p>
+
+      <h3>5. Soutien Ko-fi et thèmes des soutiens</h3>
+      <p>Soutenir le projet sur Ko-fi est entièrement facultatif. Les paiements sont gérés par Ko-fi et ses prestataires de paiement ; Ratchet Legacy ne voit jamais tes coordonnées bancaires. Pour te remercier, des thèmes visuels du tracker sont débloqués selon le total de ton soutien. Ils sont activés à la main une fois ton pseudo du tracker relié à ton soutien Ko-fi, ce qui peut prendre un peu de temps. Si un thème auquel tu as droit n'est pas débloqué, écris-nous.</p>
+
+      <h3>6. Préservation de Ranger Rumble et Rumble Arena</h3>
+      <p>Le projet de préservation de Ranger Rumble est une initiative de fans, non commerciale, pour garder une trace d'un jeu dont les serveurs officiels ferment. Le jeu, ses personnages, ses visuels et sa musique appartiennent à leurs ayants droit. L'envoi de ton score depuis le lanceur est facultatif ; si tu l'envoies, ton pseudo, ton pays et tes statistiques (médailles, victoires, trophées) apparaissent dans le classement public. Ces pages évoluent encore et peuvent afficher des données de démonstration.</p>
+
+      <h3>7. Bandes originales</h3>
+      <p>La musique du lecteur appartient à ses compositeurs et ayants droit. Elle n'est hébergée qu'avec leur accord ou renvoie vers leurs chaînes officielles, pour être écoutée sur le site. Il est interdit de la télécharger ou de la réutiliser.</p>
+
+      <h3>8. Bon usage</h3>
+      <p>N'utilise pas le site ni le tracker pour publier des contenus illégaux, choquants, trompeurs ou contrefaisants, pour récupérer les données d'autres utilisateurs, ni pour tenter de perturber ou de surcharger le service.</p>
+
+      <h3>9. Absence de garantie</h3>
+      <p>Tout est fourni « en l'état ». Les informations comme les prix, les cotes, les références ou les dates de sortie peuvent être incomplètes ou fausses et sont données à titre indicatif. Ratchet Legacy ne peut pas être tenu responsable des décisions prises sur cette base, ni d'une interruption du service ou d'une perte de données.</p>
+
+      <h3>10. Modifications</h3>
+      <p>Ces conditions peuvent évoluer avec le site. La date en haut indique la dernière version.</p>
+    </div>
   </section>
 
-  <!-- PRIVACY -->
+  <!-- ================= CONFIDENTIALITE ================= -->
   <section class="legal-sec" id="privacy">
-    <div class="legal-updated">Last updated: September 2026</div>
-    <h2>Privacy</h2>
-    <p>We keep things simple and respect your privacy.</p>
+    <div class="legal-updated"><span data-l="en">Last updated: 25 November 2026</span><span data-l="fr">Dernière mise à jour : 25 novembre 2026</span></div>
 
-    <h3>What we collect</h3>
-    <ul>
-      <li><b>Trade submissions:</b> the item details and marketplace link you choose to submit. Please don't include personal data you don't want shared publicly.</li>
-      <li><b>The tracker app</b> (separate) uses an account (email) to store your personal collection. That's handled by its own sign-in.</li>
-    </ul>
+    <div data-l="en">
+      <h2>Privacy</h2>
+      <p>Ratchet Legacy collects as little as possible, never sells your data and shows no advertising.</p>
+      <div class="legal-box"><b>Who is responsible:</b> Ratchet Legacy (see the Legal Notice tab). <b>Contact:</b> <a href="mailto:ratchetlegacy@gmail.com">ratchetlegacy@gmail.com</a></div>
 
-    <h3>What we don't do</h3>
-    <ul>
-      <li>No advertising, no ad tracking.</li>
-      <li>We don't sell your data.</li>
-    </ul>
+      <h3>When you browse the site</h3>
+      <ul>
+        <li><b>Audience measurement:</b> for each page, the site records the page viewed, the site you came from, your time zone, your language and your type of device (mobile, tablet or computer). No IP address, cookie or visitor identifier is recorded.</li>
+        <li><b>Visitor counter:</b> your visitor number is kept in your own browser (local storage) so the site can greet you again; the site only stores the total number of visits.</li>
+        <li><b>Preferences:</b> your browser also keeps your language, whether animation sounds are on, and similar settings. They never leave your device.</li>
+        <li>The site uses no advertising or tracking cookies.</li>
+        <li>To display the pages, your browser connects to external services: Google Fonts (fonts), Cloudinary (images and music) and jsDelivr (code libraries). Like any website, they receive your IP address when you load a page.</li>
+      </ul>
 
-    <h3>Third parties</h3>
-    <p>The site is hosted on GitHub Pages and uses Supabase to store content. External links (marketplaces, press articles, social media) are governed by their own privacy policies.</p>
+      <h3>When you use the tracker</h3>
+      <ul>
+        <li><b>Account:</b> your email address and password (the password is only stored in a protected, unreadable form by our database provider).</li>
+        <li><b>Your collection:</b> your username, the items you add, your wishlist and your photos.</li>
+        <li><b>Social features, only if you use them:</b> public profile, friends, exchanges, catalogue suggestions and submitted photos. A public profile is visible to other users.</li>
+      </ul>
 
-    <h3>Contact</h3>
-    <p>For any privacy request, reach out via Instagram <a href="https://instagram.com/ratchetlegacy" target="_blank">@ratchetlegacy</a>.</p>
+      <h3>Other data</h3>
+      <ul>
+        <li><b>Trade listings:</b> the item details and the marketplace link you submit. They are public once approved, so don't include personal data you don't want shared.</li>
+        <li><b>Ko-fi supporters:</b> Ko-fi tells us the name you chose, your support and your message. The Supporters page shows your display name, tier and message; ask us if you prefer to stay anonymous or be removed.</li>
+        <li><b>Rumble Arena scores:</b> only if you send them from the launcher: player name, country and game statistics, shown in the public ranking.</li>
+      </ul>
+
+      <h3>Why we use it</h3>
+      <p>To provide the services you ask for (your tracker account, your listings, your supporter themes, your ranking), and to run, secure and improve the site, which is our legitimate interest. Data is kept as long as your account or content exists, or until you ask for it to be deleted.</p>
+
+      <h3>Service providers</h3>
+      <ul>
+        <li><b>Supabase</b>: database and accounts, stored in the European Union (Paris region).</li>
+        <li><b>GitHub Pages</b> (GitHub, Inc., United States): hosting of the site.</li>
+        <li><b>Cloudinary</b> (United States): storage of images, photos and music.</li>
+        <li><b>Ko-fi</b> (United Kingdom): support payments.</li>
+        <li><b>Google Fonts</b> and <b>jsDelivr</b>: fonts and code libraries.</li>
+      </ul>
+      <p>Some of these providers are based outside the European Union; their own privacy policies apply. External links (marketplaces, news articles, social networks) are governed by the privacy policies of those sites.</p>
+
+      <h3>Your rights</h3>
+      <p>You can ask to access, correct, delete or receive a copy of your data, or object to its use, by writing to <a href="mailto:ratchetlegacy@gmail.com">ratchetlegacy@gmail.com</a>. You can also delete your tracker data yourself at any time. If you think your rights are not respected, you can file a complaint with the CNIL (<a href="https://www.cnil.fr" target="_blank" rel="noopener">cnil.fr</a>), the French data protection authority.</p>
+    </div>
+
+    <div data-l="fr">
+      <h2>Confidentialité</h2>
+      <p>Ratchet Legacy collecte le moins possible, ne vend jamais tes données et n'affiche aucune publicité.</p>
+      <div class="legal-box"><b>Responsable :</b> Ratchet Legacy (voir l'onglet Mentions légales). <b>Contact :</b> <a href="mailto:ratchetlegacy@gmail.com">ratchetlegacy@gmail.com</a></div>
+
+      <h3>Quand tu visites le site</h3>
+      <ul>
+        <li><b>Mesure d'audience :</b> pour chaque page, le site enregistre la page vue, le site d'où tu viens, ton fuseau horaire, ta langue et ton type d'appareil (mobile, tablette ou ordinateur). Aucune adresse IP, aucun cookie et aucun identifiant de visiteur ne sont enregistrés.</li>
+        <li><b>Compteur de visiteurs :</b> ton numéro de visiteur est gardé dans ton propre navigateur (stockage local) pour que le site puisse te saluer à ton retour ; le site ne conserve que le nombre total de visites.</li>
+        <li><b>Préférences :</b> ton navigateur garde aussi ta langue, l'activation du son des animations et des réglages du même genre. Elles ne quittent jamais ton appareil.</li>
+        <li>Le site n'utilise aucun cookie publicitaire ni de pistage.</li>
+        <li>Pour afficher les pages, ton navigateur se connecte à des services externes : Google Fonts (polices), Cloudinary (images et musique) et jsDelivr (bibliothèques de code). Comme pour tout site, ils reçoivent ton adresse IP au chargement d'une page.</li>
+      </ul>
+
+      <h3>Quand tu utilises le tracker</h3>
+      <ul>
+        <li><b>Compte :</b> ton adresse e-mail et ton mot de passe (conservé uniquement sous une forme protégée et illisible par notre fournisseur de base de données).</li>
+        <li><b>Ta collection :</b> ton pseudo, les objets que tu ajoutes, ta liste d'envies et tes photos.</li>
+        <li><b>Fonctions sociales, seulement si tu les utilises :</b> profil public, amis, échanges, suggestions de fiches et photos proposées. Un profil public est visible des autres utilisateurs.</li>
+      </ul>
+
+      <h3>Autres données</h3>
+      <ul>
+        <li><b>Annonces d'échange :</b> la description de l'objet et le lien de vente que tu envoies. Elles sont publiques une fois validées, n'y mets donc pas de données personnelles que tu ne veux pas partager.</li>
+        <li><b>Soutiens Ko-fi :</b> Ko-fi nous transmet le nom que tu as choisi, ton soutien et ton message. La page Supporters affiche ton nom, ton palier et ton message ; dis-nous si tu préfères rester anonyme ou être retiré.</li>
+        <li><b>Scores Rumble Arena :</b> seulement si tu les envoies depuis le lanceur : pseudo, pays et statistiques de jeu, affichés dans le classement public.</li>
+      </ul>
+
+      <h3>Pourquoi nous les utilisons</h3>
+      <p>Pour fournir les services que tu demandes (ton compte du tracker, tes annonces, tes thèmes de soutien, ton classement), et pour faire fonctionner, sécuriser et améliorer le site, ce qui constitue notre intérêt légitime. Les données sont gardées tant que ton compte ou ton contenu existe, ou jusqu'à ce que tu demandes leur suppression.</p>
+
+      <h3>Prestataires</h3>
+      <ul>
+        <li><b>Supabase</b> : base de données et comptes, stockés dans l'Union européenne (région de Paris).</li>
+        <li><b>GitHub Pages</b> (GitHub, Inc., États-Unis) : hébergement du site.</li>
+        <li><b>Cloudinary</b> (États-Unis) : stockage des images, photos et musiques.</li>
+        <li><b>Ko-fi</b> (Royaume-Uni) : paiements de soutien.</li>
+        <li><b>Google Fonts</b> et <b>jsDelivr</b> : polices et bibliothèques de code.</li>
+      </ul>
+      <p>Certains de ces prestataires sont situés hors de l'Union européenne ; leurs propres politiques de confidentialité s'appliquent. Les liens externes (sites de vente, articles, réseaux sociaux) relèvent de la politique de confidentialité de ces sites.</p>
+
+      <h3>Tes droits</h3>
+      <p>Tu peux demander à accéder à tes données, les corriger, les supprimer, en recevoir une copie ou t'opposer à leur utilisation en écrivant à <a href="mailto:ratchetlegacy@gmail.com">ratchetlegacy@gmail.com</a>. Tu peux aussi supprimer toi-même les données de ton tracker à tout moment. Si tu estimes que tes droits ne sont pas respectés, tu peux adresser une réclamation à la CNIL (<a href="https://www.cnil.fr" target="_blank" rel="noopener">cnil.fr</a>).</p>
+    </div>
   </section>
 
-  <!-- LEGAL NOTICE -->
+  <!-- ================= MENTIONS LEGALES ================= -->
   <section class="legal-sec" id="legal">
-    <div class="legal-updated">Last updated: September 2026</div>
-    <h2>Legal Notice</h2>
+    <div class="legal-updated"><span data-l="en">Last updated: 25 November 2026</span><span data-l="fr">Dernière mise à jour : 25 novembre 2026</span></div>
 
-    <h3>Publisher</h3>
-    <p>This site is edited and maintained by an individual fan under the name "Ratchet Legacy", as a personal, non-commercial project.</p>
+    <div data-l="en">
+      <h2>Legal Notice</h2>
 
-    <h3>Intellectual property</h3>
-    <p>"Ratchet &amp; Clank", the characters, logos, artwork and games are the property of Sony Interactive Entertainment and Insomniac Games. This site claims no ownership over them and uses only original text, user photos, or freely-licensed material.</p>
-    <p>Original content created for this site (texts, layout, original illustrations) belongs to Ratchet Legacy.</p>
+      <h3>Publisher</h3>
+      <p>ratchetlegacy.com and tracker.ratchetlegacy.com are published by an individual fan under the name “Ratchet Legacy”, as a personal, non-commercial project. As allowed for non-professional publishers by French law (article 6 of the LCEN law of 21 June 2004), the publisher's identity has been given to the hosting provider.</p>
+      <p><b>Publication director:</b> the publisher, “Ratchet Legacy”.<br><b>Contact:</b> <a href="mailto:ratchetlegacy@gmail.com">ratchetlegacy@gmail.com</a> · Instagram <a href="https://instagram.com/ratchetlegacy" target="_blank" rel="noopener">@ratchetlegacy</a></p>
 
-    <h3>External content</h3>
-    <p>News items link to external articles hosted by their original publishers; all rights and credit belong to them. Trade listings link to external marketplaces. Ratchet Legacy is not responsible for the content of external sites.</p>
+      <h3>Hosting</h3>
+      <p><b>GitHub, Inc.</b> (GitHub Pages), 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, United States — <a href="https://support.github.com/contact" target="_blank" rel="noopener">support.github.com/contact</a></p>
+      <p>Database and accounts: <b>Supabase</b>, data stored in the European Union (Paris region).</p>
 
-    <h3>Takedown</h3>
-    <p>If you are a rights holder and believe content should be removed, please contact us via Instagram <a href="https://instagram.com/ratchetlegacy" target="_blank">@ratchetlegacy</a> and we will respond promptly.</p>
+      <h3>Intellectual property</h3>
+      <p>“Ratchet &amp; Clank”, its characters, logos, artwork, music and games belong to Sony Interactive Entertainment, Insomniac Games and, for Ranger Rumble, Oh BiBi. Product photos, covers and packaging shown in the Megacorp Vault, the wiki and the news belong to their respective owners and are shown for identification and documentation purposes only.</p>
+      <p>The site's original content (texts, guides, layout, original illustrations and code) belongs to Ratchet Legacy and may not be copied without permission.</p>
+
+      <h3>External content</h3>
+      <p>News items link to articles hosted by their original publishers, who keep all rights and credit. Trade listings link to external marketplaces. Ratchet Legacy is not responsible for the content of external sites.</p>
+
+      <h3>Takedown requests</h3>
+      <p>If you hold rights to content shown here and want it removed, write to <a href="mailto:ratchetlegacy@gmail.com">ratchetlegacy@gmail.com</a> with the page concerned. Requests are handled promptly.</p>
+    </div>
+
+    <div data-l="fr">
+      <h2>Mentions légales</h2>
+
+      <h3>Éditeur</h3>
+      <p>ratchetlegacy.com et tracker.ratchetlegacy.com sont édités par un fan, particulier, sous le nom « Ratchet Legacy », dans le cadre d'un projet personnel et non commercial. Comme la loi le permet aux éditeurs non professionnels (article 6 de la loi pour la confiance dans l'économie numérique du 21 juin 2004), l'identité de l'éditeur a été communiquée à l'hébergeur.</p>
+      <p><b>Directeur de la publication :</b> l'éditeur, « Ratchet Legacy ».<br><b>Contact :</b> <a href="mailto:ratchetlegacy@gmail.com">ratchetlegacy@gmail.com</a> · Instagram <a href="https://instagram.com/ratchetlegacy" target="_blank" rel="noopener">@ratchetlegacy</a></p>
+
+      <h3>Hébergement</h3>
+      <p><b>GitHub, Inc.</b> (GitHub Pages), 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis — <a href="https://support.github.com/contact" target="_blank" rel="noopener">support.github.com/contact</a></p>
+      <p>Base de données et comptes : <b>Supabase</b>, données stockées dans l'Union européenne (région de Paris).</p>
+
+      <h3>Propriété intellectuelle</h3>
+      <p>« Ratchet &amp; Clank », ses personnages, logos, visuels, musiques et jeux appartiennent à Sony Interactive Entertainment, à Insomniac Games et, pour Ranger Rumble, à Oh BiBi. Les photos de produits, jaquettes et emballages présentées dans le Megacorp Vault, le wiki et les actus appartiennent à leurs propriétaires respectifs et ne sont montrées qu'à des fins d'identification et de documentation.</p>
+      <p>Les contenus originaux du site (textes, guides, mise en page, illustrations originales et code) appartiennent à Ratchet Legacy et ne peuvent pas être copiés sans autorisation.</p>
+
+      <h3>Contenus externes</h3>
+      <p>Les actus renvoient vers des articles hébergés par leurs éditeurs d'origine, qui en gardent tous les droits et le crédit. Les annonces d'échange renvoient vers des sites de vente externes. Ratchet Legacy n'est pas responsable du contenu des sites externes.</p>
+
+      <h3>Demandes de retrait</h3>
+      <p>Si tu détiens des droits sur un contenu présent ici et souhaites son retrait, écris à <a href="mailto:ratchetlegacy@gmail.com">ratchetlegacy@gmail.com</a> en indiquant la page concernée. Les demandes sont traitées rapidement.</p>
+    </div>
   </section>
 </div>
 
 <footer>
-  Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games or Sony.
+  <span data-l="en">Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games, Oh BiBi or Sony.</span><span data-l="fr">Fait avec 💜 par Ratchet Legacy · Un projet de fan, sans lien avec Insomniac Games, Oh BiBi ou Sony.</span>
 </footer>
 
 <script>
-function showLegal(id,btn){
-  document.querySelectorAll('.legal-sec').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.legal-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
-  window.scrollTo({top:0,behavior:'smooth'});
+// Onglets : Conditions / Confidentialite / Mentions (lien direct possible : legal.html#privacy)
+function showLegal(id){
+  if(!document.getElementById(id)) id='terms';
+  document.querySelectorAll('.legal-sec').forEach(s=>s.classList.toggle('active',s.id===id));
+  document.querySelectorAll('.legal-tab').forEach(t=>t.classList.toggle('active',t.dataset.sec===id));
 }
+document.querySelectorAll('.legal-tab').forEach(t=>t.addEventListener('click',()=>{
+  showLegal(t.dataset.sec); history.replaceState(null,'','#'+t.dataset.sec); window.scrollTo({top:0,behavior:'smooth'});
+}));
+showLegal((location.hash||'#terms').slice(1));
+// le navigateur saute a l'ancre : on revient en haut pour garder les onglets visibles
+if(location.hash) setTimeout(()=>window.scrollTo(0,0),0);
+
+// Langue : meme reglage que le reste du site
+let LANG='en';
+try{ LANG=localStorage.getItem('rl-lang')||((navigator.language||'').startsWith('fr')?'fr':'en'); }catch(e){ LANG=(navigator.language||'').startsWith('fr')?'fr':'en'; }
+function setLang(l){
+  LANG=l; document.documentElement.lang=l;
+  document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.set===l));
+  document.title=l==='fr'?'Conditions & mentions légales — Ratchet Legacy':'Terms & Legal — Ratchet Legacy';
+  try{ localStorage.setItem('rl-lang',l); }catch(e){}
+}
+document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.set)));
+setLang(LANG);
 </script>
+<script src="back-nav.js?v=1"></script>
 </body>
 </html>
