@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<script>/* Lien de réinitialisation du mot de passe du tracker : le lien Supabase arrive ici (Site URL), on le renvoie vers le tracker */if(/type=recovery/.test(location.hash))location.replace("https://tracker.ratchetlegacy.com/"+location.hash);</script>
+<script>/* Lien de réinitialisation du mot de passe du tracker : le lien Supabase arrive ici (Site URL), on le renvoie vers le tracker */if(/type=recovery|error_code=/.test(location.hash))location.replace("https://tracker.ratchetlegacy.com/"+location.hash);</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Ratchet &amp; Clank Collector's Hub — Ratchet Legacy</title>
 <link rel="manifest" href="/manifest.json"/>
@@ -157,7 +157,7 @@ section{position:relative;z-index:2}
 /* Footer */
 footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;color:var(--text-dim)}
 /* Accueil createur : une fois par jour, quand l'admin est connecte */
-#creator{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,#3a1f6e 0%,#140b2a 45%,#05060c 80%);opacity:0;transition:opacity .5s;overflow:hidden}
+#creator{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,#3a1f6e 0%,#140b2a 45%,#05060c 80%);opacity:0;transition:opacity .5s;overflow-x:hidden;overflow-y:auto}
 #creator.on{opacity:1}
 #creator .halo{position:absolute;width:120vmax;height:120vmax;background:conic-gradient(from 0deg,rgba(255,200,90,.0),rgba(255,200,90,.18),rgba(155,111,244,.0),rgba(255,107,26,.16),rgba(255,200,90,.0));animation:mileRot 18s linear infinite;mask:radial-gradient(circle,#000 0,transparent 60%);-webkit-mask:radial-gradient(circle,#000 0,transparent 60%)}
 .cr-box{position:relative;z-index:2;text-align:center;padding:24px;width:min(560px,94vw)}
@@ -180,6 +180,19 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
 .cr-btns a{background:rgba(255,255,255,.08);color:var(--text);border:1px solid rgba(255,255,255,.15)}
 .cr-btns button{color:#120c02;background:linear-gradient(135deg,var(--gold),var(--orange))}
 @media(max-width:420px){.cr-btns a,.cr-btns button{padding:10px 14px;font-size:.8rem}}
+.cr-gifts{margin-top:16px;opacity:0;animation:mileUp .6s 2.15s forwards}
+.cr-gifts h4{font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:.3em;color:var(--gold);margin:0 0 8px;font-weight:700}
+.cr-gl{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.cr-g{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 6px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,200,90,.3);text-decoration:none;color:var(--text);transition:transform .2s}
+.cr-g:hover{transform:translateY(-3px);border-color:var(--gold)}
+.cr-g .ic{font-size:1.45rem;line-height:1.1}
+.cr-g b{font-size:.58rem;line-height:1.2;font-weight:600;min-height:2.4em;display:flex;align-items:center}
+.cr-g small{font-size:.55rem;color:var(--gold);letter-spacing:.04em}
+.cr-g.lock{border-color:rgba(255,255,255,.08)}
+.cr-g.lock .ic{filter:grayscale(1) brightness(.6)}
+.cr-g.lock b,.cr-g.lock small{color:var(--text-dim)}
+.cr-note{font-size:.66rem;color:var(--text-dim);margin-top:6px}
+@media(max-width:420px){.cr-gl{gap:4px}.cr-g b{display:none}}
 .cr-spark{position:absolute;z-index:1;width:4px;height:4px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);animation:crSpark 2.4s ease-out forwards}
 @keyframes crSpark{from{transform:translate(0,0) scale(1);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
 /* Visiteur palier (100e, 200e, ...) : animation d'ouverture */
@@ -308,6 +321,7 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
 @keyframes hglShake{0%,70%,100%{transform:none}71%{transform:translate(2px,0) skewX(-3deg)}74%{transform:translate(-2px,0)}77%{transform:translate(1px,0) skewX(2deg)}80%{transform:none}91%{transform:translate(-2px,0)}93%{transform:none}}
 @keyframes rrBlink{50%{opacity:.15}}
 @media(max-width:560px){.rr-alert{font-size:.78rem;flex-wrap:wrap;justify-content:center;border-radius:16px}}
+.nav-links a.active{color:#fff;background:rgba(255,138,42,.16);box-shadow:inset 0 -2px 0 #FF8A2A}
 </style>
 </head>
 <body>
@@ -316,22 +330,24 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
 <nav class="nav">
   <a href="#top" class="nav-logo"><span class="mark">🔧</span> RATCHET LEGACY</a>
   <div class="nav-links">
+    <a href="index.html" class="active" aria-current="page">Home</a>
     <a href="wiki.html">Wiki</a>
     <a href="map.html">Map</a>
     <a href="arcade.html">Arcade</a>
     <a href="story.html">Story</a>
     <a href="news.html">News</a>
     <a href="arena.html" style="color:#FF4D6A">🎮 Rumble Arena</a>
-    <a href="preservation.html" style="color:var(--gold)">🗄️ Preservation</a>
+    <a href="preservation.html">Preservation</a>
     <a href="database.html">Megacorp Vault</a>
     <a href="guides.html">Guides</a>
-    <a href="#trades">Trades</a>
+    <a href="trades.html">Trades</a>
     <a href="#about">About</a>
     <a href="https://instagram.com/ratchetlegacy" target="_blank" class="nav-insta-btn" title="Instagram">📸</a>
     <a href="https://tracker.ratchetlegacy.com" target="_blank" class="nav-cta">Open the tracker</a>
   </div>
   <button class="nav-burger" onclick="document.querySelector('.nav-links').style.display='flex';this.style.display='none'">☰</button>
 </nav>
+<script id="rc-nav-active">(function(){var a=document.querySelector(".nav-links a.active"),n=a&&a.parentNode;if(n&&n.scrollWidth>n.clientWidth)n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.offsetWidth/2;})();</script>
 
 <!-- HERO -->
 <header class="hero" id="top">
@@ -680,6 +696,32 @@ for(let i=0;i<70;i++){
   // apercu pour l'admin : index.html?milestone=300
   try{ const pv=new URLSearchParams(location.search).get('milestone'); if(pv&&+pv>=100&&+pv%100===0){ milestone(+pv); } }catch(e){}
 
+  // Recompenses des paliers, vues par le createur : celles deja
+  // distribuees (le palier est atteint) et celles a venir (cadenas).
+  // Un clic montre l'ecran que le visiteur a vu ou verra.
+  function gifts(vis){
+    const reached=Math.floor((vis||0)/100);
+    return '<div class="cr-gifts"><h4>🎁 MILESTONE REWARDS · '+Math.min(reached,GIFTS.length)+' / '+GIFTS.length+' GIVEN</h4><div class="cr-gl">'
+      +GIFTS.map((g,i)=>{ const n=(i+1)*100, on=i<reached;
+        return '<a class="cr-g'+(on?'':' lock')+'" href="?milestone='+n+'" title="'+g[1].replace(/"/g,'&quot;')+' — '+g[2].replace(/"/g,'&quot;')+'">'
+          +'<span class="ic">'+g[0]+'</span><b>'+g[1]+'</b><small>'+(on?'':'🔒 ')+ordinal(n)+'</small></a>'; }).join('')
+      +'</div><div class="cr-note">Tap a reward to see its milestone screen'+(reached>=GIFTS.length?' · they now repeat every 1,000':'')+'</div></div>';
+  }
+  // Pour le createur, la ligne du compteur montre aussi les recompenses
+  // deja distribuees.
+  async function creatorBadges(){
+    const { data:{ session } } = await sb.auth.getSession();
+    const email=((session&&session.user&&session.user.email)||'').toLowerCase();
+    if(email!=='ratchetlegacy@gmail.com') return;
+    const vis=await sb.rpc('visitor_count').then(r=>r.data||0,()=>0);
+    const k=Math.min(GIFTS.length,Math.floor(vis/100)); if(!k) return;
+    const add=()=>{ if(!el.classList.contains('show')||el.querySelector('.vgift-all')) return false;
+      const s=document.createElement('span'); s.className='vgift vgift-all'; s.title='Rewards given so far';
+      s.textContent='👑 '+GIFTS.slice(0,k).map(g=>g[0]).join(' '); el.appendChild(s); return true; };
+    if(!add()){ let t=0; const iv=setInterval(()=>{ if(add()||++t>20) clearInterval(iv); },300); }
+  }
+  creatorBadges().catch(()=>{});
+
   // Accueil du createur : une fois par jour quand l'admin est connecte
   // (meme session Supabase que l'admin du site). Apercu : ?creator=1
   async function creatorWelcome(force){
@@ -712,6 +754,7 @@ for(let i=0;i<70;i++){
       +'</div>'
       +'<div class="cr-next">Next milestone visitor: <b>'+ordinal(next)+'</b> — '+(next-vis)+' to go'
       +'<div class="cr-bar"><span></span></div></div>'
+      +gifts(vis)
       +'<div class="cr-btns"><a href="admin.html">🛠 Open the cockpit</a><button type="button">Enter the Legacy</button></div>'
       +'</div>';
     document.body.appendChild(ov);
