@@ -112,7 +112,8 @@ a{color:inherit;text-decoration:none}
 .nav-logo .mark{width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--orange));display:flex;align-items:center;justify-content:center;font-size:1.15rem}
 .nav-links{display:flex;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none}
 .nav-links a{padding:8px 15px;border-radius:8px;font-size:.86rem;font-weight:500;color:var(--text-mid);white-space:nowrap}
-.nav-links a:hover,.nav-links a.active{color:var(--text);background:rgba(255,255,255,.05)}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.nav-links a.active{color:#fff;background:rgba(255,138,42,.16);box-shadow:inset 0 -2px 0 #FF8A2A}
 .nav-cta{background:linear-gradient(135deg,var(--purple),var(--orange));color:#fff!important;font-weight:700!important}
 main{max-width:1060px;margin:0 auto;padding:28px 22px 60px}
 .crumbs{font-size:.8rem;color:var(--text-dim);margin-bottom:18px;display:flex;flex-wrap:wrap;gap:6px}
@@ -170,7 +171,7 @@ footer{border-top:1px solid var(--line);padding:32px 24px;text-align:center;colo
 const T = {
   en: {
     htmlLang: 'en', ogLocale: 'en_GB', base: '/vault/',
-    nav: ['Home', 'Wiki', 'Megacorp Vault', 'Guides', 'News', 'Open the tracker'],
+    nav: ['Home', 'Wiki', 'Map', 'Arcade', 'Story', 'News', 'Preservation', 'Megacorp Vault', 'Guides', 'Trades', 'About', 'Open the tracker'],
     footer: 'Made with 💜 by Ratchet Legacy · A fan project, not affiliated with Insomniac Games or Sony. · <a href="/legal.html">Terms &amp; Legal</a>',
     home: 'Home', allItems: 'All items', other: '🇫🇷 Version française',
     titleSuffix: 'Price & Info', standard: 'Standard', standardEd: 'Standard edition',
@@ -192,7 +193,7 @@ const T = {
   },
   fr: {
     htmlLang: 'fr', ogLocale: 'fr_FR', base: '/fr/vault/',
-    nav: ['Accueil', 'Wiki', 'Megacorp Vault', 'Guides', 'Actus', 'Ouvrir le tracker'],
+    nav: ['Accueil', 'Wiki', 'Carte', 'Arcade', 'Histoire', 'Actus', 'Préservation', 'Megacorp Vault', 'Guides', 'Échanges', 'À propos', 'Ouvrir le tracker'],
     footer: 'Fait avec 💜 par Ratchet Legacy · Projet de fan, sans lien avec Insomniac Games ni Sony. · <a href="/legal.html">Mentions légales</a>',
     home: 'Accueil', allItems: 'Toutes les fiches', other: '🇬🇧 English version',
     titleSuffix: 'Prix et cote', standard: 'Classique', standardEd: 'Édition classique',
@@ -256,10 +257,17 @@ ${jsonld.map(j => `<script type="application/ld+json">${JSON.stringify(j).replac
   <div class="nav-links">
     <a href="/">${L.nav[0]}</a>
     <a href="/wiki.html">${L.nav[1]}</a>
-    <a href="${L.base}" class="active">${L.nav[2]}</a>
-    <a href="/guides.html">${L.nav[3]}</a>
-    <a href="/news.html">${L.nav[4]}</a>
-    <a href="https://tracker.ratchetlegacy.com" class="nav-cta">${L.nav[5]}</a>
+    <a href="/map.html">${L.nav[2]}</a>
+    <a href="/arcade.html">${L.nav[3]}</a>
+    <a href="/story.html">${L.nav[4]}</a>
+    <a href="/news.html">${L.nav[5]}</a>
+    <a href="/arena.html" style="color:#FF4D6A">🎮 Rumble Arena</a>
+    <a href="/preservation.html">${L.nav[6]}</a>
+    <a href="${L.base}" class="active" aria-current="page">${L.nav[7]}</a>
+    <a href="/guides.html">${L.nav[8]}</a>
+    <a href="/trades.html">${L.nav[9]}</a>
+    <a href="/#about">${L.nav[10]}</a>
+    <a href="https://tracker.ratchetlegacy.com" class="nav-cta">${L.nav[11]}</a>
   </div>
 </nav>
 <main>
