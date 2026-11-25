@@ -104,10 +104,17 @@ ${jsonld.map(j => `<script type="application/ld+json">${JSON.stringify(j).replac
   <a href="/" class="nav-logo"><span class="mark">🔧</span> RATCHET LEGACY</a>
   <div class="nav-links">
     <a href="/">Home</a>
-    <a href="/wiki/"${active === 'wiki' ? ' class="active"' : ''}>Wiki</a>
-    <a href="/vault/">Megacorp Vault</a>
+    <a href="/wiki.html"${active === 'wiki' ? ' class="active" aria-current="page"' : ''}>Wiki</a>
+    <a href="/map.html">Map</a>
+    <a href="/arcade.html">Arcade</a>
+    <a href="/story.html">Story</a>
+    <a href="/news.html"${active === 'news' ? ' class="active" aria-current="page"' : ''}>News</a>
+    <a href="/arena.html" style="color:#FF4D6A">🎮 Rumble Arena</a>
+    <a href="/preservation.html">Preservation</a>
+    <a href="/database.html">Megacorp Vault</a>
     <a href="/guides.html">Guides</a>
-    <a href="/news.html"${active === 'news' ? ' class="active"' : ''}>News</a>
+    <a href="/trades.html">Trades</a>
+    <a href="/#about">About</a>
     <a href="https://tracker.ratchetlegacy.com" class="nav-cta">Open the tracker</a>
   </div>
 </nav>
