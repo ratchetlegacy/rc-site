@@ -61,7 +61,10 @@ h1 .g{background:linear-gradient(120deg,var(--purple-light),var(--orange));-webk
 footer{border-top:1px solid var(--line);padding:34px 24px;text-align:center;color:var(--text-dim);margin-top:50px;font-size:.8rem}
 .note{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--purple-light);border-radius:12px;padding:13px 16px;margin:4px 0 8px;font-size:.86rem;color:var(--text-mid)}
 @media(max-width:560px){.grid{grid-template-columns:1fr}}
+.demo-bar{position:absolute;left:0;right:0;top:100%;padding:7px 16px;text-align:center;font-size:.78rem;font-weight:600;line-height:1.35;color:#ffd58a;background:rgba(60,40,8,.92);border-bottom:1px solid rgba(255,200,90,.35);backdrop-filter:blur(8px)}
+@media(max-width:560px){.demo-bar{font-size:.7rem;padding:6px 12px}}
 /* Menu du site (identique aux autres pages) */
+.nav-logo{white-space:nowrap}
 .nav{gap:12px}
 .nav-links{display:flex;gap:6px;align-items:center;scrollbar-width:none}.nav-links::-webkit-scrollbar{display:none}
 .nav-links a{padding:8px 15px;border-radius:8px;font-size:.86rem;font-weight:500;color:var(--text-mid,#b8bdd6);transition:.18s;text-decoration:none;white-space:nowrap}
@@ -94,6 +97,7 @@ footer{border-top:1px solid var(--line);padding:34px 24px;text-align:center;colo
     <a href="https://tracker.ratchetlegacy.com" target="_blank" class="nav-cta">Open the tracker</a>
   </div>
   <div class="lang"><button data-set="en">EN</button><button data-set="fr">FR</button></div>
+  <div class="demo-bar" role="status"><span data-l="en">⚠️ Demo — the ranking and trophy statistics are sample data until the first real scores are sent from the launcher.</span><span data-l="fr">⚠️ Démo — le classement et les statistiques de trophées sont des données d'exemple, en attendant les premiers vrais scores envoyés depuis le lanceur.</span></div>
 </nav>
 <script id="rc-nav-active">(function(){var a=document.querySelector(".nav-links a.active"),n=a&&a.parentNode;if(n&&n.scrollWidth>n.clientWidth)n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.offsetWidth/2;})();</script>
 
