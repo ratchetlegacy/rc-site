@@ -144,6 +144,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 @media(max-width:820px){.nav-links{display:flex;overflow-x:auto;gap:2px;-webkit-overflow-scrolling:touch;max-width:60vw}.nav-burger{display:none}}
 .vsearch{max-width:620px;margin:18px auto 6px}.vsearch input{width:100%;box-sizing:border-box;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:13px 16px;color:var(--text);font:inherit;font-size:.95rem;outline:none}
 .vsearch input:focus{border-color:rgba(255,176,32,.6);box-shadow:0 0 0 4px rgba(255,176,32,.12)}
+.nav-links a.active{color:#fff;background:rgba(255,138,42,.16);box-shadow:inset 0 -2px 0 #FF8A2A}
 </style>
 </head>
 <body>
@@ -157,14 +158,18 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <a href="arcade.html">Arcade</a>
     <a href="story.html">Story</a>
     <a href="news.html">News</a>
-    <a href="database.html" class="active">Megacorp Vault</a>
+    <a href="arena.html" style="color:#FF4D6A">🎮 Rumble Arena</a>
+    <a href="preservation.html">Preservation</a>
+    <a href="database.html" class="active" aria-current="page">Megacorp Vault</a>
     <a href="guides.html">Guides</a>
     <a href="trades.html">Trades</a>
+    <a href="index.html#about">About</a>
     <a href="https://instagram.com/ratchetlegacy" target="_blank" class="nav-insta-btn" title="Instagram">📸</a>
     <a href="https://tracker.ratchetlegacy.com" target="_blank" class="nav-cta">Open the tracker</a>
   </div>
   <button class="nav-burger" onclick="document.querySelector('.nav-links').style.display='flex';this.style.display='none'">☰</button>
 </nav>
+<script id="rc-nav-active">(function(){var a=document.querySelector(".nav-links a.active"),n=a&&a.parentNode;if(n&&n.scrollWidth>n.clientWidth)n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.offsetWidth/2;})();</script>
 
 <header class="page-hero">
   <div class="tag">GADGETRON · MEGACORP REGISTRY</div>
@@ -1167,6 +1172,34 @@ function lbFlip(front,back){
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLb();});
 
+// ── Bouton Retour dans le Vault ──
+// Catégorie → console → région → pays : chaque niveau ajoute une étape
+// dans l'historique. Retour remonte d'un niveau au lieu de quitter le Vault.
+(function(){
+  let fromPop=false;
+  const now=()=>[navCat,navPlat,navReg,navSub];
+  function record(){
+    if(fromPop) return;
+    const v=now(), st=history.state&&history.state.vault;
+    if(!st){ history.replaceState(Object.assign({},history.state,{vault:v}),''); return; }
+    if(JSON.stringify(st)!==JSON.stringify(v)) history.pushState({vault:v},'');
+  }
+  ['showCategoryMenu','openCategory','openPlatform','openRegion','openPalCountry'].forEach(n=>{
+    const f=window[n]; if(typeof f!=='function') return;
+    window[n]=function(){ const r=f.apply(this,arguments); record(); return r; };
+  });
+  window.addEventListener('popstate',e=>{
+    const v=e.state&&e.state.vault; if(!v) return;
+    const [c,p,r,s]=v; fromPop=true;
+    try{
+      if(!c) showCategoryMenu();
+      else if(!p) openCategory(c);
+      else if(!r){ navCat=c; openPlatform(p); }
+      else if(!s){ navCat=c; navPlat=p; openRegion(r); }
+      else { navCat=c; navPlat=p; navReg=r; openPalCountry(s); }
+    } finally { fromPop=false; }
+  });
+})();
 load();
 </script>
 <script src="site-enhance.js"></script>
