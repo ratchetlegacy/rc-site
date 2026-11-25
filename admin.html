@@ -527,6 +527,8 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
       <input type="text" id="wi-vehicles" placeholder="https://..."/>
       <label>Lore card</label>
       <input type="text" id="wi-lore" placeholder="https://..."/>
+      <label>Soundtracks card</label>
+      <input type="text" id="wi-ost" placeholder="https://..."/>
       <button class="btn btn-primary" style="width:100%" onclick="saveWikiHubImages()">💾 Save wiki hub images</button>
     </div>
     <div class="card">
@@ -886,6 +888,35 @@ textarea.ta-auto.agrandi{position:fixed;inset:4vh 4vw;width:auto;height:auto;
 
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">🎵 Bandes originales</h2>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadOst()">↻ Actualiser</button>
+      </div>
+      <p class="vf-intro">Les albums de musique joués dans le lecteur du wiki (onglet <a href="wiki.html#ost" target="_blank" style="color:var(--orange)">Soundtracks</a>). 1) Crée l'album (titre, jeu, pochette). 2) Importe les morceaux : tu peux en choisir plusieurs d'un coup. 3) Décoche ceux que tu ne veux pas garder, corrige les titres et range-les avec ▲▼. L'album n'apparaît sur le site que quand <b>Visible sur le site</b> est coché. N'héberge que des morceaux dont l'auteur t'a donné l'accord.</p>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+        <select id="ost-album" onchange="ostChoisir(this.value)" style="flex:1;min-width:200px;margin:0"></select>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem;width:auto" onclick="ostChoisir('')">＋ Nouvel album</button>
+      </div>
+      <div id="ost-form" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:10px">
+        <label>Titre de l'album<input id="ost-titre" placeholder="Ratchet & Clank: Going Commando – Original Soundtrack"/></label>
+        <label>Jeu<input id="ost-jeu" list="ost-jeux" placeholder="Going Commando"/><datalist id="ost-jeux"></datalist></label>
+        <label>Compositeur<input id="ost-compo" placeholder="David Bergeaud"/></label>
+        <label>Lien YouTube (facultatif)<input id="ost-yt" placeholder="https://www.youtube.com/…"/></label>
+        <label style="grid-column:1/-1">Crédit affiché sous l'album<input id="ost-credit" placeholder="Music by … · Hosted with the composer's permission"/></label>
+        <label style="grid-column:1/-1">Pochette (lien Cloudinary)
+          <span style="display:flex;gap:8px;align-items:center"><img id="ost-cover-img" style="width:56px;height:56px;object-fit:cover;border-radius:8px;background:var(--bg);flex:none"/><input id="ost-cover" style="margin:0;flex:1" oninput="document.getElementById('ost-cover-img').src=this.value"/><button type="button" class="btn" style="padding:8px 12px;font-size:.8rem;background:var(--bg);color:var(--text);white-space:nowrap" onclick="ostEnvoyerPochette()">📤 Envoyer</button></span></label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ost-visible" style="width:auto;margin:0"/> Visible sur le site</label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <button class="btn btn-primary" style="width:auto" onclick="ostEnregistrerAlbum()">💾 Enregistrer l'album</button>
+        <button class="btn" id="ost-import-btn" style="background:var(--bg);color:var(--text)" onclick="ostImporter()">🎵 Importer des morceaux</button>
+        <button class="btn" id="ost-suppr-btn" style="background:var(--bg);color:var(--text)" onclick="ostSupprAlbum()">🗑️ Supprimer l'album</button>
+      </div>
+      <div id="ost-msgbox" class="msg"></div>
+      <div id="ost-pistes"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <h2 style="margin:0">🔊 Sons des thèmes</h2>
         <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="saveThemeSfx()">💾 Enregistrer</button>
       </div>
@@ -1236,14 +1267,14 @@ async function loadWikiHubImages(){
   try{
     const {data}=await sb.from('site_settings').select('key,value');
     const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
-    ['games','characters','weapons','creatures','bosses','enemies','trivia','planets','vehicles','lore'].forEach(k=>{
+    ['games','characters','weapons','creatures','bosses','enemies','trivia','planets','vehicles','lore','ost'].forEach(k=>{
       const el=document.getElementById('wi-'+k); if(el) el.value=S['wiki_img_'+k]||'';
     });
     const ab=document.getElementById('wi-about'); if(ab) ab.value=S['home_about_img']||'';
   }catch(e){}
 }
 async function saveWikiHubImages(){
-  const rows=['games','characters','weapons','creatures','bosses','enemies','trivia','planets','vehicles','lore'].map(k=>
+  const rows=['games','characters','weapons','creatures','bosses','enemies','trivia','planets','vehicles','lore','ost'].map(k=>
     ({key:'wiki_img_'+k, value:document.getElementById('wi-'+k).value.trim()}));
   const ab=document.getElementById('wi-about'); if(ab) rows.push({key:'home_about_img', value:ab.value.trim()});
   const {error}=await sb.from('site_settings').upsert(rows);
@@ -1577,6 +1608,7 @@ const ADMIN_SECTIONS=[
   {key:'stats', ic:'📊', lbl:'Stats', match:['Statistiques']},
   {key:'kofi', ic:'☕', lbl:'Donateurs', match:['Donateurs Ko-fi']},
   {key:'sfx', ic:'🔊', lbl:'Sons', match:['Sons des thèmes']},
+  {key:'ost', ic:'🎵', lbl:'Musique', match:['Bandes originales']},
   {key:'sugg', ic:'🆕', lbl:'Suggestions', match:['Nouvelles fiches suggérées']},
   {key:'sauvegarde', ic:'💾', lbl:'Sauvegarde', match:['Projet Sauvegarde']}
 ];
@@ -1625,6 +1657,7 @@ function showAdminSection(key){
   if(key==='stats')   loadStats(window._stPeriode||30);
   if(key==='accueil') loadTableauBord();
   if(key==='sauvegarde') loadSauvegarde();
+  if(key==='ost')     loadOst();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function setupCardToggle(card){
@@ -3584,6 +3617,138 @@ async function saveThemeSfx(){
   const {error}=await sb.from('app_settings').upsert([{key:'theme_sfx',value:JSON.stringify(clean)}],{onConflict:'key'});
   if(error){ showMsg('sfx-msgbox',error.message,false); return; }
   window._sfxData=clean; renderThemeSfx(); showMsg('sfx-msgbox','Enregistré ✓ — le tracker utilisera ces sons au prochain chargement.',true);
+}
+// === Bandes originales (lecteur du wiki) ==============================
+// Tables ost_albums et ost_tracks. Les fichiers audio vont sur Cloudinary.
+window._ost={albums:[],cur:null,pistes:[]};
+function ostTitreFichier(n){
+  return n.replace(/\.[a-z0-9]{2,4}$/i,'').replace(/[_]+/g,' ').replace(/^\s*(cd\s*\d+\s*[-.]\s*)?\d{1,3}\s*[-.)_ ]\s*/i,'').replace(/\s+/g,' ').trim()||n;
+}
+function ostDuree(s){ if(!s&&s!==0) return ''; s=Math.round(s); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+async function loadOst(){
+  const sel=document.getElementById('ost-album'); if(!sel) return;
+  const [{data,error},{data:jeux}]=await Promise.all([
+    sb.from('ost_albums').select('*').order('ordre').order('created_at'),
+    sb.from('site_games').select('name').order('name')
+  ]);
+  if(error){showMsg('ost-msgbox',error.message,false);return;}
+  _ost.albums=data||[];
+  document.getElementById('ost-jeux').innerHTML=(jeux||[]).map(j=>'<option value="'+esc(j.name)+'">').join('');
+  sel.innerHTML='<option value="">— Choisis un album —</option>'+_ost.albums.map(a=>'<option value="'+a.id+'">'+esc(a.title)+(a.visible?'':' (masqué)')+'</option>').join('');
+  const keep=_ost.cur&&_ost.albums.find(a=>a.id===_ost.cur.id);
+  ostChoisir(keep?keep.id:(_ost.albums[0]?_ost.albums[0].id:''));
+}
+function ostChoisir(id){
+  const a=_ost.albums.find(x=>x.id===id)||null; _ost.cur=a;
+  document.getElementById('ost-album').value=a?a.id:'';
+  const v=(k,x)=>document.getElementById(k).value=x||'';
+  v('ost-titre',a&&a.title); v('ost-jeu',a&&a.game); v('ost-compo',a&&a.composer); v('ost-yt',a&&a.youtube_url); v('ost-credit',a&&a.credit); v('ost-cover',a&&a.cover_url);
+  document.getElementById('ost-cover-img').src=(a&&a.cover_url)||'';
+  document.getElementById('ost-visible').checked=!!(a&&a.visible);
+  document.getElementById('ost-import-btn').disabled=!a; document.getElementById('ost-suppr-btn').disabled=!a;
+  if(!a){ document.getElementById('ost-pistes').innerHTML='<div class="vf-vide">Remplis le titre puis <b>Enregistrer l’album</b> : tu pourras ensuite importer les morceaux.</div>'; return; }
+  ostChargerPistes();
+}
+async function ostEnregistrerAlbum(){
+  const g=k=>document.getElementById(k).value.trim()||null;
+  const row={title:g('ost-titre'),game:g('ost-jeu'),composer:g('ost-compo'),youtube_url:g('ost-yt'),credit:g('ost-credit'),cover_url:g('ost-cover'),visible:document.getElementById('ost-visible').checked};
+  if(!row.title){showMsg('ost-msgbox','Donne un titre à l’album.',false);return;}
+  if(row.youtube_url&&!/^https:\/\//.test(row.youtube_url)){showMsg('ost-msgbox','Le lien YouTube doit commencer par https://',false);return;}
+  let res;
+  if(_ost.cur) res=await sb.from('ost_albums').update(row).eq('id',_ost.cur.id).select().single();
+  else { row.ordre=_ost.albums.length; res=await sb.from('ost_albums').insert(row).select().single(); }
+  if(res.error){showMsg('ost-msgbox',res.error.message,false);return;}
+  _ost.cur=res.data; showMsg('ost-msgbox','Album enregistré ✓',true); loadOst();
+}
+async function ostSupprAlbum(){
+  if(!_ost.cur) return;
+  if(!confirm('Supprimer l’album « '+_ost.cur.title+' » et sa liste de morceaux ? (les fichiers restent sur Cloudinary)')) return;
+  const {error}=await sb.from('ost_albums').delete().eq('id',_ost.cur.id);
+  if(error){showMsg('ost-msgbox',error.message,false);return;}
+  _ost.cur=null; showMsg('ost-msgbox','Album supprimé',true); loadOst();
+}
+function ostEnvoyerPochette(){
+  const input=document.createElement('input'); input.type='file'; input.accept='image/*';
+  input.onchange=async()=>{
+    const f=input.files&&input.files[0]; if(!f) return;
+    showMsg('ost-msgbox','Envoi de la pochette… 📤',true);
+    try{
+      const form=new FormData(); form.append('file',f); form.append('upload_preset',CLD_UPLOAD_PRESET); form.append('folder','OST/Pochettes');
+      const r=await (await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/image/upload',{method:'POST',body:form})).json();
+      if(!r.secure_url){showMsg('ost-msgbox','Échec : '+(r.error?r.error.message:'envoi refusé'),false);return;}
+      document.getElementById('ost-cover').value=r.secure_url; document.getElementById('ost-cover-img').src=r.secure_url;
+      showMsg('ost-msgbox','Pochette envoyée ✓ Pense à enregistrer l’album.',true);
+    }catch(e){showMsg('ost-msgbox',e.message,false);}
+  };
+  input.click();
+}
+function ostImporter(){
+  if(!_ost.cur) return;
+  const input=document.createElement('input'); input.type='file'; input.accept='audio/*,.mp3,.wav,.ogg,.flac,.m4a,.aac'; input.multiple=true;
+  input.onchange=async()=>{
+    const files=[...(input.files||[])].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+    if(!files.length) return;
+    let ordre=_ost.pistes.reduce((m,p)=>Math.max(m,p.ordre),0)+1, ok=0;
+    for(const [i,f] of files.entries()){
+      showMsg('ost-msgbox','Envoi '+(i+1)+' / '+files.length+' : '+f.name+' 📤',true);
+      try{
+        const form=new FormData(); form.append('file',f); form.append('upload_preset',CLD_UPLOAD_PRESET); form.append('folder','OST/'+(_ost.cur.game||_ost.cur.title).replace(/[^\w &-]/g,'').trim());
+        const r=await (await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/video/upload',{method:'POST',body:form})).json();
+        if(!r.secure_url){showMsg('ost-msgbox','Échec de '+f.name+(r.error?' : '+r.error.message:''),false);continue;}
+        const {error}=await sb.from('ost_tracks').insert({album_id:_ost.cur.id,title:ostTitreFichier(f.name),url:r.secure_url,duration:r.duration||null,ordre:ordre++});
+        if(error){showMsg('ost-msgbox',error.message,false);continue;}
+        ok++;
+      }catch(e){showMsg('ost-msgbox',f.name+' : '+e.message,false);}
+    }
+    if(ok) showMsg('ost-msgbox',ok+' morceau'+(ok>1?'x':'')+' importé'+(ok>1?'s':'')+' ✓ Décoche ceux à ne pas garder.',true);
+    ostChargerPistes();
+  };
+  input.click();
+}
+async function ostChargerPistes(){
+  const box=document.getElementById('ost-pistes'); if(!_ost.cur) return;
+  const {data,error}=await sb.from('ost_tracks').select('*').eq('album_id',_ost.cur.id).order('ordre').order('created_at');
+  if(error){box.innerHTML='<div class="msg err" style="display:block">'+esc(error.message)+'</div>';return;}
+  _ost.pistes=data||[];
+  if(!_ost.pistes.length){box.innerHTML='<div class="vf-vide">Aucun morceau. Clique sur <b>Importer des morceaux</b>.</div>';return;}
+  const n=_ost.pistes.filter(p=>p.visible).length;
+  box.innerHTML='<div style="font-size:.8rem;color:var(--text-dim);margin-bottom:8px">'+n+' / '+_ost.pistes.length+' morceaux gardés</div>'
+   +_ost.pistes.map((p,i)=>'<div style="display:flex;gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:12px;margin-bottom:6px;'+(p.visible?'':'opacity:.5')+'">'
+    +'<input type="checkbox" title="Garder ce morceau" style="width:auto;margin:0" '+(p.visible?'checked':'')+' onchange="ostMajPiste(\''+p.id+'\',{visible:this.checked})"/>'
+    +'<span style="width:22px;text-align:right;font-size:.75rem;color:var(--text-dim)">'+(i+1)+'</span>'
+    +'<input value="'+esc(p.title)+'" style="flex:1;min-width:0;margin:0;padding:6px 8px" onchange="ostMajPiste(\''+p.id+'\',{title:this.value.trim()||\'Untitled\'},true)"/>'
+    +'<span style="font-size:.75rem;color:var(--text-dim);width:36px">'+ostDuree(p.duration)+'</span>'
+    +'<button class="btn" style="padding:6px 9px;font-size:.75rem;background:var(--bg);color:var(--text)" title="Écouter" onclick="ostEcouter(this,\''+esc(p.url)+'\')">▶</button>'
+    +'<button class="btn" style="padding:6px 9px;font-size:.75rem;background:var(--bg);color:var(--text)" title="Monter" '+(i?'':'disabled')+' onclick="ostDeplacer('+i+',-1)">▲</button>'
+    +'<button class="btn" style="padding:6px 9px;font-size:.75rem;background:var(--bg);color:var(--text)" title="Descendre" '+(i<_ost.pistes.length-1?'':'disabled')+' onclick="ostDeplacer('+i+',1)">▼</button>'
+    +'<button class="btn" style="padding:6px 9px;font-size:.75rem;background:var(--bg);color:var(--text)" title="Retirer de l’album" onclick="ostSupprPiste(\''+p.id+'\')">🗑️</button></div>').join('');
+}
+async function ostMajPiste(id,patch,silencieux){
+  const {error}=await sb.from('ost_tracks').update(patch).eq('id',id);
+  if(error){showMsg('ost-msgbox',error.message,false);return;}
+  if(silencieux){ const p=_ost.pistes.find(x=>x.id===id); if(p) Object.assign(p,patch); showMsg('ost-msgbox','Titre enregistré ✓',true); return; }
+  ostChargerPistes();
+}
+async function ostDeplacer(i,d){
+  const L=_ost.pistes.slice(), j=i+d; if(j<0||j>=L.length) return;
+  [L[i],L[j]]=[L[j],L[i]];
+  const maj=L.map((p,k)=>({id:p.id,ordre:k+1})).filter((x,k)=>L[k].ordre!==x.ordre);
+  for(const m of maj){ const {error}=await sb.from('ost_tracks').update({ordre:m.ordre}).eq('id',m.id); if(error){showMsg('ost-msgbox',error.message,false);break;} }
+  ostChargerPistes();
+}
+async function ostSupprPiste(id){
+  if(!confirm('Retirer ce morceau de l’album ? (le fichier reste sur Cloudinary)')) return;
+  const {error}=await sb.from('ost_tracks').delete().eq('id',id);
+  if(error){showMsg('ost-msgbox',error.message,false);return;}
+  ostChargerPistes();
+}
+function ostEcouter(btn,url){
+  const a=window._ostAudio||(window._ostAudio=new Audio());
+  document.querySelectorAll('#ost-pistes button[title="Écouter"]').forEach(b=>{ if(b!==btn) b.textContent='▶'; });
+  if(a.src===url&&!a.paused){ a.pause(); btn.textContent='▶'; return; }
+  if(a.src!==url) a.src=url;
+  a.play().then(()=>btn.textContent='⏸').catch(e=>showMsg('ost-msgbox',e.message,false));
+  a.onended=()=>btn.textContent='▶';
 }
 // === Projet Sauvegarde (page ranger-rumble.html) ======================
 // Tables sauvegarde_etapes et sauvegarde_medias, lues par la page publique.
