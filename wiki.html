@@ -219,6 +219,15 @@ a{color:inherit;text-decoration:none}
 .char-modal.open{display:flex}
 .cd-inner{position:relative;max-width:760px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:20px;overflow:hidden;max-height:90vh;overflow-y:auto;display:block}
 .cd-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.5);border:none;color:#fff;width:36px;height:36px;border-radius:10px;font-size:1.1rem;cursor:pointer;z-index:3}
+/* Fiches : croix toujours visible, onglets colles en haut, hauteur stable entre onglets */
+.char-modal .cd-inner{min-height:min(86vh,780px);overscroll-behavior:contain}
+.char-modal .cd-close{position:sticky;top:12px;float:right;margin:12px 12px -48px 0;z-index:6;background:rgba(0,0,0,.65);backdrop-filter:blur(4px)}
+.char-modal .rd-tabs,.char-modal #cd-tabs{position:sticky;top:0;z-index:5;background:var(--bg2);padding-right:60px}
+@media(max-width:640px){
+  .char-modal{padding:0;align-items:stretch}
+  .char-modal .cd-inner{max-height:100dvh;min-height:100dvh;border-radius:0;border:0}
+  .char-modal .vh-bigbay{height:240px;padding-top:40px;box-sizing:border-box;border-radius:0}
+}
 .cd-top{display:grid;grid-template-columns:230px 1fr;gap:0}
 /* Themes des baies : --g = halo, --l = grille */
 .vh{position:relative}
@@ -305,6 +314,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
 @media(max-width:820px){.nav-links{display:flex;overflow-x:auto;gap:2px;-webkit-overflow-scrolling:touch;max-width:60vw}.nav-burger{display:none}.chars{grid-template-columns:1fr 1fr}.lore{grid-template-columns:1fr}}
 @media(max-width:520px){.chars{grid-template-columns:1fr 1fr}.game{grid-template-columns:64px 1fr;gap:12px}}
 .vh .tag,.vh-bigbay .tag{border-color:rgba(var(--g),.5);color:rgb(var(--g))}
+.nav-links a.active{color:#fff;background:rgba(255,138,42,.16);box-shadow:inset 0 -2px 0 #FF8A2A}
 </style>
 </head>
 <body>
@@ -313,11 +323,13 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   <a href="index.html" class="nav-logo"><span class="mark">🔧</span> RATCHET LEGACY</a>
   <div class="nav-links">
     <a href="index.html">Home</a>
-    <a href="wiki.html" class="active">Wiki</a>
+    <a href="wiki.html" class="active" aria-current="page">Wiki</a>
     <a href="map.html">Map</a>
     <a href="arcade.html">Arcade</a>
     <a href="story.html">Story</a>
     <a href="news.html">News</a>
+    <a href="arena.html" style="color:#FF4D6A">🎮 Rumble Arena</a>
+    <a href="preservation.html">Preservation</a>
     <a href="database.html">Megacorp Vault</a>
     <a href="guides.html">Guides</a>
     <a href="trades.html">Trades</a>
@@ -327,6 +339,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
   </div>
   <button class="nav-burger" onclick="document.querySelector('.nav-links').style.display='flex';this.style.display='none'">☰</button>
 </nav>
+<script id="rc-nav-active">(function(){var a=document.querySelector(".nav-links a.active"),n=a&&a.parentNode;if(n&&n.scrollWidth>n.clientWidth)n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.offsetWidth/2;})();</script>
 
 <header class="page-hero">
   <div class="tag">THE UNIVERSE</div>
@@ -354,6 +367,7 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <div class="wiki-hub-card" id="hub-trivia" onclick="showWikiSection('trivia')"><span class="wh-ic">💡</span><h3>Did you know?</h3><p>Fun facts &amp; secrets</p></div>
     <div class="wiki-hub-card" id="hub-vehicles" onclick="showWikiSection('vehicles')"><span class="wh-ic">🚀</span><h3>Vehicles</h3><p>Ships &amp; rides</p></div>
     <div class="wiki-hub-card" id="hub-lore" onclick="showWikiSection('lore')"><span class="wh-ic">📖</span><h3>Lore &amp; History</h3><p>The story of the series</p></div>
+    <div class="wiki-hub-card" id="hub-ost" onclick="showWikiSection('ost')" style="display:none"><span class="wh-ic">🎵</span><h3>Soundtracks</h3><p>Listen to the music of the series</p></div>
   </div>
 
   <button class="wiki-back" id="wiki-back" style="display:none" onclick="showWikiHub()">← All sections</button>
@@ -457,6 +471,13 @@ footer{border-top:1px solid var(--line);padding:40px 24px;text-align:center;colo
     <div class="chars" id="vehicles-grid"><div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-dim)">Loading…</div></div>
   </section>
 
+  <!-- SOUNDTRACKS -->
+  <section class="sec" id="ost">
+    <div class="sec-title"><span class="em">🎵</span> Soundtracks</div>
+    <div class="sec-sub">The music of the series, album by album. Pick an album and press play: the music keeps going while you browse the wiki.</div>
+    <div id="ost-root"><div style="text-align:center;padding:30px;color:var(--text-dim)">Loading…</div></div>
+  </section>
+
   <a href="index.html" class="back-home">← Back to home</a>
 </div>
 
@@ -511,7 +532,7 @@ function openChar(i){
   const rows=[
     ['Species',c.species],['Height',c.height],['Age',c.age],['Homeworld',c.homeworld],
     ['First appearance',c.first_appearance],['Weapons / Gadgets',c.weapons],['Voice actor',c.voice_actor]
-  ].filter(r=>r[1]&&r[1].trim());
+  ].filter(r=>r[1]&&r[1].trim()&&!/^(unknown|inconnu|n\/a|\?|-)$/i.test(r[1].trim()));
   const stats=rows.map(r=>`<div class="cd-row"><span class="cd-k">${r[0]}</span><span class="cd-v" data-al>${esc(r[1])}</span></div>`).join('');
   document.getElementById('cd-body').innerHTML=`
     <div class="cd-top vh-top">
@@ -525,7 +546,8 @@ function openChar(i){
       </div>
     </div>
     <div id="cd-tabs"></div><div id="cd-pane"></div>`;
-  const cOver=`${c.quote?`<div class="cd-quote" style="margin-top:0">“${esc(c.quote)}”</div>`:''}${c.description?`<p class="cd-desc">${esc(c.description)}</p>`:''}`;
+  const cQ=String(c.quote||'').trim().replace(/^["“”«\s]+|["“”»\s]+$/g,''), cQok=cQ&&!/^(unknown|inconnu|n\/a|-)$/i.test(cQ);
+  const cOver=`${cQok?`<div class="cd-quote" style="margin-top:0">“${esc(cQ)}”</div>`:''}${c.description?`<p class="cd-desc">${esc(c.description)}</p>`:''}`;
   const cFirst={key:'over',label:'📖 Overview',html:cOver||'<div class="rd-empty">No description yet.</div>'};
   if(window.RCD&&RCD.charTabs) RCD.charTabs(sb,c,document.getElementById('cd-tabs'),document.getElementById('cd-pane'),cFirst);
   else document.getElementById('cd-pane').innerHTML='<div class="cd-below">'+cOver+'</div>';
@@ -698,7 +720,7 @@ loadLore();
 // Open a section directly if the URL has a hash (e.g. wiki.html#lore)
 (function(){
   const hash=(location.hash||'').replace('#','');
-  const valid=['games','characters','weapons','creatures','enemies','bosses','planets','vehicles','lore','trivia'];
+  const valid=['games','characters','weapons','creatures','enemies','bosses','planets','vehicles','lore','trivia','ost'];
   if(valid.includes(hash)){
     // wait a tick so the DOM/functions are ready
     setTimeout(()=>{ if(typeof showWikiSection==='function') showWikiSection(hash); }, 60);
@@ -733,19 +755,30 @@ function applyGameFilter(sec,g){
 }
 
 // ── Wiki hub navigation ──
-function showWikiSection(id){
+// Chaque section ouverte ajoute une étape dans l'historique : le bouton
+// Retour ramène au sommaire du wiki au lieu de quitter la page.
+const WIKI_SECS=['games','characters','weapons','creatures','enemies','bosses','planets','vehicles','lore','trivia','ost'];
+function showWikiSection(id,fromPop){
   document.getElementById('wiki-hub').style.display='none';
   document.getElementById('wiki-back').style.display='inline-flex';
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   const sec=document.getElementById(id); if(sec) sec.classList.add('active');
+  if(!fromPop && location.hash!=='#'+id) history.pushState({wiki:id},'','#'+id);
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function showWikiHub(){
+function showWikiHub(fromPop){
+  // bouton « All sections » : même effet que Retour quand on vient du sommaire
+  if(fromPop!==true && history.state && history.state.wiki){ history.back(); return; }
   document.getElementById('wiki-hub').style.display='grid';
   document.getElementById('wiki-back').style.display='none';
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  if(fromPop!==true && location.hash) history.replaceState(null,'',location.pathname+location.search);
   window.scrollTo({top:0,behavior:'smooth'});
 }
+window.addEventListener('popstate',()=>{
+  const h=(location.hash||'').replace('#','');
+  if(WIKI_SECS.includes(h)) showWikiSection(h,true); else if(!/^(entry|char|game)=/.test(decodeURIComponent(h))) showWikiHub(true);
+});
 
 // ── Wiki entries (weapons, creatures, planets, vehicles) ──
 async function loadWikiEntries(){
@@ -824,7 +857,7 @@ function openEntry(i){
   const rows=[
     ['Galaxy',e.galaxy],['Dimension',e.dimension],['Main location',e.main_location],
     ['Inhabitants',e.inhabitants],['First appearance',e.first_appearance]
-  ].filter(r=>r[1]&&r[1].trim());
+  ].filter(r=>r[1]&&r[1].trim()&&!/^(unknown|inconnu|n\/a|\?|-)$/i.test(r[1].trim()));
   const stats=rows.map(r=>`<div class="cd-row"><span class="cd-k">${r[0]}</span><span class="cd-v" data-al>${esc(r[1])}</span></div>`).join('');
   const chips=(label,val,ic)=>{
     if(!val||!val.trim()) return '';
@@ -974,7 +1007,7 @@ async function loadHubImages(){
   try{
     const {data}=await sb.from('site_settings').select('key,value');
     const S={}; (data||[]).forEach(r=>{ S[r.key]=r.value; });
-    const map={games:'wiki_img_games',characters:'wiki_img_characters',weapons:'wiki_img_weapons',creatures:'wiki_img_creatures',bosses:'wiki_img_bosses',enemies:'wiki_img_enemies',trivia:'wiki_img_trivia',planets:'wiki_img_planets',vehicles:'wiki_img_vehicles',lore:'wiki_img_lore'};
+    const map={games:'wiki_img_games',characters:'wiki_img_characters',weapons:'wiki_img_weapons',creatures:'wiki_img_creatures',bosses:'wiki_img_bosses',enemies:'wiki_img_enemies',trivia:'wiki_img_trivia',planets:'wiki_img_planets',vehicles:'wiki_img_vehicles',lore:'wiki_img_lore',ost:'wiki_img_ost'};
     Object.keys(map).forEach(k=>{
       const url=S[map[k]];
       const card=document.getElementById('hub-'+k);
@@ -1121,6 +1154,7 @@ window.addEventListener('DOMContentLoaded',()=>{ if(window.RCD) RCD.onOpen=openB
 </div>
 
 <script src="details-tabs.js?v=23"></script>
+<script src="ost-player.js?v=1"></script>
 <script src="site-enhance.js"></script>
 <!-- ENTRY DETAIL MODAL -->
 <div class="cmp-tray" id="cmp-tray"></div>
