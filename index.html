@@ -217,6 +217,9 @@ footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;colo
 .mile-go{margin-top:22px;border:none;border-radius:100px;padding:12px 28px;font-weight:700;font-family:Inter,sans-serif;font-size:.9rem;cursor:pointer;color:#120c02;background:linear-gradient(135deg,var(--gold),var(--orange));opacity:0;animation:mileUp .6s 2.4s forwards}
 .mile-bolt{position:absolute;z-index:1;top:-40px;width:22px;height:22px;pointer-events:none;animation:mileFall linear forwards}
 @keyframes mileFall{to{transform:translateY(115vh) rotate(720deg)}}
+.fx-snd{position:absolute;top:14px;right:14px;z-index:5;border:1px solid rgba(255,200,90,.45);background:rgba(10,8,24,.7);color:#FFE2A0;border-radius:100px;padding:8px 14px;font:600 .8rem Inter,sans-serif;cursor:pointer;backdrop-filter:blur(6px)}
+.fx-snd.ask{animation:fxPulse 1.4s ease-in-out infinite}
+@keyframes fxPulse{50%{box-shadow:0 0 0 6px rgba(255,200,90,.18)}}
 .visitor .vgift{display:inline-block;margin-left:6px;color:var(--gold)}
 /* Compteur de visiteurs : masque tant que le chiffre n'est pas
    arrive, pour ne pas faire sauter la mise en page. */
@@ -654,6 +657,81 @@ for(let i=0;i<70;i++){
     document.getElementById('fod-n').onclick=()=>{ let j=i; if(data.length>1) while(j===i) j=Math.floor(Math.random()*data.length); i=j; show(); };
   },()=>{});
 
+  // Sons des animations, fabriques par le navigateur (Web Audio) : pas de
+  // fichier a charger. Les navigateurs bloquent le son tant que le visiteur
+  // n'a pas touche la page : dans ce cas un bouton "Tap for sound" apparait
+  // et le son demarre au premier toucher. Le bouton coupe/remet le son.
+  const FX=(()=>{
+    let ac=null, master=null, muted=false;
+    try{ muted=localStorage.getItem('rl_fx_mute')==='1'; }catch(e){}
+    function ctx(){
+      if(ac) return ac;
+      const C=window.AudioContext||window.webkitAudioContext; if(!C) return null;
+      ac=new C(); master=ac.createGain(); master.gain.value=muted?0:.55; master.connect(ac.destination); return ac;
+    }
+    function tone(f,t,d,type,vol,f2){
+      const o=ac.createOscillator(), g=ac.createGain();
+      o.type=type||'sine'; o.frequency.setValueAtTime(f,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+d);
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol||.2,t+.015); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t+d+.05);
+    }
+    function noise(t,d,vol,from,to){
+      const n=ac.createBuffer(1,Math.floor(ac.sampleRate*d),ac.sampleRate), a=n.getChannelData(0);
+      for(let i=0;i<a.length;i++) a[i]=Math.random()*2-1;
+      const s=ac.createBufferSource(), f=ac.createBiquadFilter(), g=ac.createGain();
+      s.buffer=n; f.type='bandpass'; f.Q.value=1.2; f.frequency.setValueAtTime(from,t); f.frequency.exponentialRampToValueAtTime(to,t+d);
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+d*.7); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+      s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t+d);
+    }
+    const clink=(t,v)=>{ const f=1800+Math.random()*1600; tone(f,t,.18,'triangle',.05*v); tone(f*2.7,t,.09,'sine',.025*v); };
+    const chord=(t,fs,d,type,vol)=>fs.forEach((f,i)=>tone(f,t+i*.012,d,type,vol));
+    const S={
+      milestone(big){
+        const t=ac.currentTime+.05;
+        noise(t,.55,.18,300,4000);                                       // montee
+        chord(t+.4,[523.25,659.25,783.99],.9,'triangle',.13);           // ta-da sur le chiffre
+        chord(t+.4,[261.63,392],1.2,'sawtooth',.035);
+        [523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=>tone(f,t+1.0+i*.09,.35,'square',.045)); // arpege sur la phrase
+        chord(t+1.85,[1046.5,1318.5,1567.98],1.4,'sine',.08);          // cadeau
+        [2093,2637,3136].forEach((f,i)=>tone(f,t+1.9+i*.07,.5,'sine',.04));
+        if(big){ chord(t+.4,[130.81,196],1.6,'sawtooth',.05); [1567.98,2093,2637,3136,4186].forEach((f,i)=>tone(f,t+2.4+i*.08,.6,'triangle',.04)); }
+        const nb=big?26:16; for(let i=0;i<nb;i++) clink(t+.6+Math.random()*3.2,.6+Math.random()*.6); // boulons qui tombent
+      },
+      creator(){
+        const t=ac.currentTime+.05;
+        tone(110,t,.5,'sine',.25,55);                                     // la couronne tombe
+        [392,523.25,659.25,783.99].forEach((f,i)=>tone(f,t+.25+i*.11,.5,'triangle',.09)); // fanfare
+        chord(t+.7,[523.25,659.25,783.99,1046.5],1.6,'sine',.07);
+        for(let i=0;i<18;i++) tone(2600+Math.random()*2200,t+.7+Math.random()*.9,.25,'sine',.025); // etincelles
+        for(let i=0;i<16;i++) tone(900+i*40,t+1.15+i*.1,.04,'square',.025); // compteurs
+      },
+      close(){ const t=ac.currentTime; tone(880,t,.12,'triangle',.08,1320); }
+    };
+    function play(name,arg){
+      if(muted) return;
+      const c=ctx(); if(!c) return;
+      const go=()=>{ try{ S[name](arg); }catch(e){} };
+      if(c.state==='running') return go();
+      c.resume().then(()=>{ if(c.state==='running') go(); }).catch(()=>{});
+    }
+    // bouton son sur un ecran d'animation : demarre le son si le navigateur l'a bloque
+    function button(ov,name,arg){
+      const b=document.createElement('button'); b.type='button'; b.className='fx-snd';
+      const lab=()=>{ b.textContent=muted?'🔇 Sound off':(ac&&ac.state==='running'?'🔊 Sound on':'🔊 Tap for sound'); b.classList.toggle('ask',!muted&&!(ac&&ac.state==='running')); };
+      b.onclick=e=>{ e.stopPropagation();
+        const c=ctx(); if(!c) return;
+        if(!muted && c.state!=='running'){ c.resume().then(()=>{ S[name](arg); lab(); }); return; }
+        muted=!muted; try{ localStorage.setItem('rl_fx_mute',muted?'1':'0'); }catch(e){}
+        master.gain.value=muted?0:.55; lab(); };
+      ov.appendChild(b); play(name,arg); setTimeout(lab,250); lab();
+      // premier toucher n'importe ou sur l'ecran : on lance le son s'il etait bloque
+      const first=()=>{ ov.removeEventListener('pointerdown',first,true);
+        const c=ctx(); if(c&&!muted&&c.state!=='running') c.resume().then(()=>{ S[name](arg); lab(); }); };
+      ov.addEventListener('pointerdown',first,true);
+    }
+    return {play,button};
+  })();
+
   // Paliers : le 100e, 200e, 300e... visiteur a droit a une animation,
   // et chaque centaine cache une recompense differente.
   const GIFTS=[
@@ -675,11 +753,12 @@ for(let i=0;i<70;i++){
       +'<div class="mile-kick">'+(big?'LEGENDARY MILESTONE':'MILESTONE VISITOR')+'</div>'
       +'<div class="mile-num">'+nb(n)+'</div>'
       +'<div class="mile-t">You are the '+ordinal(n)+' Lombax to visit the Legacy!</div>'
-      +'<div class="mile-s">Only one visitor in a hundred gets to see this screen. Welcome aboard.</div>'
+      +'<div class="mile-s">Out of '+nb(n)+' visitors, you are the only one to see this screen. Welcome aboard.</div>'
       +'<div class="mile-gift"><span class="ic">'+g[0]+'</span><span><em>REWARD #'+k+'</em><b>'+g[1]+'</b><small>'+g[2]+'</small></span></div>'
       +'<button class="mile-go" type="button">Enter the Legacy</button></div>';
     document.body.appendChild(ov);
     requestAnimationFrame(()=>ov.classList.add('on'));
+    FX.button(ov,'milestone',big);
     const BOLT='<svg viewBox="0 0 24 24"><path d="M12 1.5 21.1 6.75V17.25L12 22.5 2.9 17.25V6.75Z" fill="#FFC85A" stroke="#C8862A" stroke-width="1.2"/><circle cx="12" cy="12" r="4.2" fill="#0b0a1a" stroke="#FF8A3D" stroke-width="1.4"/></svg>';
     const count=big?70:40;
     for(let i=0;i<count;i++){
@@ -688,7 +767,7 @@ for(let i=0;i<70;i++){
       b.style.animationDuration=(2.6+Math.random()*3)+'s'; b.style.animationDelay=(0.3+Math.random()*2.2)+'s';
       ov.appendChild(b);
     }
-    const close=()=>{ ov.classList.remove('on'); setTimeout(()=>ov.remove(),500); };
+    const close=()=>{ FX.play('close'); ov.classList.remove('on'); setTimeout(()=>ov.remove(),500); };
     ov.querySelector('.mile-go').onclick=close;
     ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
     return g;
@@ -759,6 +838,7 @@ for(let i=0;i<70;i++){
       +'</div>';
     document.body.appendChild(ov);
     requestAnimationFrame(()=>{ ov.classList.add('on'); ov.querySelector('.cr-bar span').style.width=pct+'%'; });
+    FX.button(ov,'creator');
     // compteurs qui defilent
     ov.querySelectorAll('[data-to]').forEach((b,k)=>{
       const to=+b.dataset.to, t0=performance.now()+1100+k*150, dur=1300;
@@ -771,7 +851,7 @@ for(let i=0;i<70;i++){
       const a=Math.random()*Math.PI*2, r=120+Math.random()*260;
       sp.style.left='50%'; sp.style.top='70px'; sp.style.setProperty('--dx',Math.cos(a)*r+'px'); sp.style.setProperty('--dy',Math.sin(a)*r+'px');
       sp.style.animationDelay=(0.6+Math.random()*0.8)+'s'; box.appendChild(sp); }
-    const close=()=>{ ov.classList.remove('on'); setTimeout(()=>ov.remove(),500); };
+    const close=()=>{ FX.play('close'); ov.classList.remove('on'); setTimeout(()=>ov.remove(),500); };
     ov.querySelector('.cr-btns button').onclick=close;
   }
   try{ const fc=new URLSearchParams(location.search).get('creator'); creatorWelcome(fc==='1').catch(()=>{}); }catch(e){}
